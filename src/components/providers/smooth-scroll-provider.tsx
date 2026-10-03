@@ -1,8 +1,9 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import Lenis from "lenis";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { useLanguage } from "@/components/providers/language-provider";
 
 const LenisContext = createContext<Lenis | null>(null);
 
@@ -14,6 +15,8 @@ interface SmoothScrollProviderProps {
 
 export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
   const [lenis, setLenis] = useState<Lenis | null>(null);
+  const { locale } = useLanguage();
+  const isMounted = useRef(false);
 
   useEffect(() => {
     const lenisInstance = new Lenis({
@@ -44,6 +47,27 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       setLenis(null);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
+    if (!lenis) return;
+
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => {
+        ScrollTrigger.refresh();
+        lenis.resize();
+      });
+    });
+
+    return () => {
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
+  }, [locale, lenis]);
 
   return (
     <LenisContext.Provider value={lenis}>

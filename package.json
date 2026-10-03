@@ -10,7 +10,8 @@
     "playwright:browser": "node .tools/playwright-browser/open-playwright.js --url=http://localhost:3000",
     "audit": "node .tools/audit/interactive-audit-selector.js",
     "audit:auto": "node .agents/skills/ai-audit-framework/scripts/audit-runner.mjs",
-    "tasks:run": "node .agents/skills/todo-runner/scripts/task-runner.mjs"
+    "tasks:run": "node .agents/skills/todo-runner/scripts/task-runner.mjs",
+    "frames:extract": "node scripts/extract-frames.js"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -33,6 +34,7 @@
     "tailwind-merge": "^3.0.1"
   },
   "devDependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@types/node": "^22.13.4",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Montserrat } from "next/font/google";
 import "lenis/dist/lenis.css";
 import "./globals.css";
 import { SmoothScrollProvider } from "@/components/providers/smooth-scroll-provider";
+import { LanguageProvider } from "@/components/providers/language-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +34,9 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} font-sans antialiased bg-[#F8F9FB] text-[#1A1F25]`}>
-        <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        <LanguageProvider>
+          <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
