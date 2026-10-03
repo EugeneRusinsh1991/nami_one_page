@@ -37,7 +37,7 @@ function getSectionTop(id: string): number | null {
 function getHandoffZones(pins: Record<string, { start: number; end: number }>): ScrollZone[] {
   const { hero, technique } = pins;
   const worksTop = getSectionTop("works");
-  const handoffs: Array<[number | undefined, number | null | undefined]> = [
+  const handoffs: Array<[number | null | undefined, number | null | undefined]> = [
     [hero?.end, getPhilosophyEntry()],
     [technique && technique.start - window.innerHeight, technique?.start],
     [technique?.end, worksTop],
