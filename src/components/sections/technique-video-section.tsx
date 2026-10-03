@@ -55,11 +55,11 @@ export function TechniqueVideoSection() {
   );
 
   return (
-    <section ref={containerRef} id="technique" className="relative h-screen min-h-[100dvh] w-full overflow-hidden bg-brand-surface">
+    <section ref={containerRef} id="technique" className="relative h-dvh min-h-dvh w-full overflow-hidden bg-brand-surface">
       <canvas ref={canvasRef} className="tech-video absolute inset-0 h-full w-full" />
       <div className="absolute inset-0 bg-gradient-to-r from-brand-bg/85 via-brand-bg/30 to-transparent" />
 
-      <div className="relative z-10 mx-auto flex h-full max-w-6xl items-center px-6">
+      <div className="relative z-10 mx-auto flex h-full max-w-6xl items-start px-6 safe-offset-mobile md:items-center">
         <div className="relative h-72 w-full max-w-md">
           <Badge className="absolute -top-14 left-0 rounded-full border border-brand-border/40 bg-white/60 font-mono text-[11px] font-normal uppercase tracking-[0.25em] text-brand-text backdrop-blur-md hover:bg-white/60">
             {t.tech.label}

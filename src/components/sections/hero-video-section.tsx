@@ -104,7 +104,7 @@ export function HeroVideoSection() {
       <div className="absolute inset-0 bg-gradient-to-b from-brand-bg/80 via-brand-bg/30 to-brand-bg/90" />
 
       {/* Slide 1 (Initial / Branding / CTAs) */}
-      <div className="hero-slide hero-slide-0 absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-center px-6 text-center">
+      <div className="hero-slide hero-slide-0 absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center">
         <Badge className="hero-badge mb-8 rounded-full border border-brand-border/40 bg-white/60 px-4 py-1.5 font-mono text-[11px] font-normal uppercase tracking-[0.25em] text-brand-text backdrop-blur-md hover:bg-white/60">
           {slides[0].badge}
         </Badge>
@@ -144,7 +144,7 @@ export function HeroVideoSection() {
 
       {/* Slide 2 (Craftsmanship & Precision) */}
       {slides[1] && (
-        <div className="hero-slide hero-slide-1 pointer-events-none absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-center px-6 text-center opacity-0">
+        <div className="hero-slide hero-slide-1 pointer-events-none absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center opacity-0">
           <Badge className="mb-8 rounded-full border border-brand-border/40 bg-white/60 px-4 py-1.5 font-mono text-[11px] font-normal uppercase tracking-[0.25em] text-brand-text backdrop-blur-md hover:bg-white/60">
             {slides[1].badge}
           </Badge>
@@ -159,7 +159,7 @@ export function HeroVideoSection() {
 
       {/* Slide 3 (Longevity & Natural Aesthetics) */}
       {slides[2] && (
-        <div className="hero-slide hero-slide-2 pointer-events-none absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-center px-6 text-center opacity-0">
+        <div className="hero-slide hero-slide-2 pointer-events-none absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center opacity-0">
           <Badge className="mb-8 rounded-full border border-brand-border/40 bg-white/60 px-4 py-1.5 font-mono text-[11px] font-normal uppercase tracking-[0.25em] text-brand-text backdrop-blur-md hover:bg-white/60">
             {slides[2].badge}
           </Badge>

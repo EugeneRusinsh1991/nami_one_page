@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef } from "react";
-import { gsap, useGSAP } from "@/lib/gsap";
+import { useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/components/providers/language-provider";
@@ -22,88 +21,100 @@ export function PortfolioSliderSection() {
   const trackRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
 
-  useGSAP(
-    () => {
-      const track = trackRef.current;
-      if (!track) return;
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const bar = containerRef.current?.querySelector<HTMLElement>(".port-bar");
+    const cards = Array.from(track.querySelectorAll<HTMLElement>(".port-card"));
+    let raf = 0;
 
-      const getDistance = () => Math.max(0, track.scrollWidth - window.innerWidth);
+    const update = () => {
+      raf = 0;
+      const max = track.scrollWidth - track.clientWidth;
+      if (bar) bar.style.transform = `scaleX(${max > 0 ? Math.min(1, track.scrollLeft / max) : 0})`;
 
-      const updateActiveCard = () => {
-        const isMobileOrTablet = window.matchMedia("(hover: none), (pointer: coarse), (max-width: 1023px)").matches;
-        const cards = Array.from(track.querySelectorAll<HTMLElement>(".port-card"));
-
-        if (!isMobileOrTablet) {
-          cards.forEach((card) => {
-            if (card.dataset.active === "true") card.dataset.active = "false";
-          });
-          return;
-        }
-
-        const viewportCenter = window.innerWidth / 2;
-        let closestCard: HTMLElement | null = null;
-        let minDiff = Infinity;
-
+      const isMobileOrTablet = window.matchMedia("(hover: none), (pointer: coarse), (max-width: 1023px)").matches;
+      const center = window.innerWidth / 2;
+      let closest: HTMLElement | null = null;
+      let minDiff = Infinity;
+      if (isMobileOrTablet) {
         cards.forEach((card) => {
           const rect = card.getBoundingClientRect();
-          const cardCenter = rect.left + rect.width / 2;
-          const diff = Math.abs(cardCenter - viewportCenter);
+          const diff = Math.abs(rect.left + rect.width / 2 - center);
           if (diff < minDiff) {
             minDiff = diff;
-            closestCard = card;
+            closest = card;
           }
         });
-
-        cards.forEach((card) => {
-          const shouldBeActive = card === closestCard;
-          if ((card.dataset.active === "true") !== shouldBeActive) {
-            card.dataset.active = shouldBeActive ? "true" : "false";
-          }
-        });
-      };
-
-      const tween = gsap.to(track, {
-        x: () => -getDistance(),
-        ease: "none",
-        onUpdate: updateActiveCard,
-        scrollTrigger: {
-          trigger: containerRef.current,
-          start: "top top",
-          end: () => `+=${getDistance()}`,
-          pin: true,
-          scrub: true,
-          invalidateOnRefresh: true,
-          onUpdate: updateActiveCard,
-          onRefresh: updateActiveCard,
-        },
+      }
+      cards.forEach((card) => {
+        const active = card === closest ? "true" : "false";
+        if (card.dataset.active !== active) card.dataset.active = active;
       });
+    };
 
-      updateActiveCard();
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
 
-      gsap.utils.toArray<HTMLElement>(".port-img").forEach((img) => {
-        gsap.fromTo(
-          img,
-          { xPercent: -5 },
-          {
-            xPercent: 5,
-            ease: "none",
-            scrollTrigger: { trigger: img, containerAnimation: tween, start: "left right", end: "right left", scrub: true },
-          }
-        );
-      });
+    let dragging = false;
+    let moved = false;
+    let startX = 0;
+    let startLeft = 0;
 
-      gsap.to(".port-bar", {
-        scaleX: 1,
-        ease: "none",
-        scrollTrigger: { trigger: containerRef.current, start: "top top", end: () => `+=${getDistance()}`, scrub: true },
-      });
-    },
-    { scope: containerRef, dependencies: [t], revertOnUpdate: true }
-  );
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      dragging = true;
+      moved = false;
+      startX = e.clientX;
+      startLeft = track.scrollLeft;
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      if (!moved && Math.abs(dx) > 4) {
+        moved = true;
+        track.style.scrollSnapType = "none";
+      }
+      if (moved) track.scrollLeft = startLeft - dx;
+    };
+    const onUp = () => {
+      if (!dragging) return;
+      dragging = false;
+      track.style.scrollSnapType = "";
+    };
+    const onClick = (e: MouseEvent) => {
+      if (moved) {
+        e.preventDefault();
+        e.stopPropagation();
+        moved = false;
+      }
+    };
+
+    track.addEventListener("scroll", schedule, { passive: true });
+    track.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    track.addEventListener("click", onClick, true);
+    window.addEventListener("resize", schedule);
+    update();
+
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      track.removeEventListener("scroll", schedule);
+      track.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      track.removeEventListener("click", onClick, true);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [t]);
 
   return (
-    <section ref={containerRef} id="works" className="relative h-screen overflow-hidden bg-brand-bg">
-      <div className="absolute inset-x-0 top-24 z-10 mx-auto flex max-w-6xl items-end justify-between px-6">
+    <section ref={containerRef} id="works" className="relative h-dvh overflow-hidden bg-brand-bg">
+      <div className="absolute inset-x-0 top-[calc(5rem+env(safe-area-inset-top,0px))] z-10 md:top-24 mx-auto flex max-w-6xl items-end justify-between px-6">
         <div>
           <Badge variant="outline" className="mb-4 border-brand-border/50 font-mono text-[11px] font-normal uppercase tracking-[0.25em] text-brand-border">
             {t.port.label}
@@ -112,17 +123,21 @@ export function PortfolioSliderSection() {
         </div>
       </div>
 
-      <div ref={trackRef} className="flex h-full w-max items-end gap-8 px-[8vw] pb-24 pt-52">
+      <div
+        ref={trackRef}
+        className="flex h-full w-full cursor-grab touch-pan-x touch-pan-y snap-x snap-mandatory items-end gap-8 overflow-x-auto overflow-y-hidden overscroll-x-contain px-[8vw] pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-52 [scrollbar-width:none] active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
+      >
         {t.port.cases.map((item, i) => (
           <Card
             key={item.t}
-            className="port-card group relative h-full w-[78vw] max-w-[520px] shrink-0 overflow-hidden rounded-3xl border-brand-border/20 bg-brand-surface shadow-lg transition-shadow duration-500 hover:shadow-2xl data-[active=true]:shadow-2xl"
+            className="port-card group relative h-full w-[78vw] max-w-[520px] shrink-0 snap-center overflow-hidden rounded-3xl border-brand-border/20 bg-brand-surface shadow-lg transition-shadow duration-500 hover:shadow-2xl data-[active=true]:shadow-2xl"
           >
             <div className="absolute inset-0 overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={IMAGES[i % IMAGES.length]}
                 alt={item.t}
+                draggable={false}
                 className="port-img absolute inset-y-0 -left-[8%] h-full w-[116%] max-w-none object-cover grayscale transition-all duration-700 group-hover:scale-105 group-hover:grayscale-0 group-data-[active=true]:scale-105 group-data-[active=true]:grayscale-0"
               />
             </div>
@@ -145,7 +160,7 @@ export function PortfolioSliderSection() {
       </div>
 
       <div className="absolute inset-x-6 bottom-8 mx-auto h-px max-w-6xl bg-brand-elevated">
-        <div className="port-bar h-full origin-left scale-x-0 bg-brand-text" />
+        <div className="port-bar h-full origin-left bg-brand-text" style={{ transform: "scaleX(0)" }} />
       </div>
     </section>
   );

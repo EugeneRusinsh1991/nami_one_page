@@ -21,17 +21,6 @@ function dedupe(points: number[]): number[] {
   return merged;
 }
 
-function getWorksPoints(trigger: HTMLElement, start: number): number[] {
-  const track = trigger.querySelector<HTMLElement>("[class*='w-max']");
-  const cards = trigger.querySelectorAll<HTMLElement>(".port-card");
-  if (!track || cards.length === 0) return [start];
-  const maxX = Math.max(0, track.scrollWidth - window.innerWidth);
-  return Array.from(cards).map((card) => {
-    const center = card.offsetLeft + card.offsetWidth / 2;
-    return start + Math.max(0, Math.min(maxX, center - window.innerWidth / 2));
-  });
-}
-
 const PHILO_HEAD_OFFSET = 96;
 
 function getPhilosophyEntry(): number | null {
@@ -40,12 +29,19 @@ function getPhilosophyEntry(): number | null {
   return Math.round(head.getBoundingClientRect().top + window.scrollY - PHILO_HEAD_OFFSET);
 }
 
+function getSectionTop(id: string): number | null {
+  const el = document.getElementById(id);
+  return el ? Math.round(el.getBoundingClientRect().top + window.scrollY) : null;
+}
+
 function getHandoffZones(pins: Record<string, { start: number; end: number }>): ScrollZone[] {
-  const { hero, technique, works } = pins;
+  const { hero, technique } = pins;
+  const worksTop = getSectionTop("works");
   const handoffs: Array<[number | undefined, number | null | undefined]> = [
     [hero?.end, getPhilosophyEntry()],
     [technique && technique.start - window.innerHeight, technique?.start],
-    [technique?.end, works?.start],
+    [technique?.end, worksTop],
+    [worksTop, getSectionTop("master")],
   ];
   return handoffs
     .filter((h): h is [number, number] => h[0] != null && h[1] != null && h[1] - h[0] > MERGE_DISTANCE)
@@ -63,8 +59,6 @@ export function getScrollZones(): ScrollZone[] {
     pins[el.id] = { start, end };
     if (el.id === "hero" || el.id === "technique") {
       zones.push({ points: dedupe([start, Math.round((start + end) / 2), end]) });
-    } else if (el.id === "works") {
-      zones.push({ points: dedupe([...getWorksPoints(el, start).map(Math.round), end]) });
     }
   });
   zones.push(...getHandoffZones(pins));
