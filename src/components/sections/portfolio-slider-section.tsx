@@ -62,27 +62,6 @@ export function PortfolioSliderSection() {
         });
       };
 
-      let settledCardIndex = 0;
-
-      const getSnapPoints = () => {
-        const cards = Array.from(track.querySelectorAll<HTMLElement>(".port-card"));
-        const dist = getDistance();
-        const total = dist + window.innerHeight * 0.5;
-        if (cards.length === 0 || total <= 0) return [0, 1];
-
-        const points = cards.map((card) => {
-          const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-          const targetTrackX = Math.max(0, Math.min(dist, cardCenter - window.innerWidth / 2));
-          return targetTrackX / total;
-        });
-
-        const uniquePoints = Array.from(new Set(points.map((p) => Number(p.toFixed(4))))).sort((a, b) => a - b);
-        if (uniquePoints[uniquePoints.length - 1] < 1) {
-          uniquePoints.push(1);
-        }
-        return uniquePoints;
-      };
-
       const tween = gsap.to(track, {
         x: () => -getDistance(),
         ease: "none",
@@ -90,49 +69,11 @@ export function PortfolioSliderSection() {
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top top",
-          end: () => `+=${getDistance() + window.innerHeight * 0.5}`,
+          end: () => `+=${getDistance()}`,
           pin: true,
           scrub: true,
           invalidateOnRefresh: true,
-          snap: {
-            snapTo: (value: number) => {
-              const pts = getSnapPoints();
-              if (window.innerWidth >= 1024) {
-                return pts.reduce((prev, curr) =>
-                  Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
-                );
-              }
-              if (value > pts[settledCardIndex]) {
-                const nextIdx = Math.min(pts.length - 1, settledCardIndex + 1);
-                return pts[nextIdx];
-              } else if (value < pts[settledCardIndex]) {
-                const prevIdx = Math.max(0, settledCardIndex - 1);
-                return pts[prevIdx];
-              }
-              return pts[settledCardIndex];
-            },
-            duration: { min: 0.25, max: 0.55 },
-            delay: 0.05,
-            ease: "power2.out",
-            inertia: false,
-          },
-          onUpdate: (self) => {
-            updateActiveCard();
-            const pts = getSnapPoints();
-            const p = self.progress;
-            let closestIdx = 0;
-            let minDiff = Infinity;
-            pts.forEach((pt, idx) => {
-              const diff = Math.abs(pt - p);
-              if (diff < minDiff) {
-                minDiff = diff;
-                closestIdx = idx;
-              }
-            });
-            if (minDiff < 0.04) {
-              settledCardIndex = closestIdx;
-            }
-          },
+          onUpdate: updateActiveCard,
           onRefresh: updateActiveCard,
         },
       });

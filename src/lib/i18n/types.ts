@@ -1,8 +1,9 @@
 export type Pair = { t: string; d: string };
+export type HeroSlide = { badge: string; title: string; sub: string };
 
 export interface Dict {
   nav: { philosophy: string; technique: string; works: string; master: string; faq: string; book: string };
-  hero: { badge: string; title: string; sub: string; cta1: string; cta2: string; scroll: string };
+  hero: { badge: string; title: string; sub: string; cta1: string; cta2: string; scroll: string; slides: HeroSlide[] };
   philo: { label: string; title: string; cards: Pair[] };
   tech: { label: string; steps: Pair[] };
   port: { label: string; title: string; before: string; healed: string; cases: Pair[] };

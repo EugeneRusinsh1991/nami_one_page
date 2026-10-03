@@ -33,43 +33,15 @@ export function TechniqueVideoSection() {
         active = index;
       };
 
-      const stepSnapPoints = [0, 0.5, 1];
-      let settledStep = 0;
-
       const handle = createFrameScrub({
         canvas,
         trigger: container,
         frameCount: 470,
         framesPath: "/videos/exploded view/frames",
         distance: () => (window.innerWidth < 768 ? 1600 : 3000),
-        snap: {
-          snapTo: (value: number) => {
-            if (window.innerWidth >= 1024) {
-              return stepSnapPoints.reduce((prev, curr) =>
-                Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
-              );
-            }
-            if (value > stepSnapPoints[settledStep]) {
-              const nextStep = Math.min(STEP_COUNT - 1, settledStep + 1);
-              return stepSnapPoints[nextStep];
-            } else if (value < stepSnapPoints[settledStep]) {
-              const prevStep = Math.max(0, settledStep - 1);
-              return stepSnapPoints[prevStep];
-            }
-            return stepSnapPoints[settledStep];
-          },
-          duration: { min: 0.25, max: 0.55 },
-          delay: 0.05,
-          ease: "power2.out",
-          inertia: false,
-        },
         onProgress: (p) => {
           const currentStep = Math.min(STEP_COUNT - 1, Math.floor(p * STEP_COUNT));
           show(currentStep);
-
-          if (p <= 0.05) settledStep = 0;
-          else if (p >= 0.95) settledStep = 2;
-          else if (Math.abs(p - 0.5) <= 0.08) settledStep = 1;
 
           const bar = progressRef.current?.firstElementChild as HTMLElement | null;
           if (bar) bar.style.transform = `translateX(-${100 - p * 100}%)`;

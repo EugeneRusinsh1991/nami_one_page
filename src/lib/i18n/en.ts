@@ -9,6 +9,23 @@ export const en: Dict = {
     cta1: "Book Appointment",
     cta2: "View Healed Works",
     scroll: "Scroll",
+    slides: [
+      {
+        badge: "NAMI STUDIO · PMU",
+        title: "The Art of Natural Permanent Makeup",
+        sub: "Bespoke brow architecture and refined natural aesthetics.",
+      },
+      {
+        badge: "ENGINEERED PRECISION",
+        title: "Micro-Precision in Every Stroke",
+        sub: "Custom needle depth control delivering pigment into the upper dermis with zero trauma.",
+      },
+      {
+        badge: "TIMELESS AESTHETICS",
+        title: "Natural Softness That Endures",
+        sub: "Stable premium pigments that fade evenly and harmoniously over years without color shifting.",
+      },
+    ],
   },
   philo: {
     label: "Philosophy",
