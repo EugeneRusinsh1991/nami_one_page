@@ -8,10 +8,11 @@ const MAX_DPR = 2;
 export interface FrameScrubOptions {
   canvas: HTMLCanvasElement;
   trigger: Element;
-  distance: number;
+  distance: number | (() => number);
   frameCount: number;
   framesPath: string;
   onProgress?: (progress: number) => void;
+  snap?: ScrollTrigger.Vars["snap"];
 }
 
 export interface FrameScrubHandle {
@@ -49,6 +50,7 @@ export function createFrameScrub({
   frameCount,
   framesPath,
   onProgress,
+  snap,
 }: FrameScrubOptions): FrameScrubHandle {
   const ctx = canvas.getContext("2d", { alpha: false });
   const frames: (HTMLImageElement | undefined)[] = new Array(frameCount + 1);
@@ -234,10 +236,11 @@ export function createFrameScrub({
   const scrollTrigger = ScrollTrigger.create({
     trigger,
     start: "top top",
-    end: `+=${distance}`,
+    end: () => `+=${typeof distance === "function" ? distance() : distance}`,
     pin: true,
     anticipatePin: 1,
     invalidateOnRefresh: true,
+    snap,
     onUpdate: (self) => {
       target = self.progress;
       onProgress?.(self.progress);

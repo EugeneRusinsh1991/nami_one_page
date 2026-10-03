@@ -5,6 +5,7 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { createFrameScrub } from "@/lib/frame-scrub";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { MobileHeroNav } from "@/components/layout/navbar";
 import { useLanguage } from "@/components/providers/language-provider";
 import { useLenis } from "@/components/providers/smooth-scroll-provider";
 
@@ -37,7 +38,18 @@ export function HeroVideoSection() {
         trigger: container,
         frameCount: 470,
         framesPath: "/videos/exploded view/frames",
-        distance: 2200,
+        distance: () => (window.innerWidth < 768 ? 1400 : 2200),
+        snap: {
+          snapTo: (value: number) => {
+            if (value >= 0.85) return 1.0;
+            if (value <= 0.15) return 0.0;
+            return value;
+          },
+          duration: { min: 0.2, max: 0.4 },
+          delay: 0.05,
+          ease: "power2.out",
+          inertia: false,
+        },
         onProgress: (p) => {
           gsap.set(".hero-content", { yPercent: -p * 25, opacity: 1 - Math.min(1, p * 2.2) });
           gsap.set(".hero-video", { scale: 1 + p * 0.12 });
@@ -75,22 +87,26 @@ export function HeroVideoSection() {
 
         <p className="hero-sub mt-6 max-w-xl text-base text-brand-text/70 sm:text-lg">{t.hero.sub}</p>
 
-        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-          <Button
-            size="lg"
-            onClick={() => goTo("booking")}
-            className="hero-cta rounded-full bg-brand-text px-8 text-white transition-transform hover:-translate-y-0.5 hover:bg-brand-text/85"
-          >
-            {t.hero.cta1}
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            onClick={() => goTo("works")}
-            className="hero-cta rounded-full border-brand-border/50 bg-white/50 px-8 text-brand-text backdrop-blur-md transition-transform hover:-translate-y-0.5 hover:bg-white/80"
-          >
-            {t.hero.cta2}
-          </Button>
+        <div className="mt-8 flex flex-col items-center gap-4 sm:mt-10">
+          <MobileHeroNav className="hero-cta" />
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button
+              size="lg"
+              onClick={() => goTo("booking")}
+              className="hero-cta rounded-full bg-brand-text px-8 text-white transition-transform hover:-translate-y-0.5 hover:bg-brand-text/85"
+            >
+              {t.hero.cta1}
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => goTo("works")}
+              className="hero-cta rounded-full border-brand-border/50 bg-white/50 px-8 text-brand-text backdrop-blur-md transition-transform hover:-translate-y-0.5 hover:bg-white/80"
+            >
+              {t.hero.cta2}
+            </Button>
+          </div>
         </div>
       </div>
 

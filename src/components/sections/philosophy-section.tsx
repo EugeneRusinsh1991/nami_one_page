@@ -22,21 +22,29 @@ export function PhilosophySection() {
 
   useGSAP(
     () => {
-      gsap.from(".philo-head", {
-        y: 40,
-        opacity: 0,
-        duration: 1,
-        ease: "power3.out",
-        scrollTrigger: { trigger: ".philo-head", start: "top 85%" },
-      });
-      gsap.from(".philo-card", {
-        y: 60,
-        opacity: 0,
-        duration: 1,
-        ease: "power3.out",
-        stagger: 0.12,
-        scrollTrigger: { trigger: ".philo-grid", start: "top 80%" },
-      });
+      gsap.fromTo(
+        ".philo-head",
+        { y: 40, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1,
+          ease: "power3.out",
+          scrollTrigger: { trigger: ".philo-head", start: "top 85%", once: true },
+        }
+      );
+      gsap.fromTo(
+        ".philo-card",
+        { y: 60, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1,
+          ease: "power3.out",
+          stagger: 0.12,
+          scrollTrigger: { trigger: ".philo-grid", start: "top 85%", once: true },
+        }
+      );
       gsap.to(".philo-img", {
         yPercent: -6,
         ease: "none",
@@ -67,7 +75,7 @@ export function PhilosophySection() {
               <Card
                 key={card.t}
                 className={cn(
-                  "philo-card group relative flex flex-col justify-between overflow-hidden rounded-3xl border-brand-border/20 bg-brand-surface p-7 transition-all duration-500 hover:-translate-y-1 hover:bg-brand-elevated hover:shadow-xl",
+                  "philo-card group relative flex flex-col justify-between overflow-hidden rounded-3xl border-brand-border/20 bg-brand-surface p-7 transition-[background-color,box-shadow] duration-500 hover:bg-brand-elevated hover:shadow-xl",
                   SPANS[i]
                 )}
               >

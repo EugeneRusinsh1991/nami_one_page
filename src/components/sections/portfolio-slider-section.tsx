@@ -29,9 +29,64 @@ export function PortfolioSliderSection() {
 
       const getDistance = () => Math.max(0, track.scrollWidth - window.innerWidth);
 
+      const updateActiveCard = () => {
+        const isMobileOrTablet = window.matchMedia("(hover: none), (pointer: coarse), (max-width: 1023px)").matches;
+        const cards = Array.from(track.querySelectorAll<HTMLElement>(".port-card"));
+
+        if (!isMobileOrTablet) {
+          cards.forEach((card) => {
+            if (card.dataset.active === "true") card.dataset.active = "false";
+          });
+          return;
+        }
+
+        const viewportCenter = window.innerWidth / 2;
+        let closestCard: HTMLElement | null = null;
+        let minDiff = Infinity;
+
+        cards.forEach((card) => {
+          const rect = card.getBoundingClientRect();
+          const cardCenter = rect.left + rect.width / 2;
+          const diff = Math.abs(cardCenter - viewportCenter);
+          if (diff < minDiff) {
+            minDiff = diff;
+            closestCard = card;
+          }
+        });
+
+        cards.forEach((card) => {
+          const shouldBeActive = card === closestCard;
+          if ((card.dataset.active === "true") !== shouldBeActive) {
+            card.dataset.active = shouldBeActive ? "true" : "false";
+          }
+        });
+      };
+
+      let settledCardIndex = 0;
+
+      const getSnapPoints = () => {
+        const cards = Array.from(track.querySelectorAll<HTMLElement>(".port-card"));
+        const dist = getDistance();
+        const total = dist + window.innerHeight * 0.5;
+        if (cards.length === 0 || total <= 0) return [0, 1];
+
+        const points = cards.map((card) => {
+          const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+          const targetTrackX = Math.max(0, Math.min(dist, cardCenter - window.innerWidth / 2));
+          return targetTrackX / total;
+        });
+
+        const uniquePoints = Array.from(new Set(points.map((p) => Number(p.toFixed(4))))).sort((a, b) => a - b);
+        if (uniquePoints[uniquePoints.length - 1] < 1) {
+          uniquePoints.push(1);
+        }
+        return uniquePoints;
+      };
+
       const tween = gsap.to(track, {
         x: () => -getDistance(),
         ease: "none",
+        onUpdate: updateActiveCard,
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top top",
@@ -39,8 +94,50 @@ export function PortfolioSliderSection() {
           pin: true,
           scrub: true,
           invalidateOnRefresh: true,
+          snap: {
+            snapTo: (value: number) => {
+              const pts = getSnapPoints();
+              if (window.innerWidth >= 1024) {
+                return pts.reduce((prev, curr) =>
+                  Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
+                );
+              }
+              if (value > pts[settledCardIndex]) {
+                const nextIdx = Math.min(pts.length - 1, settledCardIndex + 1);
+                return pts[nextIdx];
+              } else if (value < pts[settledCardIndex]) {
+                const prevIdx = Math.max(0, settledCardIndex - 1);
+                return pts[prevIdx];
+              }
+              return pts[settledCardIndex];
+            },
+            duration: { min: 0.25, max: 0.55 },
+            delay: 0.05,
+            ease: "power2.out",
+            inertia: false,
+          },
+          onUpdate: (self) => {
+            updateActiveCard();
+            const pts = getSnapPoints();
+            const p = self.progress;
+            let closestIdx = 0;
+            let minDiff = Infinity;
+            pts.forEach((pt, idx) => {
+              const diff = Math.abs(pt - p);
+              if (diff < minDiff) {
+                minDiff = diff;
+                closestIdx = idx;
+              }
+            });
+            if (minDiff < 0.04) {
+              settledCardIndex = closestIdx;
+            }
+          },
+          onRefresh: updateActiveCard,
         },
       });
+
+      updateActiveCard();
 
       gsap.utils.toArray<HTMLElement>(".port-img").forEach((img) => {
         gsap.fromTo(
@@ -78,22 +175,22 @@ export function PortfolioSliderSection() {
         {t.port.cases.map((item, i) => (
           <Card
             key={item.t}
-            className="port-card group relative h-full w-[78vw] max-w-[520px] shrink-0 overflow-hidden rounded-3xl border-brand-border/20 bg-brand-surface shadow-lg transition-shadow duration-500 hover:shadow-2xl"
+            className="port-card group relative h-full w-[78vw] max-w-[520px] shrink-0 overflow-hidden rounded-3xl border-brand-border/20 bg-brand-surface shadow-lg transition-shadow duration-500 hover:shadow-2xl data-[active=true]:shadow-2xl"
           >
             <div className="absolute inset-0 overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={IMAGES[i % IMAGES.length]}
                 alt={item.t}
-                className="port-img absolute inset-y-0 -left-[8%] h-full w-[116%] max-w-none object-cover grayscale transition-all duration-700 group-hover:scale-105 group-hover:grayscale-0"
+                className="port-img absolute inset-y-0 -left-[8%] h-full w-[116%] max-w-none object-cover grayscale transition-all duration-700 group-hover:scale-105 group-hover:grayscale-0 group-data-[active=true]:scale-105 group-data-[active=true]:grayscale-0"
               />
             </div>
             <div className="absolute inset-0 z-10 bg-gradient-to-t from-brand-text/70 via-transparent to-transparent" />
             <div className="absolute left-5 top-5 z-10 flex gap-2">
-              <Badge className="rounded-full bg-white/70 font-mono text-[10px] font-normal uppercase tracking-widest text-brand-text opacity-100 backdrop-blur-md transition-opacity duration-500 group-hover:opacity-0 hover:bg-white/70">
+              <Badge className="rounded-full bg-white/70 font-mono text-[10px] font-normal uppercase tracking-widest text-brand-text opacity-100 backdrop-blur-md transition-opacity duration-500 group-hover:opacity-0 group-data-[active=true]:opacity-0 hover:bg-white/70">
                 {t.port.before}
               </Badge>
-              <Badge className="absolute left-0 rounded-full bg-brand-text font-mono text-[10px] font-normal uppercase tracking-widest text-white opacity-0 transition-opacity duration-500 group-hover:opacity-100 hover:bg-brand-text">
+              <Badge className="absolute left-0 rounded-full bg-brand-text font-mono text-[10px] font-normal uppercase tracking-widest text-white opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-data-[active=true]:opacity-100 hover:bg-brand-text">
                 {t.port.healed}
               </Badge>
             </div>
