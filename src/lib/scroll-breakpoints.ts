@@ -24,19 +24,15 @@ function dedupe(points: number[]): number[] {
 const PHILO_HEAD_OFFSET = 96;
 
 function getPhilosophyEntry(): number | null {
-  const head = document.querySelector<HTMLElement>("#philosophy .philo-head");
-  if (!head) return null;
+  const philo = document.getElementById("philosophy");
+  if (!philo) return null;
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  if (isMobile) {
+    return Math.round(philo.getBoundingClientRect().top + window.scrollY);
+  }
+  const head = philo.querySelector<HTMLElement>(".philo-head");
+  if (!head) return Math.round(philo.getBoundingClientRect().top + window.scrollY);
   return Math.round(head.getBoundingClientRect().top + window.scrollY - PHILO_HEAD_OFFSET);
-}
-
-function getPhilosophyExit(): number | null {
-  const cards = document.querySelectorAll<HTMLElement>("#philosophy .philo-card");
-  if (!cards || cards.length === 0) return null;
-  const lastCard = cards[cards.length - 1];
-  const rect = lastCard.getBoundingClientRect();
-  const cardCenter = rect.top + window.scrollY + rect.height / 2;
-  const targetViewportY = window.innerHeight * 0.55;
-  return Math.round(cardCenter - targetViewportY);
 }
 
 function getSectionTop(id: string): number | null {
@@ -44,25 +40,66 @@ function getSectionTop(id: string): number | null {
   return el ? Math.round(el.getBoundingClientRect().top + window.scrollY) : null;
 }
 
+export function getMasterPoints(): number[] {
+  const master1 = getSectionTop("master-1") ?? getSectionTop("master");
+  const master2 = getSectionTop("master-2");
+  const points: number[] = [];
+  if (master1 != null) points.push(master1);
+  if (master2 != null) points.push(master2);
+  return points;
+}
+
+export function getBottomSectionPoints(): number[] {
+  const faq = getSectionTop("faq");
+  const booking = getSectionTop("booking");
+  const points: number[] = [];
+  if (faq != null) points.push(faq);
+  if (booking != null) points.push(booking);
+  return points;
+}
+
 function getHandoffZones(pins: Record<string, { start: number; end: number }>): ScrollZone[] {
   const { hero, technique } = pins;
   const philoEntry = getPhilosophyEntry();
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-  const philoExit = isMobile ? getPhilosophyExit() : null;
-  const philoTransitionPoint = philoExit && philoEntry && philoExit > philoEntry ? philoExit : philoEntry;
   const worksTop = getSectionTop("works");
   const handoffs: Array<[number | null | undefined, number | null | undefined]> = [
     [hero?.end, philoEntry],
-    [philoTransitionPoint, technique?.start],
+    [philoEntry, technique?.start],
     [technique?.end, worksTop],
-    [worksTop, getSectionTop("master")],
   ];
-  return handoffs
+  const zones: ScrollZone[] = handoffs
     .filter((h): h is [number, number] => h[0] != null && h[1] != null && h[1] - h[0] > MERGE_DISTANCE)
     .map(([from, to]) => ({ points: [from, to] }));
+
+  const bottomPoints = dedupe([
+    ...(worksTop != null ? [worksTop] : []),
+    ...getMasterPoints(),
+    ...getBottomSectionPoints(),
+  ]);
+
+  if (bottomPoints.length > 1) {
+    zones.push({ points: bottomPoints });
+  }
+
+  return zones;
 }
 
-export function getScrollZones(): ScrollZone[] {
+let cachedZones: ScrollZone[] | null = null;
+
+export function invalidateScrollZonesCache(): void {
+  cachedZones = null;
+}
+
+if (typeof window !== "undefined") {
+  ScrollTrigger.addEventListener("refresh", invalidateScrollZonesCache);
+  window.addEventListener("resize", invalidateScrollZonesCache, { passive: true });
+}
+
+export function getScrollZones(forceRefresh = false): ScrollZone[] {
+  if (!forceRefresh && cachedZones !== null && cachedZones.length > 0) {
+    return cachedZones;
+  }
+
   const zones: ScrollZone[] = [];
   const pins: Record<string, { start: number; end: number }> = {};
   ScrollTrigger.getAll().forEach((st) => {
@@ -80,33 +117,57 @@ export function getScrollZones(): ScrollZone[] {
     }
   });
   zones.push(...getHandoffZones(pins));
-  return zones.filter((z) => z.points.length > 1);
+  const finalZones = zones.filter((z) => z.points.length > 1);
+  cachedZones = finalZones;
+  return finalZones;
 }
 
-function resolveDown(current: number, target: number, zones: ScrollZone[]): ResolvedTarget {
-  const inside = zones.find((z) => current >= z.points[0] - TOLERANCE && current < z.points[z.points.length - 1] - TOLERANCE);
-  if (inside) {
-    const next = inside.points.find((p) => p > current + TOLERANCE);
-    if (next !== undefined) return { target: next, discrete: true };
+function resolveDown(current: number, target: number, zones: ScrollZone[], stepCount = 1): ResolvedTarget {
+  const allForwardPoints = dedupe(zones.flatMap((z) => z.points)).filter((p) => p > current + TOLERANCE);
+  if (allForwardPoints.length > 0) {
+    const targetIdx = Math.min(stepCount - 1, allForwardPoints.length - 1);
+    const chosen = allForwardPoints[targetIdx];
+    return { target: chosen, discrete: true };
   }
   const bounds = zones.flatMap((z) => [z.points[0], z.points[z.points.length - 1]]);
   const nextBound = bounds.filter((b) => b > current + TOLERANCE).sort((a, b) => a - b)[0];
   return { target: nextBound !== undefined && target > nextBound ? nextBound : target, discrete: false };
 }
 
-function resolveUp(current: number, target: number, zones: ScrollZone[]): ResolvedTarget {
-  const inside = zones.find((z) => current > z.points[0] + TOLERANCE && current <= z.points[z.points.length - 1] + TOLERANCE);
-  if (inside) {
-    const prev = [...inside.points].reverse().find((p) => p < current - TOLERANCE);
-    if (prev !== undefined) return { target: prev, discrete: true };
+function resolveUp(current: number, target: number, zones: ScrollZone[], stepCount = 1): ResolvedTarget {
+  const allBackwardPoints = dedupe(zones.flatMap((z) => z.points)).filter((p) => p < current - TOLERANCE).sort((a, b) => b - a);
+  if (allBackwardPoints.length > 0) {
+    const targetIdx = Math.min(stepCount - 1, allBackwardPoints.length - 1);
+    const chosen = allBackwardPoints[targetIdx];
+    return { target: chosen, discrete: true };
   }
   const bounds = zones.flatMap((z) => [z.points[0], z.points[z.points.length - 1]]);
   const prevBound = bounds.filter((b) => b < current - TOLERANCE).sort((a, b) => b - a)[0];
   return { target: prevBound !== undefined && target < prevBound ? prevBound : target, discrete: false };
 }
 
-export function resolveScrollTarget(current: number, target: number, zones: ScrollZone[]): ResolvedTarget {
-  if (target > current) return resolveDown(current, target, zones);
-  if (target < current) return resolveUp(current, target, zones);
+export function resolveScrollTarget(
+  current: number,
+  target: number,
+  zones: ScrollZone[],
+  lockedDirection?: "down" | "up" | null,
+  stepCount = 1
+): ResolvedTarget {
+  const delta = target - current;
+  if (Math.abs(delta) < 8) {
+    return { target: current, discrete: false };
+  }
+
+  // Suppress contrary micro-deltas during an active directional gesture
+  if (lockedDirection === "down" && delta < 0 && Math.abs(delta) < 30) {
+    return { target: current, discrete: false };
+  }
+  if (lockedDirection === "up" && delta > 0 && Math.abs(delta) < 30) {
+    return { target: current, discrete: false };
+  }
+
+  if (delta > 0) return resolveDown(current, target, zones, stepCount);
+  if (delta < 0) return resolveUp(current, target, zones, stepCount);
   return { target, discrete: false };
 }
+

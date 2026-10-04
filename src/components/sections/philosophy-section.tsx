@@ -10,10 +10,10 @@ import { useLanguage } from "@/components/providers/language-provider";
 
 const ICONS = [Ruler, Droplets, Fingerprint, Sparkles];
 const SPANS = [
-  "md:col-span-2 md:row-span-2",
-  "md:col-span-2",
-  "md:col-span-1",
-  "md:col-span-1",
+  "col-span-1 row-span-2 col-start-1 row-start-1 md:col-span-2 md:row-span-2 md:col-start-1 md:row-start-1",
+  "col-span-2 row-span-1 col-start-1 row-start-3 md:col-span-2 md:row-span-1 md:col-start-3 md:row-start-1",
+  "col-span-1 row-span-1 col-start-2 row-start-1 md:col-span-1 md:row-span-1 md:col-start-3 md:row-start-2",
+  "col-span-1 row-span-1 col-start-2 row-start-2 md:col-span-1 md:row-span-1 md:col-start-4 md:row-start-2",
 ];
 
 export function PhilosophySection() {
@@ -24,24 +24,24 @@ export function PhilosophySection() {
     () => {
       gsap.fromTo(
         ".philo-head",
-        { y: 40, opacity: 0 },
+        { y: 30, opacity: 0 },
         {
           y: 0,
           opacity: 1,
-          duration: 1,
+          duration: 0.9,
           ease: "power3.out",
           scrollTrigger: { trigger: ".philo-head", start: "top 85%", once: true },
         }
       );
       gsap.fromTo(
         ".philo-card",
-        { y: 60, opacity: 0 },
+        { y: 40, opacity: 0 },
         {
           y: 0,
           opacity: 1,
-          duration: 1,
+          duration: 0.9,
           ease: "power3.out",
-          stagger: 0.12,
+          stagger: 0.08,
           scrollTrigger: { trigger: ".philo-grid", start: "top 85%", once: true },
         }
       );
@@ -58,42 +58,54 @@ export function PhilosophySection() {
     <section
       ref={containerRef}
       id="philosophy"
-      className="relative z-20 -mt-6 min-h-[calc(100dvh+8rem)] rounded-t-[2.5rem] bg-brand-bg px-6 py-28 shadow-[0_-20px_60px_rgba(26,31,37,0.06)]"
+      className="relative z-20 h-dvh max-h-dvh overflow-hidden rounded-t-[2rem] bg-brand-bg px-5 pt-[calc(2.5rem+env(safe-area-inset-top,0px))] pb-[calc(2.75rem+env(safe-area-inset-bottom,0px))] shadow-[0_-20px_60px_rgba(26,31,37,0.06)] md:h-auto md:max-h-none md:min-h-[calc(100dvh+8rem)] md:overflow-visible md:rounded-t-[2.5rem] md:px-6 md:py-28"
     >
-      <div className="mx-auto max-w-6xl">
-        <div className="philo-head mb-14 max-w-2xl">
-          <Badge variant="outline" className="mb-5 border-brand-border/50 font-mono text-[11px] font-normal uppercase tracking-[0.25em] text-brand-border">
+      <div className="mx-auto flex h-full w-full max-w-6xl flex-col justify-center">
+        <div className="philo-head mb-3.5 shrink-0 max-w-2xl sm:mb-5 md:mb-14">
+          <Badge
+            variant="outline"
+            className="mb-1.5 border-brand-border/50 font-mono text-[10px] font-normal uppercase tracking-[0.25em] text-brand-border py-0.5 px-2.5 sm:mb-2 md:mb-5 md:text-[11px] md:py-1"
+          >
             {t.philo.label}
           </Badge>
-          <h2 className="font-heading text-3xl font-bold tracking-tight text-brand-text sm:text-5xl">{t.philo.title}</h2>
+          <h2 className="font-heading text-xl font-bold tracking-tight text-brand-text sm:text-2xl md:text-5xl leading-tight">
+            {t.philo.title}
+          </h2>
         </div>
 
-        <div className="philo-grid grid auto-rows-[minmax(240px,auto)] grid-cols-1 gap-4 md:grid-cols-4">
+        <div className="philo-grid grid w-full h-[52dvh] max-h-[440px] min-h-[340px] grid-cols-2 grid-rows-3 gap-2.5 sm:gap-3 md:h-auto md:max-h-none md:min-h-0 md:flex-initial md:grid-cols-4 md:grid-rows-2 md:auto-rows-[minmax(240px,auto)] md:gap-4">
           {t.philo.cards.map((card, i) => {
             const Icon = ICONS[i];
             return (
               <Card
                 key={card.t}
                 className={cn(
-                  "philo-card group relative flex flex-col justify-between overflow-hidden rounded-3xl border-brand-border/20 bg-brand-surface p-7 transition-[background-color,box-shadow] duration-500 hover:bg-brand-elevated hover:shadow-xl",
+                  "philo-card group relative flex flex-col justify-between overflow-hidden rounded-2xl border-brand-border/20 bg-brand-surface p-3 sm:p-4 md:rounded-3xl md:p-7 transition-[background-color,box-shadow] duration-500 hover:bg-brand-elevated hover:shadow-xl",
                   SPANS[i]
                 )}
               >
                 {i === 1 && (
-                  <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 overflow-hidden rounded-r-3xl">
+                  <div className="pointer-events-none absolute inset-y-0 right-0 w-2/5 overflow-hidden rounded-r-2xl md:w-1/2 md:rounded-r-3xl">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/images/image (4).png"
                       alt=""
-                      className="philo-img absolute inset-x-0 top-0 h-[115%] w-full object-cover opacity-80 transition-transform duration-700 group-hover:scale-105"
+                      className="philo-img absolute inset-x-0 top-0 h-[115%] w-full object-cover opacity-75 transition-transform duration-700 group-hover:scale-105 md:opacity-80"
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-brand-surface via-brand-surface/40 to-transparent transition-colors duration-500 group-hover:from-brand-elevated" />
                   </div>
                 )}
-                <Icon className="relative z-10 h-8 w-8 text-brand-border transition-transform duration-500 group-hover:rotate-12" strokeWidth={1.25} />
-                <div className={cn("relative z-10 max-w-xs", i === 1 && "md:max-w-[45%]")}>
-                  <h3 className="mb-2 font-heading text-xl font-semibold text-brand-text">{card.t}</h3>
-                  <p className="text-sm leading-relaxed text-brand-text/65">{card.d}</p>
+                <Icon
+                  className="relative z-10 h-5 w-5 shrink-0 text-brand-border transition-transform duration-500 group-hover:rotate-12 md:h-8 md:w-8"
+                  strokeWidth={1.25}
+                />
+                <div className={cn("relative z-10 max-w-xs", i === 1 && "max-w-[62%] md:max-w-[45%]")}>
+                  <h3 className="mb-0.5 font-heading text-xs font-semibold leading-snug text-brand-text sm:text-sm md:mb-2 md:text-xl">
+                    {card.t}
+                  </h3>
+                  <p className="text-[11px] leading-snug text-brand-text/65 sm:text-xs md:text-sm md:leading-relaxed line-clamp-3 md:line-clamp-none">
+                    {card.d}
+                  </p>
                 </div>
               </Card>
             );

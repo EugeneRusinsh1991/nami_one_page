@@ -99,7 +99,7 @@ export function HeroVideoSection() {
   };
 
   return (
-    <section ref={containerRef} id="hero" className="relative h-svh min-h-svh w-full overflow-hidden bg-brand-bg">
+    <section ref={containerRef} id="hero" className="relative h-dvh min-h-dvh w-full overflow-hidden bg-brand-bg">
       <canvas ref={canvasRef} className="hero-video absolute inset-0 h-full w-full" />
       <div className="absolute inset-0 bg-gradient-to-b from-brand-bg/80 via-brand-bg/30 to-brand-bg/90" />
 

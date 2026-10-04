@@ -77,6 +77,11 @@ export function createFrameScrub({
     const displayHeight = parent ? parent.clientHeight : (canvas.clientHeight || window.innerHeight);
     const w = Math.max(1, Math.round(displayWidth * dpr));
     const h = Math.max(1, Math.round(displayHeight * dpr));
+
+    // Guard against vertical address-bar jitter on mobile touch devices
+    const isHeightOnlyJitter = canvas.width === w && canvas.height > 0 && Math.abs(canvas.height - h) <= 120 * dpr;
+    if (isHeightOnlyJitter) return;
+
     if (canvas.width !== w || canvas.height !== h) {
       canvas.width = w;
       canvas.height = h;

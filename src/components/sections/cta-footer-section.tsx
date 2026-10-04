@@ -28,7 +28,7 @@ export function CtaFooterSection() {
         duration: 1,
         stagger: 0.12,
         ease: "power3.out",
-        scrollTrigger: { trigger: ".cta-panel", start: "top 80%" },
+        scrollTrigger: { trigger: ".cta-panel", start: "top 85%" },
       });
       gsap.from(".footer-reveal", {
         y: 30,
@@ -36,44 +36,58 @@ export function CtaFooterSection() {
         duration: 0.9,
         stagger: 0.1,
         ease: "power3.out",
-        scrollTrigger: { trigger: ".cta-footer", start: "top 92%" },
+        scrollTrigger: { trigger: ".cta-footer", start: "top 98%" },
       });
     },
-    { scope: containerRef }
+    { scope: containerRef, dependencies: [t], revertOnUpdate: true }
   );
 
   return (
-    <section ref={containerRef} id="booking" className="bg-brand-surface">
-      <div className="px-6 py-28">
-        <div className="cta-panel mx-auto max-w-3xl rounded-[2rem] border border-white/70 bg-white/60 p-8 text-center shadow-xl backdrop-blur-xl sm:p-14">
-          <h2 className="cta-reveal font-heading text-3xl font-bold tracking-tight text-brand-text sm:text-5xl">{t.cta.title}</h2>
+    <section
+      ref={containerRef}
+      id="booking"
+      className="relative flex h-dvh min-h-dvh w-full flex-col justify-between overflow-hidden bg-brand-surface"
+    >
+      <div className="flex flex-1 items-center justify-center px-6 py-6 sm:py-8 md:py-10">
+        <div className="cta-panel mx-auto w-full max-w-3xl rounded-[2rem] border border-white/70 bg-white/60 p-6 text-center shadow-xl backdrop-blur-xl sm:p-10 md:p-12">
+          <h2 className="cta-reveal font-heading text-2xl font-bold tracking-tight text-brand-text sm:text-4xl md:text-5xl">
+            {t.cta.title}
+          </h2>
 
-          <form onSubmit={(e) => e.preventDefault()} className="cta-reveal mx-auto mt-8 grid max-w-md gap-3">
-            <Input placeholder={t.cta.name} className="h-12 rounded-full border-brand-border/30 bg-white/80 px-5" />
-            <Input placeholder={t.cta.phone} className="h-12 rounded-full border-brand-border/30 bg-white/80 px-5" />
-            <Button type="submit" size="lg" className="h-12 rounded-full bg-brand-text text-white transition-transform hover:-translate-y-0.5 hover:bg-brand-text/85">
+          <form onSubmit={(e) => e.preventDefault()} className="cta-reveal mx-auto mt-5 grid max-w-md gap-3 sm:mt-6">
+            <Input placeholder={t.cta.name} className="h-11 rounded-full border-brand-border/30 bg-white/80 px-5 sm:h-12" />
+            <Input placeholder={t.cta.phone} className="h-11 rounded-full border-brand-border/30 bg-white/80 px-5 sm:h-12" />
+            <Button
+              type="submit"
+              size="lg"
+              className="h-11 rounded-full bg-brand-text text-white transition-transform hover:-translate-y-0.5 hover:bg-brand-text/85 sm:h-12"
+            >
               {t.cta.send}
             </Button>
           </form>
 
-          <div className="cta-reveal mt-6 flex justify-center gap-3">
+          <div className="cta-reveal mt-4 flex justify-center gap-3 sm:mt-6">
             <Button asChild variant="outline" className="rounded-full border-brand-border/40 bg-transparent">
-              <a href="https://t.me/" target="_blank" rel="noreferrer"><Send className="h-4 w-4" /> Telegram</a>
+              <a href="https://t.me/" target="_blank" rel="noreferrer">
+                <Send className="h-4 w-4" /> Telegram
+              </a>
             </Button>
             <Button asChild variant="outline" className="rounded-full border-brand-border/40 bg-transparent">
-              <a href="https://instagram.com/" target="_blank" rel="noreferrer"><Instagram className="h-4 w-4" /> Instagram</a>
+              <a href="https://instagram.com/" target="_blank" rel="noreferrer">
+                <Instagram className="h-4 w-4" /> Instagram
+              </a>
             </Button>
           </div>
         </div>
       </div>
 
-      <footer className="cta-footer border-t border-brand-border/20 bg-brand-bg px-6 py-14">
+      <footer className="cta-footer shrink-0 border-t border-brand-border/20 bg-brand-bg px-6 py-4 sm:py-6 md:py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-center text-center">
           <div className="footer-reveal">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/logo.png" alt="NAMI STUDIO" className="h-10 w-auto" />
+            <img src="/images/logo.png" alt="NAMI STUDIO" className="h-8 w-auto sm:h-9 md:h-10" />
           </div>
-          <div className="footer-reveal mt-6 flex items-center justify-center gap-6 text-sm text-brand-text/70">
+          <div className="footer-reveal mt-3 flex items-center justify-center gap-6 text-xs sm:text-sm text-brand-text/70 md:mt-4">
             <a
               href="https://t.me/"
               target="_blank"
@@ -103,8 +117,8 @@ export function CtaFooterSection() {
             </a>
           </div>
         </div>
-        <Separator className="mx-auto my-8 max-w-6xl bg-brand-border/20" />
-        <p className="footer-reveal text-center font-mono text-xs text-brand-accent">{t.cta.rights}</p>
+        <Separator className="mx-auto my-3 max-w-6xl bg-brand-border/20 sm:my-4 md:my-5" />
+        <p className="footer-reveal text-center font-mono text-[11px] sm:text-xs text-brand-accent">{t.cta.rights}</p>
       </footer>
     </section>
   );

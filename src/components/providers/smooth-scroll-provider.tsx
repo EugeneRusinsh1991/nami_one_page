@@ -14,10 +14,32 @@ interface SmoothScrollProviderProps {
   children: React.ReactNode;
 }
 
-const STEP_DURATION_MS = 900;
+const STEP_DURATION_1_MS = 900;
+const STEP_DURATION_2_MS = 1250;
+const STEP_DURATION_3_MS = 1500;
 const STEP_TAIL_MS = 500;
 const GESTURE_QUIET_MS = 140;
 const STEP_EASING = (t: number) => 1 - Math.pow(1 - t, 4);
+
+export interface StepThresholdConfig {
+  twoStepDeltaThreshold: number;
+  threeStepDeltaThreshold?: number;
+}
+
+export const DEFAULT_STEP_THRESHOLDS: StepThresholdConfig = {
+  twoStepDeltaThreshold: 140,
+  // threeStepDeltaThreshold: 300, // available for 3-step expansion
+};
+
+export function calculateStepCount(magnitude: number, config = DEFAULT_STEP_THRESHOLDS): number {
+  if (config.threeStepDeltaThreshold && magnitude >= config.threeStepDeltaThreshold) {
+    return 3;
+  }
+  if (magnitude >= config.twoStepDeltaThreshold) {
+    return 2;
+  }
+  return 1;
+}
 
 const INTENT_LOCK_THRESHOLD = 5;
 const INTENT_RATIO = 1.0;
@@ -40,6 +62,9 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       gesture.lockedDirection = null;
       gesture.accumX = 0;
       gesture.accumY = 0;
+      if (performance.now() >= gateUntil) {
+        activeDirection = null;
+      }
     };
 
     const scheduleReset = () => {
@@ -59,13 +84,13 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       smoothWheel: true,
       wheelMultiplier: 1,
       syncTouch: true,
-      syncTouchLerp: 0.12,
-      touchMultiplier: 1.9,
-      touchInertiaExponent: 1.05,
+      syncTouchLerp: 0.10,
+      touchMultiplier: 1.25,
+      touchInertiaExponent: 1.02,
       virtualScroll: (data) => {
         scheduleReset();
 
-        const { deltaX, deltaY, event } = data;
+        const { deltaX, deltaY } = data;
         const absX = Math.abs(deltaX);
         const absY = Math.abs(deltaY);
 
@@ -96,24 +121,55 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
     const origScrollTo = lenisInstance.scrollTo.bind(lenisInstance);
     let lastEvent = 0;
     let gateUntil = 0;
+    let activeDirection: "down" | "up" | null = null;
 
     lenisInstance.scrollTo = (target: any, opts: any = {}) => {
       if (opts.programmatic !== false || typeof target !== "number") {
         return origScrollTo(target, opts);
       }
 
-      const { target: resolved, discrete } = resolveScrollTarget(lenisInstance.scroll, target, getScrollZones());
-      if (!discrete) return origScrollTo(resolved, opts);
-
       const now = performance.now();
+      const current = lenisInstance.scroll;
+      const isGated = now < gateUntil;
+
+      const rawDelta = Math.abs(target - current);
+      const gestureDelta = Math.abs(gesture.accumY);
+      const stepCount = calculateStepCount(Math.max(rawDelta, gestureDelta));
+
+      const { target: resolved, discrete } = resolveScrollTarget(
+        current,
+        target,
+        getScrollZones(),
+        isGated ? activeDirection : null,
+        stepCount
+      );
+
+      // Non-discrete scroll targets (e.g. beyond bounds or micro-deltas): bypass discrete step gating
+      if (!discrete) {
+        activeDirection = null;
+        return origScrollTo(resolved, opts);
+      }
+
       const quiet = now - lastEvent;
       lastEvent = now;
 
-      if (now < gateUntil && (now < gateUntil - STEP_TAIL_MS || quiet < GESTURE_QUIET_MS)) return;
-      if (quiet < GESTURE_QUIET_MS) return;
+      // During active step transition, suppress contrary or redundant micro-deltas
+      if (isGated) {
+        if (now < gateUntil - STEP_TAIL_MS || quiet < GESTURE_QUIET_MS) return;
+      } else if (quiet < GESTURE_QUIET_MS) {
+        return;
+      }
 
-      gateUntil = now + STEP_DURATION_MS + STEP_TAIL_MS;
-      return origScrollTo(resolved, { ...opts, lerp: undefined, duration: STEP_DURATION_MS / 1000, easing: STEP_EASING });
+      const durationMs = stepCount >= 3 ? STEP_DURATION_3_MS : stepCount === 2 ? STEP_DURATION_2_MS : STEP_DURATION_1_MS;
+      activeDirection = resolved > current ? "down" : "up";
+      gateUntil = now + durationMs + STEP_TAIL_MS;
+
+      return origScrollTo(resolved, {
+        ...opts,
+        lerp: undefined,
+        duration: durationMs / 1000,
+        easing: STEP_EASING,
+      });
     };
 
     setLenis(lenisInstance);

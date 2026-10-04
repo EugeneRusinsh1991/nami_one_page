@@ -23,8 +23,8 @@ const BADGE_PLACEMENTS_2 = [
 ];
 
 const BLOCKS = [
-  { badges: BADGE_PLACEMENTS, mirrored: false },
-  { badges: BADGE_PLACEMENTS_2, mirrored: true },
+  { id: "master-1", badges: BADGE_PLACEMENTS, mirrored: false },
+  { id: "master-2", badges: BADGE_PLACEMENTS_2, mirrored: true },
 ];
 
 export function MasterVideoSection() {
@@ -72,16 +72,14 @@ export function MasterVideoSection() {
         }
 
         badges.forEach((el, i) => {
-          gsap.fromTo(
-            el,
-            { y: 60, opacity: 0 },
-            {
-              y: i % 2 === 0 ? -30 : -60,
-              opacity: 1,
-              ease: "none",
-              scrollTrigger: { trigger: media, start: "top 70%", end: "bottom 30%", scrub: 1 + i * 0.4 },
-            }
-          );
+          gsap.from(el, {
+            y: 30,
+            opacity: 0,
+            duration: 0.8,
+            delay: 0.15 + i * 0.08,
+            ease: "power3.out",
+            scrollTrigger: { trigger: media, start: "top 85%" },
+          });
         });
       });
     },
@@ -89,16 +87,20 @@ export function MasterVideoSection() {
   );
 
   return (
-    <section ref={containerRef} id="master" className="relative overflow-hidden bg-brand-surface px-6 py-32">
-      <div className="mx-auto flex max-w-6xl flex-col gap-28 md:gap-36">
-        {BLOCKS.map(({ badges, mirrored }, idx) => (
-          <div key={idx} className="master-block grid items-center gap-16 md:grid-cols-2">
+    <div ref={containerRef} id="master" className="relative w-full bg-brand-surface">
+      {BLOCKS.map(({ id, badges, mirrored }) => (
+        <section
+          key={id}
+          id={id}
+          className="relative flex h-dvh min-h-dvh w-full items-center justify-center overflow-hidden px-6 py-8 sm:py-12 md:py-16"
+        >
+          <div className="master-block mx-auto grid w-full max-w-6xl items-center gap-6 sm:gap-8 md:grid-cols-2 md:gap-16">
             <div
-              className={`master-media relative order-2 ${
+              className={`master-media relative mx-auto w-fit max-w-full order-2 ${
                 mirrored ? "md:order-2" : "md:order-1"
               }`}
             >
-              <div className="master-portrait relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-brand-elevated">
+              <div className="master-portrait relative aspect-[4/5] h-[38vh] sm:h-[45vh] md:h-[62vh] lg:h-[68vh] max-h-[620px] w-auto overflow-hidden rounded-[2rem] bg-brand-elevated">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/images/image (3).png"
@@ -108,9 +110,9 @@ export function MasterVideoSection() {
               </div>
               {t.master.metrics.map((m, i) => (
                 <div key={m.d} className={`master-badge absolute z-10 ${badges[i]}`}>
-                  <div className="rounded-2xl border border-white bg-white/90 px-5 py-3 shadow-[0_18px_40px_-12px_rgba(26,31,37,0.35)] ring-1 ring-brand-border/20 backdrop-blur-2xl transition-transform duration-300 hover:scale-105">
-                    <div className="font-heading text-xl font-bold text-brand-text">{m.t}</div>
-                    <div className="font-mono text-[10px] uppercase tracking-widest text-brand-text/60">{m.d}</div>
+                  <div className="rounded-2xl border border-white bg-white/90 px-3.5 py-2 sm:px-5 sm:py-3 shadow-[0_18px_40px_-12px_rgba(26,31,37,0.35)] ring-1 ring-brand-border/20 backdrop-blur-2xl transition-transform duration-300 hover:scale-105">
+                    <div className="font-heading text-lg sm:text-xl font-bold text-brand-text">{m.t}</div>
+                    <div className="font-mono text-[9px] sm:text-[10px] uppercase tracking-widest text-brand-text/60">{m.d}</div>
                   </div>
                 </div>
               ))}
@@ -123,16 +125,16 @@ export function MasterVideoSection() {
                   : "max-w-md md:order-2"
               }`}
             >
-              <Badge variant="outline" className="mb-5 border-brand-border/50 font-mono text-[11px] font-normal uppercase tracking-[0.25em] text-brand-border">
+              <Badge variant="outline" className="mb-3 sm:mb-5 border-brand-border/50 font-mono text-[10px] sm:text-[11px] font-normal uppercase tracking-[0.25em] text-brand-border">
                 {t.master.label}
               </Badge>
-              <h2 className="mb-6 font-heading text-3xl font-bold tracking-tight text-brand-text sm:text-5xl">{t.master.title}</h2>
-              <Separator className="mb-6 w-16 bg-brand-text" />
-              <p className="max-w-md leading-relaxed text-brand-text/70">{t.master.text}</p>
+              <h2 className="mb-3 sm:mb-6 font-heading text-2xl font-bold tracking-tight text-brand-text sm:text-4xl md:text-5xl">{t.master.title}</h2>
+              <Separator className="mb-3 sm:mb-6 w-12 sm:w-16 bg-brand-text" />
+              <p className="max-w-md text-sm sm:text-base leading-relaxed text-brand-text/70">{t.master.text}</p>
             </div>
           </div>
-        ))}
-      </div>
-    </section>
+        </section>
+      ))}
+    </div>
   );
 }
