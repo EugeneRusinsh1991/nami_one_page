@@ -3,23 +3,22 @@
 import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/components/providers/language-provider";
 
 const BADGE_PLACEMENTS = [
-  "-left-4 top-8 md:-left-10",
-  "-right-4 top-[22%] md:-right-10",
-  "-left-2 top-[52%] md:-left-14",
-  "-right-2 bottom-[18%] md:-right-12",
-  "left-6 -bottom-5 md:left-12",
+  "-left-3 top-4 sm:-left-4 sm:top-6 md:-left-10 md:top-8",
+  "-right-3 top-[22%] sm:-right-4 md:-right-10",
+  "-left-3 top-[52%] sm:-left-4 md:-left-12",
+  "-right-3 bottom-[20%] sm:-right-4 md:-right-10",
+  "left-4 -bottom-4 sm:left-6 sm:-bottom-5 md:left-10 md:-bottom-5",
 ];
 
 const BADGE_PLACEMENTS_2 = [
-  "-right-4 top-10 md:-right-10",
-  "-left-4 top-[24%] md:-left-12",
-  "-right-3 top-[54%] md:-right-12",
-  "-left-3 bottom-[20%] md:-left-10",
-  "right-6 -bottom-5 md:right-12",
+  "-right-3 top-4 sm:-right-4 sm:top-6 md:-right-10 md:top-8",
+  "-left-3 top-[22%] sm:-left-4 md:-left-10",
+  "-right-3 top-[52%] sm:-right-4 md:-right-12",
+  "-left-3 bottom-[20%] sm:-left-4 md:-left-10",
+  "right-4 -bottom-4 sm:right-6 sm:-bottom-5 md:right-10 md:-bottom-5",
 ];
 
 const BLOCKS = [
@@ -51,17 +50,6 @@ export function MasterVideoSection() {
           });
         }
 
-        if (portrait && media) {
-          gsap.fromTo(
-            portrait,
-            { clipPath: "inset(12% 12% 12% 12% round 2rem)" },
-            {
-              clipPath: "inset(0% 0% 0% 0% round 2rem)",
-              ease: "none",
-              scrollTrigger: { trigger: media, start: "top 90%", end: "center center", scrub: true },
-            }
-          );
-        }
 
         if (img && media) {
           gsap.to(img, {
@@ -72,14 +60,36 @@ export function MasterVideoSection() {
         }
 
         badges.forEach((el, i) => {
-          gsap.from(el, {
-            y: 30,
-            opacity: 0,
-            duration: 0.8,
-            delay: 0.15 + i * 0.08,
-            ease: "power3.out",
-            scrollTrigger: { trigger: media, start: "top 85%" },
-          });
+          const card = el.firstElementChild;
+          if (card) {
+            const isRight = el.className.includes("-right");
+            const isLeft = el.className.includes("-left");
+            const isBottom = el.className.includes("bottom");
+            const isTop = el.className.includes("top-4") || el.className.includes("top-3");
+
+            const fromX = isRight ? 18 : isLeft ? -18 : 0;
+            const fromY = isBottom ? 20 : isTop ? -15 : 12;
+
+            gsap.fromTo(
+              card,
+              {
+                x: fromX,
+                y: fromY,
+                scale: 1.1,
+                opacity: 0,
+              },
+              {
+                x: 0,
+                y: 0,
+                scale: 1,
+                opacity: 1,
+                duration: 0.85,
+                delay: 0.3 + i * 0.08,
+                ease: "power2.out",
+                scrollTrigger: { trigger: block, start: "top 70%" },
+              }
+            );
+          }
         });
       });
     },
@@ -92,15 +102,15 @@ export function MasterVideoSection() {
         <section
           key={id}
           id={id}
-          className="relative flex h-dvh min-h-dvh w-full items-center justify-center overflow-hidden px-6 py-8 sm:py-12 md:py-16"
+          className="relative flex h-dvh min-h-dvh w-full flex-col justify-start md:justify-center md:items-center overflow-hidden px-5 pt-[calc(4.5rem+env(safe-area-inset-top,0px))] pb-[calc(2rem+env(safe-area-inset-bottom,0px))] sm:px-6 md:py-16"
         >
-          <div className="master-block mx-auto grid w-full max-w-6xl items-center gap-6 sm:gap-8 md:grid-cols-2 md:gap-16">
+          <div className="master-block mx-auto flex h-full w-full max-w-6xl flex-col items-center justify-between md:grid md:grid-cols-2 md:items-center md:gap-16">
             <div
-              className={`master-media relative mx-auto w-fit max-w-full order-2 ${
+              className={`master-media relative mx-auto my-auto -translate-y-4 sm:-translate-y-6 md:translate-y-0 w-fit max-w-full order-2 ${
                 mirrored ? "md:order-2" : "md:order-1"
               }`}
             >
-              <div className="master-portrait relative aspect-[4/5] h-[38vh] sm:h-[45vh] md:h-[62vh] lg:h-[68vh] max-h-[620px] w-auto overflow-hidden rounded-[2rem] bg-brand-elevated">
+              <div className="master-portrait relative aspect-[4/5] h-[58vh] max-h-[560px] max-w-[calc(100vw-3.25rem)] sm:h-[64vh] sm:max-h-[620px] sm:max-w-none md:h-[68vh] md:max-h-[680px] lg:h-[72vh] w-auto overflow-hidden rounded-[2rem] bg-brand-elevated shadow-2xl">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/images/image (3).png"
@@ -119,18 +129,16 @@ export function MasterVideoSection() {
             </div>
 
             <div
-              className={`master-copy flex flex-col order-1 ${
+              className={`master-copy flex w-full flex-col items-start order-1 shrink-0 ${
                 mirrored
                   ? "max-w-md md:order-1 md:ml-auto md:items-end md:text-right"
-                  : "max-w-md md:order-2"
+                  : "max-w-md md:order-2 md:items-start md:text-left"
               }`}
             >
-              <Badge variant="outline" className="mb-3 sm:mb-5 border-brand-border/50 font-mono text-[10px] sm:text-[11px] font-normal uppercase tracking-[0.25em] text-brand-border">
+              <Badge variant="outline" className="w-fit mb-3 sm:mb-5 border-brand-border/50 font-mono text-[10px] sm:text-[11px] font-normal uppercase tracking-[0.25em] text-brand-border">
                 {t.master.label}
               </Badge>
-              <h2 className="mb-3 sm:mb-6 font-heading text-2xl font-bold tracking-tight text-brand-text sm:text-4xl md:text-5xl">{t.master.title}</h2>
-              <Separator className="mb-3 sm:mb-6 w-12 sm:w-16 bg-brand-text" />
-              <p className="max-w-md text-sm sm:text-base leading-relaxed text-brand-text/70">{t.master.text}</p>
+              <h2 className="font-heading text-2xl font-bold tracking-tight text-brand-text sm:text-4xl md:text-5xl">{t.master.title}</h2>
             </div>
           </div>
         </section>

@@ -154,7 +154,7 @@ export function resolveScrollTarget(
   stepCount = 1
 ): ResolvedTarget {
   const delta = target - current;
-  if (Math.abs(delta) < 8) {
+  if (Math.abs(delta) < 20) {
     return { target: current, discrete: false };
   }
 

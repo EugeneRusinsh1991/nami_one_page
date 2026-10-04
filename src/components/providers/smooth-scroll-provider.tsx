@@ -28,27 +28,46 @@ export interface StepThresholdConfig {
   wheelLargeDeltaThreshold: number;    // vigorous wheel spin or trackpad fling (px)
 }
 
+export function getDynamicStepThresholds(): StepThresholdConfig {
+  if (typeof window === "undefined") {
+    return DEFAULT_STEP_THRESHOLDS;
+  }
+  const vh = window.innerHeight;
+  return {
+    touchLargeDistanceThreshold: Math.max(520, Math.round(vh * 0.55)),
+    touchFastVelocityThreshold: 3.5,
+    touchFastMinDistance: Math.max(440, Math.round(vh * 0.45)),
+    wheelLargeDeltaThreshold: Math.max(850, Math.round(vh * 0.75)),
+  };
+}
+
 export const DEFAULT_STEP_THRESHOLDS: StepThresholdConfig = {
-  touchLargeDistanceThreshold: 360,
-  touchFastVelocityThreshold: 2.4,
-  touchFastMinDistance: 160,
-  wheelLargeDeltaThreshold: 400,
+  touchLargeDistanceThreshold: 520,
+  touchFastVelocityThreshold: 3.5,
+  touchFastMinDistance: 440,
+  wheelLargeDeltaThreshold: 850,
 };
 
 export function calculateStepCount(
   distance: number,
   velocity = 0,
   isTouch = false,
-  config = DEFAULT_STEP_THRESHOLDS
+  config?: StepThresholdConfig
 ): number {
+  const activeConfig =
+    config ??
+    (typeof window !== "undefined"
+      ? getDynamicStepThresholds()
+      : DEFAULT_STEP_THRESHOLDS);
+
   if (isTouch) {
-    const isLargeSwipe = distance >= config.touchLargeDistanceThreshold;
+    const isLargeSwipe = distance >= activeConfig.touchLargeDistanceThreshold;
     const isStrongFlick =
-      velocity >= config.touchFastVelocityThreshold &&
-      distance >= config.touchFastMinDistance;
+      velocity >= activeConfig.touchFastVelocityThreshold &&
+      distance >= activeConfig.touchFastMinDistance;
     return isLargeSwipe || isStrongFlick ? 2 : 1;
   }
-  return distance >= config.wheelLargeDeltaThreshold ? 2 : 1;
+  return distance >= activeConfig.wheelLargeDeltaThreshold ? 2 : 1;
 }
 
 const INTENT_LOCK_THRESHOLD = 5;
@@ -175,6 +194,10 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
         const absX = Math.abs(deltaX);
         const absY = Math.abs(deltaY);
 
+        if ((gesture.accumY > 0 && deltaY < 0) || (gesture.accumY < 0 && deltaY > 0)) {
+          gesture.accumY = 0;
+        }
+
         gesture.accumX += deltaX;
         gesture.accumY += deltaY;
 
@@ -217,7 +240,7 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       const rawDelta = Math.abs(target - current);
       const evalDistance = gesture.isTouch
         ? gesture.maxDisplacement
-        : Math.max(Math.abs(gesture.accumY), rawDelta);
+        : Math.abs(gesture.accumY);
       const evaluatedSteps = calculateStepCount(
         evalDistance,
         gesture.peakVelocity,
