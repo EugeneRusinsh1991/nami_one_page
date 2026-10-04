@@ -69,6 +69,8 @@ export function PortfolioSliderSection() {
   const trackRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(0);
+  const activeIndexRef = useRef(0);
+  activeIndexRef.current = activeIndex;
 
   const cases = t.port.cases;
   const total = cases.length;
@@ -192,7 +194,39 @@ export function PortfolioSliderSection() {
       updateActiveCard();
     };
 
+    let isPointerDown = false;
+    let startX = 0;
+    let startScrollLeft = 0;
+    let hasMoved = false;
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      isPointerDown = true;
+      hasMoved = false;
+      startX = e.clientX;
+      startScrollLeft = track.scrollLeft;
+      if (smoothRaf) cancelAnimationFrame(smoothRaf);
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      if (!isPointerDown) return;
+      const dx = e.clientX - startX;
+      if (Math.abs(dx) > 4) {
+        hasMoved = true;
+        track.scrollLeft = startScrollLeft - dx;
+        targetLeft = track.scrollLeft;
+      }
+    };
+
+    const onPointerUp = () => {
+      isPointerDown = false;
+    };
+
     const onClick = (e: MouseEvent) => {
+      if (hasMoved) {
+        hasMoved = false;
+        return;
+      }
       const targetCard = (e.target as HTMLElement).closest<HTMLElement>(".port-card");
       if (targetCard) {
         const idx = cards.indexOf(targetCard);
@@ -207,13 +241,26 @@ export function PortfolioSliderSection() {
       }
     };
 
+    let lastWidth = typeof window !== "undefined" ? window.innerWidth : 0;
     const onResize = () => {
+      if (window.innerWidth === lastWidth) return;
+      lastWidth = window.innerWidth;
       metrics = computeSliderMetrics(track, cards, total);
-      centerInitial();
+      const activeCardDom = cards.find(
+        (c, idx) => Number(c.dataset.origIndex) === activeIndexRef.current && idx >= total && idx < total * 2
+      ) || cards[total];
+      if (activeCardDom) {
+        const offset = activeCardDom.offsetLeft - (metrics.trackWidth - activeCardDom.offsetWidth) / 2;
+        track.scrollLeft = offset;
+        targetLeft = offset;
+      }
     };
 
     track.addEventListener("scroll", onScroll, { passive: true });
     track.addEventListener("click", onClick);
+    track.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
     window.addEventListener("resize", onResize);
 
     centerInitial();
@@ -222,12 +269,15 @@ export function PortfolioSliderSection() {
       if (smoothRaf) cancelAnimationFrame(smoothRaf);
       track.removeEventListener("scroll", onScroll);
       track.removeEventListener("click", onClick);
+      track.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
       window.removeEventListener("resize", onResize);
     };
   }, [total]);
 
   return (
-    <section ref={containerRef} id="works" className="relative flex h-dvh flex-col justify-between overflow-hidden bg-brand-bg pt-[calc(4.5rem+env(safe-area-inset-top,0px))] md:pt-24 pb-6">
+    <section ref={containerRef} id="works" className="relative flex h-dvh flex-col justify-between overflow-hidden bg-brand-bg pt-[calc(1.5rem+env(safe-area-inset-top,0px))] sm:pt-[calc(2rem+env(safe-area-inset-top,0px))] md:pt-20 lg:pt-24 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] md:pb-6">
       <div className="mx-auto flex w-full max-w-6xl shrink-0 items-end justify-between px-6 mb-3 sm:mb-4">
         <SectionHeader
           badge={t.port.label}
@@ -261,25 +311,30 @@ export function PortfolioSliderSection() {
 
       <div
         ref={trackRef}
-        className="flex min-h-0 flex-1 w-full touch-pan-x items-stretch gap-6 overflow-x-auto overflow-y-hidden overscroll-x-contain px-[12vw] py-2 [scrollbar-width:none] sm:gap-8 [&::-webkit-scrollbar]:hidden"
+        data-lenis-prevent-horizontal="true"
+        className="flex min-h-0 flex-1 w-full items-stretch gap-6 overflow-x-auto overflow-y-hidden px-[12vw] py-2 [scrollbar-width:none] sm:gap-8 [&::-webkit-scrollbar]:hidden"
+        style={{
+          WebkitOverflowScrolling: "touch",
+          touchAction: "pan-x pan-y",
+        }}
       >
         {slides.map(({ item, originalIndex, copyIndex }) => (
           <Card
             key={`${item.t}-${copyIndex}-${originalIndex}`}
             data-orig-index={originalIndex}
             variant="surface"
-            className="port-card group relative h-full w-[76vw] sm:w-[54vw] md:w-[40vw] lg:w-[32vw] max-w-[460px] shrink-0 cursor-pointer shadow-lg hover:shadow-2xl data-[active=true]:shadow-2xl"
+            className="port-card group relative h-full w-[76vw] sm:w-[54vw] md:w-[40vw] lg:w-[32vw] max-w-[460px] shrink-0 cursor-pointer select-none shadow-lg hover:shadow-2xl data-[active=true]:shadow-2xl"
           >
-            <div className="absolute inset-0 overflow-hidden">
+            <div className="pointer-events-none select-none absolute inset-0 overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={IMAGES[originalIndex % IMAGES.length]}
                 alt={item.t}
                 draggable={false}
-                className="port-img absolute inset-y-0 -left-[8%] h-full w-[116%] max-w-none object-cover grayscale group-hover:scale-105 group-hover:grayscale-0 group-data-[active=true]:scale-105 group-data-[active=true]:grayscale-0"
+                className="port-img pointer-events-none select-none absolute inset-y-0 -left-[8%] h-full w-[116%] max-w-none object-cover grayscale group-hover:scale-105 group-hover:grayscale-0 group-data-[active=true]:scale-105 group-data-[active=true]:grayscale-0"
               />
             </div>
-            <div className="absolute inset-0 z-10 bg-gradient-to-t from-brand-text/70 via-transparent to-transparent" />
+            <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-brand-text/70 via-transparent to-transparent" />
             <div className="absolute left-5 top-5 z-10 flex gap-2">
               <Badge
                 variant="glass-subtle"

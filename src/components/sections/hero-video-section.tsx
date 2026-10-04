@@ -106,7 +106,7 @@ export function HeroVideoSection() {
   return (
     <section ref={containerRef} id="hero" className="relative h-dvh min-h-dvh w-full overflow-hidden bg-brand-bg">
       <canvas ref={canvasRef} className="hero-video absolute inset-0 h-full w-full" />
-      <div className="absolute inset-0 bg-gradient-to-b from-brand-bg/80 via-brand-bg/30 to-brand-bg/90 will-change-[transform]" style={{ transform: 'translateZ(0)' }} />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-brand-bg/85 via-brand-bg/40 to-transparent" />
 
       {/* Slide 1 (Initial / Branding / CTAs) */}
       <div className="hero-slide hero-slide-0 absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center">
@@ -117,7 +117,11 @@ export function HeroVideoSection() {
           className="hero-badge mb-8 h-7 w-auto object-contain sm:h-8"
         />
 
-        <Heading as="h1" size="display">
+        <Heading
+          as="h1"
+          size="display"
+          className="[filter:drop-shadow(0_0_12px_rgba(248,249,251,0.95))_drop-shadow(0_0_32px_rgba(248,249,251,0.85))]"
+        >
           {slides[0].title.split(" ").map((word, i) => (
             <span key={`${word}-${i}`} className="mr-[0.25em] inline-block overflow-hidden align-bottom">
               <span className="hero-word inline-block">{word}</span>
@@ -156,26 +160,28 @@ export function HeroVideoSection() {
             {slides[1].badge}
           </Badge>
 
-          <Heading as="h2" size="display">
+          <Heading
+            as="h2"
+            size="display"
+            className="[filter:drop-shadow(0_0_12px_rgba(248,249,251,0.95))_drop-shadow(0_0_32px_rgba(248,249,251,0.85))]"
+          >
             {slides[1].title}
           </Heading>
         </div>
       )}
 
-      {/* Slide 3 (Longevity & Natural Aesthetics) */}
+      {/* Slide 3 (Longevity & Natural Aesthetics - Badge only) */}
       {slides[2] && (
         <div className="hero-slide hero-slide-2 pointer-events-none absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center opacity-0">
-          <Badge variant="glass" className="mb-8">
+          <Badge
+            variant="glass"
+            className="-translate-y-6 sm:-translate-y-24 md:-translate-y-32"
+          >
             {slides[2].badge}
           </Badge>
-
-          <Heading as="h2" size="display">
-            {slides[2].title}
-          </Heading>
         </div>
       )}
-
-      <div className="hero-scroll absolute inset-x-0 bottom-[calc(2rem+env(safe-area-inset-bottom))] z-10 flex flex-col items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-brand-border">
+      <div className="hero-scroll absolute inset-x-0 bottom-[calc(6rem+env(safe-area-inset-bottom))] z-10 flex flex-col items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-brand-border md:bottom-[calc(4rem+env(safe-area-inset-bottom))]">
         {t.hero.scroll}
         <span className="h-10 w-px animate-pulse bg-brand-border" />
       </div>

@@ -94,7 +94,7 @@ export function MasterVideoSection() {
         <section
           key={id}
           id={id}
-          className="relative flex h-dvh min-h-dvh w-full flex-col justify-between overflow-hidden px-5 sm:px-6 md:px-8 lg:px-12 pt-[calc(4.5rem+env(safe-area-inset-top,0px))] md:pt-24 pb-6 md:pb-8"
+          className="relative flex h-dvh min-h-dvh w-full flex-col justify-between overflow-hidden px-5 sm:px-6 md:px-8 lg:px-12 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] sm:pt-[calc(2rem+env(safe-area-inset-top,0px))] md:pt-20 lg:pt-24 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] md:pb-6 lg:pb-8"
         >
           <div className="master-block mx-auto flex h-full w-full max-w-6xl flex-col items-start justify-between">
             <SectionHeader
@@ -103,7 +103,7 @@ export function MasterVideoSection() {
               className="master-copy mb-3 sm:mb-4 md:mb-6"
             />
 
-            <div className="master-media relative mx-auto my-auto w-full max-w-full flex-1 min-h-0 flex items-center justify-center">
+            <div className="master-media relative mx-auto mt-2 mb-auto sm:my-auto w-full max-w-full flex-1 min-h-0 flex items-center justify-center">
               <div className="master-portrait relative aspect-[16/10] h-full max-h-[56vh] sm:max-h-[60vh] md:max-h-[62vh] xl:max-h-[680px] w-auto max-w-full overflow-hidden rounded-3xl bg-brand-elevated shadow-2xl transform-gpu">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img

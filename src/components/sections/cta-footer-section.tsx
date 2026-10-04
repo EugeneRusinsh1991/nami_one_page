@@ -6,8 +6,7 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { Heading, Text } from "@/components/ui/typography";
+import { Heading } from "@/components/ui/typography";
 import { useLanguage } from "@/components/providers/language-provider";
 
 function TikTokIcon({ className }: { className?: string }) {
@@ -62,7 +61,7 @@ export function CtaFooterSection() {
       id="booking"
       className="relative flex h-dvh min-h-dvh w-full flex-col justify-between overflow-hidden bg-brand-surface"
     >
-      <div className="flex flex-1 items-center justify-center px-6 py-6 sm:py-8 md:py-10">
+      <div className="flex flex-1 items-start justify-center px-6 pt-[calc(2rem+env(safe-area-inset-top,0px))] pb-4 sm:items-center sm:pt-0 sm:py-8 md:py-10">
         <Card variant="glass" className="cta-panel mx-auto w-full max-w-3xl rounded-[2rem] border-white/70 bg-white/60 p-6 text-center shadow-xl backdrop-blur-xl sm:p-10 md:p-12">
           <Heading as="h2" size="h2" className="cta-reveal font-bold">
             {t.cta.title}
@@ -93,35 +92,27 @@ export function CtaFooterSection() {
         </Card>
       </div>
 
-      <footer className="cta-footer shrink-0 border-t border-brand-border/20 bg-brand-bg px-6 py-4 sm:py-6 md:py-8">
+      <footer className="cta-footer shrink-0 border-t border-brand-border/20 bg-brand-bg px-6 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:py-4">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-center text-center">
           <div className="footer-reveal">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/logo.png" alt="NAMI STUDIO" className="h-8 w-auto sm:h-9 md:h-10" />
           </div>
-          <Text
-            as="div"
-            variant="subtle"
-            className="footer-reveal mt-3 flex items-center justify-center gap-6 text-xs sm:text-sm md:mt-4"
-          >
+          <div className="footer-reveal mt-2.5 flex items-center justify-center gap-4 text-brand-text/70">
             {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => (
               <a
                 key={label}
                 href={href}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-2 transition-colors hover:text-brand-text"
+                aria-label={label}
+                className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:text-brand-text"
               >
                 <Icon className="h-4 w-4" />
-                <span>{label}</span>
               </a>
             ))}
-          </Text>
+          </div>
         </div>
-        <Separator className="mx-auto my-3 max-w-6xl bg-brand-border/20 sm:my-4 md:my-5" />
-        <Text as="p" variant="code" className="footer-reveal text-center text-[11px] sm:text-xs">
-          {t.cta.rights}
-        </Text>
       </footer>
     </section>
   );

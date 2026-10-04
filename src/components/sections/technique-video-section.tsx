@@ -149,7 +149,7 @@ export function TechniqueVideoSection() {
   return (
     <section ref={containerRef} id="technique" className="relative h-dvh min-h-dvh w-full overflow-hidden bg-brand-surface">
       <canvas ref={canvasRef} className="tech-video absolute inset-0 h-full w-full" />
-      <div className="absolute inset-0 bg-gradient-to-r from-brand-bg/85 via-brand-bg/30 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-brand-bg/85 via-brand-bg/30 to-transparent" />
 
       <div className="relative z-10 mx-auto flex h-full max-w-6xl items-start px-6 safe-offset-mobile md:items-center">
         <div className="relative h-72 w-full max-w-md">

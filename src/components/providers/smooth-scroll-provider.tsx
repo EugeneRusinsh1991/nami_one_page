@@ -235,12 +235,27 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       syncTouchLerp: 0.075,
       touchMultiplier: 1,
       touchInertiaExponent: 1.7,
+      allowNestedScroll: true,
       virtualScroll: (data) => {
         scheduleReset();
         if (data.event && "touches" in data.event) {
           gesture.isTouch = true;
         } else if (data.event && (data.event as any).type === "wheel") {
           gesture.isTouch = false;
+        }
+
+        const target = (data.event as any)?.target as HTMLElement | null;
+        if (target?.closest?.("[data-lenis-prevent]")) {
+          return false;
+        }
+        if (target?.closest?.("[data-lenis-prevent-horizontal]")) {
+          if (
+            gesture.lockedDirection === "horizontal" ||
+            Math.abs(gesture.accumX) >= Math.abs(gesture.accumY) ||
+            Math.abs(gesture.accumY) < 12
+          ) {
+            return false;
+          }
         }
 
         const { deltaX, deltaY } = data;

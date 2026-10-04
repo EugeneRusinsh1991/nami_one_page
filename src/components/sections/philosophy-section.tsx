@@ -61,9 +61,9 @@ export function PhilosophySection() {
     <section
       ref={containerRef}
       id="philosophy"
-      className="relative z-20 h-dvh min-h-dvh max-h-dvh overflow-hidden rounded-t-[2rem] bg-brand-bg px-5 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] pb-6 shadow-[0_-20px_60px_rgba(26,31,37,0.06)] md:rounded-t-[2.5rem] md:px-6 md:pt-28 md:pb-8 lg:pt-32 lg:pb-10"
+      className="relative z-20 h-dvh min-h-dvh max-h-dvh overflow-hidden rounded-t-[2rem] bg-brand-bg px-5 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] shadow-[0_-20px_60px_rgba(26,31,37,0.06)] md:rounded-t-[2.5rem] md:px-6 md:pt-20 md:pb-8 lg:pt-24 lg:pb-10"
     >
-      <div className="mx-auto flex h-full w-full max-w-6xl flex-col justify-center">
+      <div className="mx-auto flex h-full w-full max-w-6xl flex-col justify-start sm:justify-center">
         <SectionHeader
           badge={t.philo.label}
           title={t.philo.title}
