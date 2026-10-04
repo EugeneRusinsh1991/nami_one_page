@@ -22,20 +22,34 @@ const GESTURE_QUIET_MS = 140;
 const STEP_EASING = (t: number) => 1 - Math.pow(1 - t, 4);
 
 export interface StepThresholdConfig {
-  twoStepDeltaThreshold: number;
-  threeStepDeltaThreshold?: number;
+  twoStepVelocityThreshold: number; // velocity in px/ms
+  twoStepDistanceThreshold: number; // accumulated distance in px
+  threeStepVelocityThreshold?: number;
+  threeStepDistanceThreshold?: number;
 }
 
 export const DEFAULT_STEP_THRESHOLDS: StepThresholdConfig = {
-  twoStepDeltaThreshold: 140,
-  // threeStepDeltaThreshold: 300, // available for 3-step expansion
+  twoStepVelocityThreshold: 0.55, // fast flick
+  twoStepDistanceThreshold: 75,   // long swipe on mobile
+  // threeStepVelocityThreshold: 1.2,
+  // threeStepDistanceThreshold: 180,
 };
 
-export function calculateStepCount(magnitude: number, config = DEFAULT_STEP_THRESHOLDS): number {
-  if (config.threeStepDeltaThreshold && magnitude >= config.threeStepDeltaThreshold) {
+export function calculateStepCount(
+  distance: number,
+  velocity: number,
+  config = DEFAULT_STEP_THRESHOLDS
+): number {
+  if (
+    (config.threeStepVelocityThreshold && velocity >= config.threeStepVelocityThreshold) ||
+    (config.threeStepDistanceThreshold && distance >= config.threeStepDistanceThreshold)
+  ) {
     return 3;
   }
-  if (magnitude >= config.twoStepDeltaThreshold) {
+  if (
+    velocity >= config.twoStepVelocityThreshold ||
+    distance >= config.twoStepDistanceThreshold
+  ) {
     return 2;
   }
   return 1;
@@ -55,13 +69,76 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       lockedDirection: null as "horizontal" | "vertical" | null,
       accumX: 0,
       accumY: 0,
+      startY: 0,
+      startTime: 0,
+      lastY: 0,
+      lastTime: 0,
+      peakVelocity: 0,
+      maxDisplacement: 0,
       resetTimer: null as ReturnType<typeof setTimeout> | null,
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      if (!touch) return;
+      const now = performance.now();
+      gesture.lockedDirection = null;
+      gesture.accumX = 0;
+      gesture.accumY = 0;
+      gesture.startY = touch.clientY;
+      gesture.startTime = now;
+      gesture.lastY = touch.clientY;
+      gesture.lastTime = now;
+      gesture.peakVelocity = 0;
+      gesture.maxDisplacement = 0;
+      if (now >= gateUntil) {
+        activeDirection = null;
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      if (!touch) return;
+      const now = performance.now();
+      const dt = now - gesture.lastTime;
+      const totalDist = Math.abs(touch.clientY - gesture.startY);
+      if (totalDist > gesture.maxDisplacement) {
+        gesture.maxDisplacement = totalDist;
+      }
+      if (dt > 10) {
+        const instantV = Math.abs(touch.clientY - gesture.lastY) / dt;
+        if (instantV > gesture.peakVelocity) {
+          gesture.peakVelocity = instantV;
+        }
+        gesture.lastY = touch.clientY;
+        gesture.lastTime = now;
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      const touch = e.changedTouches[0];
+      if (touch) {
+        const totalDist = Math.abs(touch.clientY - gesture.startY);
+        if (totalDist > gesture.maxDisplacement) {
+          gesture.maxDisplacement = totalDist;
+        }
+        const totalDt = performance.now() - gesture.startTime;
+        if (totalDt > 10) {
+          const overallV = totalDist / totalDt;
+          if (overallV > gesture.peakVelocity) {
+            gesture.peakVelocity = overallV;
+          }
+        }
+      }
+      scheduleReset();
     };
 
     const resetGesture = () => {
       gesture.lockedDirection = null;
       gesture.accumX = 0;
       gesture.accumY = 0;
+      gesture.peakVelocity = 0;
+      gesture.maxDisplacement = 0;
       if (performance.now() >= gateUntil) {
         activeDirection = null;
       }
@@ -72,8 +149,9 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       gesture.resetTimer = setTimeout(resetGesture, GESTURE_RESET_TIMEOUT_MS);
     };
 
-    window.addEventListener("touchstart", resetGesture, { passive: true });
-    window.addEventListener("touchend", resetGesture, { passive: true });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
     window.addEventListener("touchcancel", resetGesture, { passive: true });
 
     const lenisInstance = new Lenis({
@@ -122,6 +200,7 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
     let lastEvent = 0;
     let gateUntil = 0;
     let activeDirection: "down" | "up" | null = null;
+    let currentStepCount = 1;
 
     lenisInstance.scrollTo = (target: any, opts: any = {}) => {
       if (opts.programmatic !== false || typeof target !== "number") {
@@ -133,15 +212,19 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       const isGated = now < gateUntil;
 
       const rawDelta = Math.abs(target - current);
-      const gestureDelta = Math.abs(gesture.accumY);
-      const stepCount = calculateStepCount(Math.max(rawDelta, gestureDelta));
+      const touchDist = Math.max(gesture.maxDisplacement, Math.abs(gesture.accumY), rawDelta);
+      const evaluatedSteps = calculateStepCount(touchDist, gesture.peakVelocity);
+
+      // In-flight upgrade: if currently running 1 step, but user continued gesture with high velocity/distance
+      const canUpgrade = isGated && currentStepCount === 1 && evaluatedSteps >= 2;
+      const effectiveSteps = canUpgrade ? evaluatedSteps : isGated ? currentStepCount : evaluatedSteps;
 
       const { target: resolved, discrete } = resolveScrollTarget(
         current,
         target,
         getScrollZones(),
-        isGated ? activeDirection : null,
-        stepCount
+        isGated && !canUpgrade ? activeDirection : null,
+        effectiveSteps
       );
 
       // Non-discrete scroll targets (e.g. beyond bounds or micro-deltas): bypass discrete step gating
@@ -153,14 +236,15 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       const quiet = now - lastEvent;
       lastEvent = now;
 
-      // During active step transition, suppress contrary or redundant micro-deltas
-      if (isGated) {
+      // During active step transition, suppress micro-deltas unless this is an in-flight upgrade
+      if (isGated && !canUpgrade) {
         if (now < gateUntil - STEP_TAIL_MS || quiet < GESTURE_QUIET_MS) return;
-      } else if (quiet < GESTURE_QUIET_MS) {
+      } else if (!isGated && quiet < GESTURE_QUIET_MS) {
         return;
       }
 
-      const durationMs = stepCount >= 3 ? STEP_DURATION_3_MS : stepCount === 2 ? STEP_DURATION_2_MS : STEP_DURATION_1_MS;
+      currentStepCount = effectiveSteps;
+      const durationMs = effectiveSteps >= 3 ? STEP_DURATION_3_MS : effectiveSteps === 2 ? STEP_DURATION_2_MS : STEP_DURATION_1_MS;
       activeDirection = resolved > current ? "down" : "up";
       gateUntil = now + durationMs + STEP_TAIL_MS;
 
@@ -185,8 +269,9 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
     gsap.ticker.lagSmoothing(0);
 
     return () => {
-      window.removeEventListener("touchstart", resetGesture);
-      window.removeEventListener("touchend", resetGesture);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("touchcancel", resetGesture);
       if (gesture.resetTimer) clearTimeout(gesture.resetTimer);
       gsap.ticker.remove(updateTicker);
