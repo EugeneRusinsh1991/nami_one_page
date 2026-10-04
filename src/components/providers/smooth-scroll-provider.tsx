@@ -21,6 +21,28 @@ const STEP_TAIL_MS = 120;
 const GESTURE_QUIET_MS = 120;
 const STEP_EASING = (t: number) => 1 - Math.pow(1 - t, 3);
 
+export interface DeviceScrollMode {
+  isTouchDevice: boolean;
+  allowNativeMomentum: boolean;
+  enableDiscreteWheel: boolean;
+}
+
+export function detectDeviceScrollMode(): DeviceScrollMode {
+  if (typeof window === "undefined") {
+    return { isTouchDevice: false, allowNativeMomentum: false, enableDiscreteWheel: true };
+  }
+  const isTouchDevice =
+    "ontouchstart" in window ||
+    navigator.maxTouchPoints > 0 ||
+    window.matchMedia("(pointer: coarse)").matches;
+
+  return {
+    isTouchDevice,
+    allowNativeMomentum: isTouchDevice,
+    enableDiscreteWheel: !isTouchDevice,
+  };
+}
+
 export interface StepThresholdConfig {
   touchLargeDistanceThreshold: number; // large swipe across screen (px)
   touchFastVelocityThreshold: number;  // fast vigorous flick (px/ms)
@@ -80,6 +102,8 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
   const { locale } = useLanguage();
 
   useEffect(() => {
+    const deviceMode = detectDeviceScrollMode();
+
     const gesture = {
       isTouch: false,
       touchActive: false,
@@ -141,11 +165,6 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
         }
       }
 
-      // Prevent iOS/iPadOS Safari from engaging parallel native momentum scrolling on vertical gestures
-      if (gesture.lockedDirection === "vertical" && e.cancelable) {
-        e.preventDefault();
-      }
-
       if (dt > 12) {
         const instantV = Math.abs(touch.clientY - gesture.lastY) / dt;
         if (instantV > gesture.peakVelocity) {
@@ -174,7 +193,7 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
           }
         }
       }
-      if (gateUntil > 0) {
+      if (gateUntil > 0 && !gesture.isTouch) {
         gateUntil = Math.max(gateUntil, performance.now() + GESTURE_RESET_TIMEOUT_MS);
       }
       scheduleReset();
@@ -201,7 +220,7 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
     };
 
     window.addEventListener("touchstart", onTouchStart, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
     window.addEventListener("touchcancel", resetGesture, { passive: true });
 
@@ -212,24 +231,19 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       gestureOrientation: "vertical",
       smoothWheel: true,
       wheelMultiplier: 1,
-      syncTouch: true,
-      syncTouchLerp: 1,
-      touchMultiplier: 1.25,
-      touchInertiaExponent: 1,
+      syncTouch: deviceMode.allowNativeMomentum,
+      syncTouchLerp: 0.075,
+      touchMultiplier: 1,
+      touchInertiaExponent: 1.7,
       virtualScroll: (data) => {
         scheduleReset();
         if (data.event && "touches" in data.event) {
           gesture.isTouch = true;
-        }
-
-        // Suppress Lenis touch inertia on touchend to prevent drift past snap breakpoints
-        if (data.event?.type === "touchend") {
-          return false;
+        } else if (data.event && (data.event as any).type === "wheel") {
+          gesture.isTouch = false;
         }
 
         const { deltaX, deltaY } = data;
-        const absX = Math.abs(deltaX);
-        const absY = Math.abs(deltaY);
 
         if ((gesture.accumY > 0 && deltaY < 0) || (gesture.accumY < 0 && deltaY > 0)) {
           gesture.accumY = 0;
@@ -252,10 +266,6 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
           return false;
         }
 
-        if (gesture.lockedDirection === "vertical" && data.event && "cancelable" in data.event && (data.event as Event).cancelable) {
-          (data.event as Event).preventDefault();
-        }
-
         return true;
       },
     });
@@ -272,30 +282,24 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
         return origScrollTo(target, opts);
       }
 
+      // Bypass discrete snapping for touch gestures to allow fluid native inertia
+      if (gesture.isTouch || !deviceMode.enableDiscreteWheel) {
+        return origScrollTo(target, opts);
+      }
+
       const now = performance.now();
       const current = lenisInstance.scroll;
-      const isTouchActive = gesture.isTouch && gesture.touchActive;
-      const isGated = gateUntil > 0 && (now < gateUntil || isTouchActive);
+      const isGated = gateUntil > 0 && now < gateUntil;
 
-      const rawDelta = Math.abs(target - current);
-      const evalDistance = gesture.isTouch
-        ? gesture.maxDisplacement
-        : Math.abs(gesture.accumY);
+      const evalDistance = Math.abs(gesture.accumY);
       const evaluatedSteps = calculateStepCount(
         evalDistance,
-        gesture.peakVelocity,
-        gesture.isTouch
+        0,
+        false
       );
 
       // In-flight upgrade: if currently running 1 step, but user continued gesture with high velocity/distance
-      const canUpgrade = gesture.isTouch
-        ? gesture.touchStepsCommitted === 1 && evaluatedSteps >= 2
-        : isGated && currentStepCount === 1 && evaluatedSteps >= 2;
-
-      // Isolate touch session: allow max 2 steps per swipe, swallow all subsequent events until full finger lift
-      if (gesture.isTouch && gesture.touchStepsCommitted > 0 && !canUpgrade) {
-        return;
-      }
+      const canUpgrade = isGated && currentStepCount === 1 && evaluatedSteps >= 2;
 
       // While transition is gated, suppress all trailing micro-deltas and momentum
       if (isGated && !canUpgrade) {
@@ -312,11 +316,8 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
         effectiveSteps
       );
 
-      // Non-discrete scroll targets: never allow fallback to !discrete during a touch session
+      // Non-discrete scroll targets: fallback to normal scroll
       if (!discrete) {
-        if (gesture.isTouch) {
-          return;
-        }
         activeDirection = null;
         return origScrollTo(resolved, opts);
       }
@@ -329,9 +330,6 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       }
 
       currentStepCount = effectiveSteps;
-      if (gesture.isTouch) {
-        gesture.touchStepsCommitted = effectiveSteps;
-      }
       const durationMs = effectiveSteps >= 3 ? STEP_DURATION_3_MS : effectiveSteps === 2 ? STEP_DURATION_2_MS : STEP_DURATION_1_MS;
       activeDirection = resolved > current ? "down" : "up";
       gateUntil = now + durationMs + STEP_TAIL_MS;

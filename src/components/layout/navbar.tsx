@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { LOCALES, useLanguage } from "@/components/providers/language-provider";
-import { useLenis } from "@/components/providers/smooth-scroll-provider";
+import { useScrollTo } from "@/hooks/use-scroll-to";
 
 const LINKS = ["philosophy", "technique", "works", "master", "faq"] as const;
 
@@ -38,12 +38,11 @@ export function LanguageSwitcher({ className }: { className?: string }) {
 export function MobileHeroNav({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
   const { t } = useLanguage();
-  const lenis = useLenis();
+  const { scrollToId } = useScrollTo();
 
   const goTo = (id: string) => {
     setOpen(false);
-    const el = document.getElementById(id);
-    if (el) lenis?.scrollTo(el, { duration: 1.6 });
+    scrollToId(id);
   };
 
   return (
@@ -79,8 +78,9 @@ export function MobileHeroNav({ className }: { className?: string }) {
               </button>
             ))}
             <Button
+              variant="brand-primary"
               onClick={() => goTo("booking")}
-              className="mt-4 rounded-full bg-brand-text text-white hover:bg-brand-text/85"
+              className="mt-4"
             >
               {t.nav.book}
             </Button>
@@ -94,18 +94,24 @@ export function MobileHeroNav({ className }: { className?: string }) {
 export function Navbar() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
-  const lenis = useLenis();
+  const { scrollToId, scrollToTop } = useScrollTo();
 
   useGSAP(
     () => {
-      gsap.from(".nav-pill", { y: -40, opacity: 0, duration: 1, ease: "power3.out", delay: 0.3 });
+      gsap.from(".nav-pill", {
+        y: -40,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out",
+        delay: 0.3,
+        clearProps: "transform",
+      });
     },
     { scope: containerRef }
   );
 
   const goTo = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) lenis?.scrollTo(el, { duration: 1.6 });
+    scrollToId(id);
   };
 
   return (
@@ -113,8 +119,8 @@ export function Navbar() {
       ref={containerRef}
       className="pointer-events-none fixed inset-x-0 top-0 z-40 hidden justify-center px-4 pt-4 md:flex"
     >
-      <header className="nav-pill pointer-events-auto flex w-full max-w-6xl items-center justify-between gap-4 md:gap-6 rounded-full border border-white/60 bg-white/55 px-5 py-2.5 shadow-[0_8px_32px_rgba(26,31,37,0.08)] backdrop-blur-xl transform-gpu will-change-transform">
-        <button type="button" onClick={() => lenis?.scrollTo(0)} aria-label="NAMI STUDIO">
+      <header className="nav-pill pointer-events-auto flex w-full max-w-6xl items-center justify-between gap-4 md:gap-6 rounded-full border border-white/60 bg-white/70 px-5 py-2.5 shadow-[0_8px_32px_rgba(26,31,37,0.08)] backdrop-blur-md transform-gpu will-change-transform">
+        <button type="button" onClick={() => scrollToTop()} aria-label="NAMI STUDIO">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/images/logo.png" alt="NAMI STUDIO" className="h-8 w-auto" />
         </button>
@@ -137,8 +143,9 @@ export function Navbar() {
           <LanguageSwitcher className="hidden lg:flex" />
           <Button
             size="sm"
+            variant="brand-primary"
             onClick={() => goTo("booking")}
-            className="rounded-full bg-brand-text px-5 text-white hover:bg-brand-text/85"
+            className="px-5"
           >
             {t.nav.book}
           </Button>

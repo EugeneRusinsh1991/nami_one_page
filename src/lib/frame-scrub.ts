@@ -1,9 +1,11 @@
 import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { BREAKPOINTS } from "@/hooks/use-breakpoint";
 
 const LERP = 0.45;
 const KEY_STEP = 16;
 const CONCURRENCY = 4;
 const MAX_DPR = 2;
+const MOBILE_MAX_DPR = 1.5;
 const MAX_CACHED_FRAMES = 36;
 const WINDOW_RADIUS = 16;
 
@@ -103,9 +105,11 @@ export function createFrameScrub({
   };
 
   const resize = () => {
-    const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+    const isMobile = typeof window !== "undefined" && window.innerWidth < BREAKPOINTS.md;
+    const maxDpr = isMobile ? MOBILE_MAX_DPR : MAX_DPR;
+    const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
     const parent = canvas.parentElement;
-    const displayWidth = parent ? parent.clientWidth : (canvas.clientWidth || window.innerWidth);
+    const displayWidth = parent ? parent.clientWidth : (canvas.clientWidth || (typeof window !== "undefined" ? window.innerWidth : BREAKPOINTS.md));
     const displayHeight = parent ? parent.clientHeight : (canvas.clientHeight || window.innerHeight);
     const w = Math.max(1, Math.round(displayWidth * dpr));
     const h = Math.max(1, Math.round(displayHeight * dpr));
@@ -299,11 +303,44 @@ export function createFrameScrub({
     render(currentFloat, scrollDirection);
   };
 
+  let isTickerActive = false;
+
+  const startTicker = () => {
+    if (destroyed || isTickerActive) return;
+    gsap.ticker.add(tick);
+    isTickerActive = true;
+    needsRedraw = true;
+  };
+
+  const stopTicker = () => {
+    if (!isTickerActive) return;
+    gsap.ticker.remove(tick);
+    isTickerActive = false;
+  };
+
   resize();
   const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
   observer?.observe(canvas.parentElement || canvas);
   window.addEventListener("resize", resize);
-  gsap.ticker.add(tick);
+
+  const intersectionObserver =
+    typeof IntersectionObserver !== "undefined"
+      ? new IntersectionObserver((entries) => {
+          const entry = entries[0];
+          if (!entry) return;
+          if (entry.isIntersecting) {
+            startTicker();
+          } else {
+            stopTicker();
+          }
+        })
+      : null;
+
+  if (intersectionObserver) {
+    intersectionObserver.observe(trigger);
+  } else {
+    startTicker();
+  }
 
   load(1).then(() => {
     if (!destroyed) {
@@ -327,6 +364,9 @@ export function createFrameScrub({
       if (self.direction !== 0) {
         scrollDirection = self.direction >= 0 ? 1 : -1;
       }
+      if (!isTickerActive && !destroyed) {
+        startTicker();
+      }
     },
   });
 
@@ -339,8 +379,9 @@ export function createFrameScrub({
     trigger: scrollTrigger,
     destroy: () => {
       destroyed = true;
-      gsap.ticker.remove(tick);
+      stopTicker();
       observer?.disconnect();
+      intersectionObserver?.disconnect();
       window.removeEventListener("resize", resize);
       scrollTrigger.kill();
       pendingLoads.clear();

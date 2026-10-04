@@ -21,23 +21,61 @@ function dedupe(points: number[]): number[] {
   return merged;
 }
 
-const PHILO_HEAD_OFFSET = 96;
+let cachedZones: ScrollZone[] | null = null;
+const sectionTopCache = new Map<string, number>();
 
-function getPhilosophyEntry(): number | null {
-  const philo = document.getElementById("philosophy");
-  if (!philo) return null;
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-  if (isMobile) {
-    return Math.round(philo.getBoundingClientRect().top + window.scrollY);
-  }
-  const head = philo.querySelector<HTMLElement>(".philo-head");
-  if (!head) return Math.round(philo.getBoundingClientRect().top + window.scrollY);
-  return Math.round(head.getBoundingClientRect().top + window.scrollY - PHILO_HEAD_OFFSET);
+export function invalidateScrollZonesCache(): void {
+  cachedZones = null;
+  sectionTopCache.clear();
 }
 
-function getSectionTop(id: string): number | null {
+if (typeof window !== "undefined") {
+  ScrollTrigger.addEventListener("refresh", invalidateScrollZonesCache);
+  window.addEventListener("resize", invalidateScrollZonesCache, { passive: true });
+}
+
+export function getSectionTop(id: string, forceRefresh = false): number | null {
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    return null;
+  }
+
+  if (!forceRefresh && sectionTopCache.has(id)) {
+    return sectionTopCache.get(id)!;
+  }
+
   const el = document.getElementById(id);
-  return el ? Math.round(el.getBoundingClientRect().top + window.scrollY) : null;
+  if (!el) return null;
+
+  const triggers = ScrollTrigger.getAll();
+  const st = triggers.find((s) => s.trigger === el || s.pin === el);
+
+  if (st && st.pin && typeof st.start === "number" && Number.isFinite(st.start) && st.end > st.start) {
+    const top = Math.round(st.start);
+    sectionTopCache.set(id, top);
+    return top;
+  }
+
+  let targetEl: HTMLElement = el;
+  const spacer = (st as { spacer?: Element | null } | undefined)?.spacer;
+  if (spacer instanceof HTMLElement) {
+    targetEl = spacer;
+  } else if (el.parentElement?.classList.contains("pin-spacer")) {
+    targetEl = el.parentElement as HTMLElement;
+  } else {
+    const pinSpacer = el.closest(".pin-spacer") as HTMLElement | null;
+    if (pinSpacer) {
+      targetEl = pinSpacer;
+    }
+  }
+
+  const scrollY = window.scrollY || window.pageYOffset || 0;
+  const top = Math.round(targetEl.getBoundingClientRect().top + scrollY);
+  sectionTopCache.set(id, top);
+  return top;
+}
+
+function getPhilosophyEntry(): number | null {
+  return getSectionTop("philosophy");
 }
 
 export function getMasterPoints(): number[] {
@@ -84,19 +122,10 @@ function getHandoffZones(pins: Record<string, { start: number; end: number }>): 
   return zones;
 }
 
-let cachedZones: ScrollZone[] | null = null;
-
-export function invalidateScrollZonesCache(): void {
-  cachedZones = null;
-}
-
-if (typeof window !== "undefined") {
-  ScrollTrigger.addEventListener("refresh", invalidateScrollZonesCache);
-  window.addEventListener("resize", invalidateScrollZonesCache, { passive: true });
-}
-
 export function getScrollZones(forceRefresh = false): ScrollZone[] {
-  if (!forceRefresh && cachedZones !== null && cachedZones.length > 0) {
+  if (forceRefresh) {
+    invalidateScrollZonesCache();
+  } else if (cachedZones !== null && cachedZones.length > 0) {
     return cachedZones;
   }
 

@@ -4,16 +4,91 @@ import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { createFrameScrub } from "@/lib/frame-scrub";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Eyebrow, Heading, Text } from "@/components/ui/typography";
 import { useLanguage } from "@/components/providers/language-provider";
+import { useBreakpoint } from "@/hooks/use-breakpoint";
 
 const STEP_COUNT = 4;
+const COLOR_ACTIVE = "#1A1F25";
+const COLOR_INACTIVE = "#D5DAE0";
+
+function smoothstep(min: number, max: number, value: number): number {
+  if (max <= min) return 0;
+  const x = Math.max(0, Math.min(1, (value - min) / (max - min)));
+  return x * x * (3 - 2 * x);
+}
+
+export interface StepTransformState {
+  opacity: number;
+  y: number;
+  isActive: boolean;
+}
+
+export function calculateStepTransformState(
+  stepIndex: number,
+  totalSteps: number,
+  progress: number
+): StepTransformState {
+  if (totalSteps <= 1) {
+    return { opacity: 1, y: 0, isActive: true };
+  }
+
+  const p = Math.max(0, Math.min(1, progress));
+  const currentStep = Math.min(totalSteps - 1, Math.floor(p * totalSteps));
+  const isActive = stepIndex === currentStep;
+
+  const stepSize = 1 / totalSteps;
+  const fade = stepSize * 0.32;
+  const halfFade = fade / 2;
+
+  const isFirst = stepIndex === 0;
+  const isLast = stepIndex === totalSteps - 1;
+
+  const enterStart = isFirst ? -1 : stepIndex * stepSize - halfFade;
+  const enterEnd = isFirst ? -1 : stepIndex * stepSize + halfFade;
+
+  const exitStart = isLast ? 2 : (stepIndex + 1) * stepSize - halfFade;
+  const exitEnd = isLast ? 2 : (stepIndex + 1) * stepSize + halfFade;
+
+  const Y_OFFSET = 20;
+
+  if (!isFirst && p < enterStart) {
+    return { opacity: 0, y: Y_OFFSET, isActive };
+  }
+
+  if (!isFirst && p <= enterEnd) {
+    const t = smoothstep(enterStart, enterEnd, p);
+    return {
+      opacity: t,
+      y: (1 - t) * Y_OFFSET,
+      isActive,
+    };
+  }
+
+  if (p < exitStart) {
+    return { opacity: 1, y: 0, isActive };
+  }
+
+  if (!isLast && p <= exitEnd) {
+    const t = smoothstep(exitStart, exitEnd, p);
+    return {
+      opacity: 1 - t,
+      y: -t * Y_OFFSET,
+      isActive,
+    };
+  }
+
+  return { opacity: 0, y: -Y_OFFSET, isActive };
+}
 
 export function TechniqueVideoSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
+  const { isMobile } = useBreakpoint();
 
   useGSAP(
     () => {
@@ -21,42 +96,54 @@ export function TechniqueVideoSection() {
       const container = containerRef.current;
       if (!canvas || !container) return;
 
-      gsap.set(".tech-step", { opacity: 0, y: 40 });
-      let active = -1;
+      const stepEls = Array.from({ length: STEP_COUNT }, (_, i) =>
+        container.querySelector<HTMLElement>(`.tech-step-${i}`)
+      );
+      const dotEls = Array.from({ length: STEP_COUNT }, (_, i) =>
+        container.querySelector<HTMLElement>(`.tech-dot-${i}`)
+      );
+      const progressBar = progressRef.current?.firstElementChild as HTMLElement | null;
 
-      const show = (index: number) => {
-        if (index === active) return;
-        const direction = active === -1 || index > active ? 1 : -1;
-        gsap.to(".tech-step", { opacity: 0, y: -direction * 20, duration: 0.3, overwrite: true });
-        gsap.fromTo(
-          `.tech-step-${index}`,
-          { opacity: 0, y: direction * 20 },
-          { opacity: 1, y: 0, duration: 0.4, ease: "power2.out", overwrite: true }
-        );
-        gsap.to(".tech-dot", { scale: 1, backgroundColor: "#D5DAE0", duration: 0.3 });
-        gsap.to(`.tech-dot-${index}`, { scale: 1.6, backgroundColor: "#1A1F25", duration: 0.3 });
-        active = index;
+      const applyProgress = (p: number) => {
+        for (let i = 0; i < STEP_COUNT; i++) {
+          const s = calculateStepTransformState(i, STEP_COUNT, p);
+          const stepEl = stepEls[i];
+          if (stepEl) {
+            gsap.set(stepEl, {
+              opacity: s.opacity,
+              y: s.y,
+              pointerEvents: s.isActive ? "auto" : "none",
+              force3D: true,
+            });
+          }
+          const dotEl = dotEls[i];
+          if (dotEl) {
+            gsap.set(dotEl, {
+              scale: 1 + s.opacity * 0.6,
+              backgroundColor: s.isActive ? COLOR_ACTIVE : COLOR_INACTIVE,
+            });
+          }
+        }
+
+        if (progressBar) {
+          progressBar.style.transform = `translateX(-${100 - p * 100}%)`;
+        }
       };
+
+      applyProgress(0);
 
       const handle = createFrameScrub({
         canvas,
         trigger: container,
         frameCount: 470,
         framesPath: "/videos/exploded view/frames",
-        distance: () => (window.innerWidth < 768 ? 1600 : 3000),
-        onProgress: (p) => {
-          const currentStep = Math.min(STEP_COUNT - 1, Math.floor(p * STEP_COUNT));
-          show(currentStep);
-
-          const bar = progressRef.current?.firstElementChild as HTMLElement | null;
-          if (bar) bar.style.transform = `translateX(-${100 - p * 100}%)`;
-          gsap.set(".tech-video", { scale: 1.05 + p * 0.1 });
-        },
+        distance: () => (isMobile ? 1600 : 3000),
+        onProgress: applyProgress,
       });
 
       return () => handle.destroy();
     },
-    { scope: containerRef, dependencies: [t], revertOnUpdate: true }
+    { scope: containerRef, dependencies: [t, isMobile], revertOnUpdate: true }
   );
 
   return (
@@ -66,24 +153,30 @@ export function TechniqueVideoSection() {
 
       <div className="relative z-10 mx-auto flex h-full max-w-6xl items-start px-6 safe-offset-mobile md:items-center">
         <div className="relative h-72 w-full max-w-md">
-          <Badge className="absolute -top-14 left-0 rounded-full border border-brand-border/40 bg-white/60 font-mono text-[11px] font-normal uppercase tracking-[0.25em] text-brand-text backdrop-blur-md hover:bg-white/60">
+          <Badge variant="glass" className="absolute -top-14 left-0">
             {t.tech.label}
           </Badge>
           {t.tech.steps.map((step, i) => (
-            <div
+            <Card
               key={step.t}
-              className={`tech-step tech-step-${i} absolute inset-0 flex flex-col justify-center rounded-3xl border border-white/60 bg-white/55 p-8 shadow-xl backdrop-blur-xl`}
+              variant="glass"
+              className={`tech-step tech-step-${i} absolute inset-0 flex flex-col justify-center p-8 ${i > 0 ? "pointer-events-none opacity-0" : ""}`}
             >
-              <span className="mb-3 font-mono text-xs tracking-widest text-brand-accent">0{i + 1} / 0{STEP_COUNT}</span>
-              <h2 className="mb-3 font-heading text-3xl font-bold text-brand-text">{step.t}</h2>
-              <p className="text-brand-text/70">{step.d}</p>
-            </div>
+              <Eyebrow accent className="mb-3">0{i + 1} / 0{STEP_COUNT}</Eyebrow>
+              <Heading as="h2" size="h2" className="mb-3 text-2xl sm:text-3xl">
+                {step.t}
+              </Heading>
+              <Text>{step.d}</Text>
+            </Card>
           ))}
         </div>
 
         <div className="absolute right-6 top-1/2 hidden -translate-y-1/2 flex-col gap-5 md:flex">
           {t.tech.steps.map((step, i) => (
-            <span key={step.t} className={`tech-dot tech-dot-${i} block h-2 w-2 rounded-full bg-brand-elevated`} />
+            <span
+              key={step.t}
+              className={`tech-dot tech-dot-${i} block h-2 w-2 rounded-full ${i === 0 ? "scale-150 bg-brand-text" : "bg-brand-elevated"}`}
+            />
           ))}
         </div>
 

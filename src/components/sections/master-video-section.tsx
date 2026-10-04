@@ -2,7 +2,8 @@
 
 import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
-import { Badge } from "@/components/ui/badge";
+import { MetricBadge } from "@/components/ui/metric-badge";
+import { SectionHeader } from "@/components/ui/section-header";
 import { useLanguage } from "@/components/providers/language-provider";
 
 const BADGE_PLACEMENTS = [
@@ -55,6 +56,7 @@ export function MasterVideoSection() {
           gsap.to(img, {
             yPercent: -8,
             ease: "none",
+            force3D: true,
             scrollTrigger: { trigger: media, start: "top bottom", end: "bottom top", scrub: true },
           });
         }
@@ -76,6 +78,7 @@ export function MasterVideoSection() {
               delay: 0.2,
               stagger: 0.08,
               ease: "sine.out",
+              force3D: true,
               scrollTrigger: { trigger: block, start: "top 70%" },
             }
           );
@@ -94,28 +97,24 @@ export function MasterVideoSection() {
           className="relative flex h-dvh min-h-dvh w-full flex-col justify-between overflow-hidden px-5 sm:px-6 md:px-8 lg:px-12 pt-[calc(4.5rem+env(safe-area-inset-top,0px))] md:pt-24 pb-6 md:pb-8"
         >
           <div className="master-block mx-auto flex h-full w-full max-w-6xl flex-col items-start justify-between">
-            <div className="master-copy flex w-full flex-col items-start shrink-0 mb-3 sm:mb-4 md:mb-6">
-              <Badge variant="outline" className="w-fit mb-2 sm:mb-3 border-brand-border/50 font-mono text-[11px] font-normal uppercase tracking-[0.25em] text-brand-border">
-                {t.master.label}
-              </Badge>
-              <h2 className="font-heading text-2xl font-bold tracking-tight text-brand-text sm:text-3xl md:text-4xl lg:text-5xl">{t.master.title}</h2>
-            </div>
+            <SectionHeader
+              badge={t.master.label}
+              title={t.master.title}
+              className="master-copy mb-3 sm:mb-4 md:mb-6"
+            />
 
             <div className="master-media relative mx-auto my-auto w-full max-w-full flex-1 min-h-0 flex items-center justify-center">
-              <div className="master-portrait relative aspect-[16/10] h-full max-h-[56vh] sm:max-h-[60vh] md:max-h-[62vh] xl:max-h-[680px] w-auto max-w-full overflow-hidden rounded-3xl bg-brand-elevated shadow-2xl">
+              <div className="master-portrait relative aspect-[16/10] h-full max-h-[56vh] sm:max-h-[60vh] md:max-h-[62vh] xl:max-h-[680px] w-auto max-w-full overflow-hidden rounded-3xl bg-brand-elevated shadow-2xl transform-gpu">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/images/image (3).png"
                   alt={t.master.label}
-                  className="master-img absolute inset-x-0 top-0 h-[112%] w-full object-cover"
+                  className="master-img absolute inset-x-0 top-0 h-[112%] w-full object-cover will-change-transform transform-gpu"
                 />
                 {t.master.metrics.map((m, i) => (
                   <div key={m.d} className={`master-badge absolute z-10 ${badges[i]}`}>
-                    <div className="master-badge-card will-change-transform">
-                      <div className="rounded-2xl border border-white bg-white/90 px-3 py-1.5 sm:px-3.5 sm:py-2 md:px-3.5 md:py-2 lg:px-5 lg:py-3 shadow-[0_18px_40px_-12px_rgba(26,31,37,0.35)] ring-1 ring-brand-border/20 backdrop-blur-2xl transition-transform duration-300 hover:scale-105">
-                        <div className="font-heading text-base sm:text-lg lg:text-xl font-bold text-brand-text">{m.t}</div>
-                        <div className="font-mono text-[8px] sm:text-[9px] lg:text-[10px] uppercase tracking-widest text-brand-text/60">{m.d}</div>
-                      </div>
+                    <div className="master-badge-card will-change-transform transform-gpu">
+                      <MetricBadge value={m.t} label={m.d} />
                     </div>
                   </div>
                 ))}

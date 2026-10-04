@@ -18,6 +18,14 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        "brand-primary":
+          "rounded-full bg-brand-text text-white transition-all hover:bg-brand-text/85 active:scale-95",
+        "brand-glass":
+          "rounded-full border border-brand-border/40 bg-white/70 text-brand-text backdrop-blur-md transition-all hover:bg-brand-text hover:text-white active:scale-95",
+        "brand-outline-pill":
+          "rounded-full border border-brand-border/40 bg-transparent text-brand-text transition-colors hover:bg-brand-text/5 active:scale-95",
+        "icon-glass":
+          "h-9 w-9 rounded-full border border-brand-border/40 bg-white/70 text-brand-text backdrop-blur-md transition-all hover:bg-brand-text hover:text-white active:scale-95 p-0 flex items-center justify-center",
       },
       size: {
         default: "h-10 px-4 py-2",
