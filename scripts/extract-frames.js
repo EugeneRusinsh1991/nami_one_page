@@ -17,9 +17,9 @@ const videos = [
     quality: 80,
   },
   {
-    fileName: '2 0 speed explosion view.mp4',
-    folderName: '2 0 speed explosion view',
-    fps: 24, // 24 fps * 10s ≈ 240 кадров
+    fileName: 'baner 1.mp4',
+    folderName: 'Banner.1',
+    fps: 24, // 24 fps * 10s = 240 кадров
     quality: 80,
   }
 ];

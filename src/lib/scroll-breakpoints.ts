@@ -29,6 +29,16 @@ function getPhilosophyEntry(): number | null {
   return Math.round(head.getBoundingClientRect().top + window.scrollY - PHILO_HEAD_OFFSET);
 }
 
+function getPhilosophyExit(): number | null {
+  const cards = document.querySelectorAll<HTMLElement>("#philosophy .philo-card");
+  if (!cards || cards.length === 0) return null;
+  const lastCard = cards[cards.length - 1];
+  const rect = lastCard.getBoundingClientRect();
+  const cardCenter = rect.top + window.scrollY + rect.height / 2;
+  const targetViewportY = window.innerHeight * 0.55;
+  return Math.round(cardCenter - targetViewportY);
+}
+
 function getSectionTop(id: string): number | null {
   const el = document.getElementById(id);
   return el ? Math.round(el.getBoundingClientRect().top + window.scrollY) : null;
@@ -36,10 +46,14 @@ function getSectionTop(id: string): number | null {
 
 function getHandoffZones(pins: Record<string, { start: number; end: number }>): ScrollZone[] {
   const { hero, technique } = pins;
+  const philoEntry = getPhilosophyEntry();
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  const philoExit = isMobile ? getPhilosophyExit() : null;
+  const philoTransitionPoint = philoExit && philoEntry && philoExit > philoEntry ? philoExit : philoEntry;
   const worksTop = getSectionTop("works");
   const handoffs: Array<[number | null | undefined, number | null | undefined]> = [
-    [hero?.end, getPhilosophyEntry()],
-    [technique && technique.start - window.innerHeight, technique?.start],
+    [hero?.end, philoEntry],
+    [philoTransitionPoint, technique?.start],
     [technique?.end, worksTop],
     [worksTop, getSectionTop("master")],
   ];
@@ -57,8 +71,12 @@ export function getScrollZones(): ScrollZone[] {
     const start = Math.round(st.start);
     const end = Math.round(st.end);
     pins[el.id] = { start, end };
-    if (el.id === "hero" || el.id === "technique") {
+    if (el.id === "hero") {
       zones.push({ points: dedupe([start, Math.round((start + end) / 2), end]) });
+    } else if (el.id === "technique") {
+      const step1 = Math.round(start + (end - start) / 3);
+      const step2 = Math.round(start + ((end - start) * 2) / 3);
+      zones.push({ points: dedupe([start, step1, step2, end]) });
     }
   });
   zones.push(...getHandoffZones(pins));

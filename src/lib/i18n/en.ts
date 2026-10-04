@@ -43,6 +43,7 @@ export const en: Dict = {
       { t: "Micro-Precision Stroke", d: "Ultra-fine pigment deposit for hyper-realistic hair strokes." },
       { t: "Atraumatic Technique", d: "Epidermal layer work ensuring rapid recovery." },
       { t: "Seamless Ombre Gradient", d: "Soft powdery pixel density from head to arch." },
+      { t: "Long-Lasting Pigment Retention", d: "Optimal pigment stabilization ensuring a natural, true-to-tone healed result." },
     ],
   },
   port: {

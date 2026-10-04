@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/components/providers/language-provider";
 
-const STEP_COUNT = 3;
+const STEP_COUNT = 4;
 
 export function TechniqueVideoSection() {
   const containerRef = useRef<HTMLDivElement>(null);

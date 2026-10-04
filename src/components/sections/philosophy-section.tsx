@@ -58,7 +58,7 @@ export function PhilosophySection() {
     <section
       ref={containerRef}
       id="philosophy"
-      className="relative z-20 -mt-6 rounded-t-[2.5rem] bg-brand-bg px-6 py-28 shadow-[0_-20px_60px_rgba(26,31,37,0.06)]"
+      className="relative z-20 -mt-6 min-h-[calc(100dvh+8rem)] rounded-t-[2.5rem] bg-brand-bg px-6 py-28 shadow-[0_-20px_60px_rgba(26,31,37,0.06)]"
     >
       <div className="mx-auto max-w-6xl">
         <div className="philo-head mb-14 max-w-2xl">

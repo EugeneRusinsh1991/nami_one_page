@@ -72,8 +72,8 @@ export function HeroVideoSection() {
       const handle = createFrameScrub({
         canvas,
         trigger: container,
-        frameCount: 470,
-        framesPath: "/videos/exploded view/frames",
+        frameCount: 240,
+        framesPath: "/videos/Banner.1/frames",
         distance: () => (window.innerWidth < 768 ? 1600 : 2600),
         onProgress: (p) => {
           const s0 = getSlideTransform(p, -1, -1, 0.14, 0.38);
