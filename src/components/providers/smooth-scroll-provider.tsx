@@ -14,45 +14,41 @@ interface SmoothScrollProviderProps {
   children: React.ReactNode;
 }
 
-const STEP_DURATION_1_MS = 900;
-const STEP_DURATION_2_MS = 1250;
-const STEP_DURATION_3_MS = 1500;
-const STEP_TAIL_MS = 500;
-const GESTURE_QUIET_MS = 140;
-const STEP_EASING = (t: number) => 1 - Math.pow(1 - t, 4);
+const STEP_DURATION_1_MS = 600;
+const STEP_DURATION_2_MS = 850;
+const STEP_DURATION_3_MS = 1050;
+const STEP_TAIL_MS = 120;
+const GESTURE_QUIET_MS = 120;
+const STEP_EASING = (t: number) => 1 - Math.pow(1 - t, 3);
 
 export interface StepThresholdConfig {
-  twoStepVelocityThreshold: number; // velocity in px/ms
-  twoStepDistanceThreshold: number; // accumulated distance in px
-  threeStepVelocityThreshold?: number;
-  threeStepDistanceThreshold?: number;
+  touchLargeDistanceThreshold: number; // large swipe across screen (px)
+  touchFastVelocityThreshold: number;  // fast vigorous flick (px/ms)
+  touchFastMinDistance: number;        // minimum displacement required for flick upgrade (px)
+  wheelLargeDeltaThreshold: number;    // vigorous wheel spin or trackpad fling (px)
 }
 
 export const DEFAULT_STEP_THRESHOLDS: StepThresholdConfig = {
-  twoStepVelocityThreshold: 0.55, // fast flick
-  twoStepDistanceThreshold: 75,   // long swipe on mobile
-  // threeStepVelocityThreshold: 1.2,
-  // threeStepDistanceThreshold: 180,
+  touchLargeDistanceThreshold: 360,
+  touchFastVelocityThreshold: 2.4,
+  touchFastMinDistance: 160,
+  wheelLargeDeltaThreshold: 400,
 };
 
 export function calculateStepCount(
   distance: number,
-  velocity: number,
+  velocity = 0,
+  isTouch = false,
   config = DEFAULT_STEP_THRESHOLDS
 ): number {
-  if (
-    (config.threeStepVelocityThreshold && velocity >= config.threeStepVelocityThreshold) ||
-    (config.threeStepDistanceThreshold && distance >= config.threeStepDistanceThreshold)
-  ) {
-    return 3;
+  if (isTouch) {
+    const isLargeSwipe = distance >= config.touchLargeDistanceThreshold;
+    const isStrongFlick =
+      velocity >= config.touchFastVelocityThreshold &&
+      distance >= config.touchFastMinDistance;
+    return isLargeSwipe || isStrongFlick ? 2 : 1;
   }
-  if (
-    velocity >= config.twoStepVelocityThreshold ||
-    distance >= config.twoStepDistanceThreshold
-  ) {
-    return 2;
-  }
-  return 1;
+  return distance >= config.wheelLargeDeltaThreshold ? 2 : 1;
 }
 
 const INTENT_LOCK_THRESHOLD = 5;
@@ -66,6 +62,7 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
 
   useEffect(() => {
     const gesture = {
+      isTouch: false,
       lockedDirection: null as "horizontal" | "vertical" | null,
       accumX: 0,
       accumY: 0,
@@ -82,6 +79,7 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       const touch = e.touches[0];
       if (!touch) return;
       const now = performance.now();
+      gesture.isTouch = true;
       gesture.lockedDirection = null;
       gesture.accumX = 0;
       gesture.accumY = 0;
@@ -99,13 +97,14 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
     const onTouchMove = (e: TouchEvent) => {
       const touch = e.touches[0];
       if (!touch) return;
+      gesture.isTouch = true;
       const now = performance.now();
       const dt = now - gesture.lastTime;
       const totalDist = Math.abs(touch.clientY - gesture.startY);
       if (totalDist > gesture.maxDisplacement) {
         gesture.maxDisplacement = totalDist;
       }
-      if (dt > 10) {
+      if (dt > 12) {
         const instantV = Math.abs(touch.clientY - gesture.lastY) / dt;
         if (instantV > gesture.peakVelocity) {
           gesture.peakVelocity = instantV;
@@ -123,7 +122,7 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
           gesture.maxDisplacement = totalDist;
         }
         const totalDt = performance.now() - gesture.startTime;
-        if (totalDt > 10) {
+        if (totalDt > 12) {
           const overallV = totalDist / totalDt;
           if (overallV > gesture.peakVelocity) {
             gesture.peakVelocity = overallV;
@@ -134,6 +133,7 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
     };
 
     const resetGesture = () => {
+      gesture.isTouch = false;
       gesture.lockedDirection = null;
       gesture.accumX = 0;
       gesture.accumY = 0;
@@ -167,6 +167,9 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       touchInertiaExponent: 1.02,
       virtualScroll: (data) => {
         scheduleReset();
+        if (data.event && "touches" in data.event) {
+          gesture.isTouch = true;
+        }
 
         const { deltaX, deltaY } = data;
         const absX = Math.abs(deltaX);
@@ -212,8 +215,14 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       const isGated = now < gateUntil;
 
       const rawDelta = Math.abs(target - current);
-      const touchDist = Math.max(gesture.maxDisplacement, Math.abs(gesture.accumY), rawDelta);
-      const evaluatedSteps = calculateStepCount(touchDist, gesture.peakVelocity);
+      const evalDistance = gesture.isTouch
+        ? gesture.maxDisplacement
+        : Math.max(Math.abs(gesture.accumY), rawDelta);
+      const evaluatedSteps = calculateStepCount(
+        evalDistance,
+        gesture.peakVelocity,
+        gesture.isTouch
+      );
 
       // In-flight upgrade: if currently running 1 step, but user continued gesture with high velocity/distance
       const canUpgrade = isGated && currentStepCount === 1 && evaluatedSteps >= 2;

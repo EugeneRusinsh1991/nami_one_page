@@ -81,8 +81,8 @@ export function HeroVideoSection() {
           const s2 = getSlideTransform(p, 0.62, 0.82, 1.05, 1.05);
 
           gsap.set(".hero-slide-0", { opacity: s0.opacity, yPercent: s0.yPercent, pointerEvents: s0.pointerEvents });
-          gsap.set(".hero-slide-1", { opacity: s1.opacity, yPercent: s1.yPercent });
-          gsap.set(".hero-slide-2", { opacity: s2.opacity, yPercent: s2.yPercent });
+          gsap.set(".hero-slide-1", { opacity: s1.opacity, yPercent: s1.yPercent, pointerEvents: s1.pointerEvents });
+          gsap.set(".hero-slide-2", { opacity: s2.opacity, yPercent: s2.yPercent, pointerEvents: s2.pointerEvents });
           gsap.set(".hero-video", { scale: 1 + p * 0.12 });
           gsap.set(".hero-scroll", { opacity: Math.max(0, 1 - p * 12) });
         },

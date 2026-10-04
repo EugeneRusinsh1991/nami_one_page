@@ -113,7 +113,7 @@ export function Navbar() {
       ref={containerRef}
       className="pointer-events-none fixed inset-x-0 top-0 z-40 hidden justify-center px-4 pt-4 md:flex"
     >
-      <header className="nav-pill pointer-events-auto flex w-full max-w-6xl items-center justify-between gap-6 rounded-full border border-white/60 bg-white/55 px-5 py-2.5 shadow-[0_8px_32px_rgba(26,31,37,0.08)] backdrop-blur-xl">
+      <header className="nav-pill pointer-events-auto flex w-full max-w-6xl items-center justify-between gap-6 rounded-full border border-white/60 bg-white/55 px-5 py-2.5 shadow-[0_8px_32px_rgba(26,31,37,0.08)] backdrop-blur-xl transform-gpu will-change-transform">
         <button type="button" onClick={() => lenis?.scrollTo(0)} aria-label="NAMI STUDIO">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/images/logo.png" alt="NAMI STUDIO" className="h-8 w-auto" />

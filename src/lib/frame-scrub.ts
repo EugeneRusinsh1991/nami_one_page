@@ -1,6 +1,6 @@
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 
-const LERP = 0.28;
+const LERP = 0.45;
 const KEY_STEP = 6;
 const CONCURRENCY = 6;
 const MAX_DPR = 2;
@@ -61,8 +61,10 @@ export function createFrameScrub({
 
   let target = 0;
   let smoothed = 0;
-  let lastDrawnIndex = 1;
+  let lastDrawnIndex = -1;
   let lastPrioritizedCenter = -1;
+  let scrollDirection = 1;
+  let needsRedraw = true;
 
   const configureContext = () => {
     if (!ctx) return;
@@ -86,6 +88,7 @@ export function createFrameScrub({
       canvas.width = w;
       canvas.height = h;
       configureContext();
+      needsRedraw = true;
       render(smoothed * (frameCount - 1) + 1);
     }
   };
@@ -102,6 +105,10 @@ export function createFrameScrub({
 
       const onDecoded = () => {
         frames[n] = img;
+        const currentTarget = Math.round(Math.min(frameCount, Math.max(1, smoothed * (frameCount - 1) + 1)));
+        if (Math.abs(n - currentTarget) <= Math.abs(lastDrawnIndex - currentTarget)) {
+          needsRedraw = true;
+        }
         resolve(img);
       };
 
@@ -161,32 +168,31 @@ export function createFrameScrub({
     }
   };
 
-  const findBestFrame = (targetIndex: number): number => {
+  const findBestFrame = (targetIndex: number, direction: number = scrollDirection): number => {
     if (frames[targetIndex]) return targetIndex;
 
-    // Stability: hold currently drawn frame if within close proximity to eliminate jitter
-    if (lastDrawnIndex >= 1 && lastDrawnIndex <= frameCount && frames[lastDrawnIndex]) {
-      if (Math.abs(lastDrawnIndex - targetIndex) <= 4) {
-        return lastDrawnIndex;
+    // Direction-aware search to prevent stroboscopic jumps (forward/backward oscillation).
+    // When scrolling forward (direction >= 0), prefer frames <= targetIndex to maintain monotonicity.
+    // When scrolling backward (direction < 0), prefer frames >= targetIndex.
+    if (direction >= 0) {
+      for (let i = targetIndex - 1; i >= 1; i--) {
+        if (frames[i]) return i;
+      }
+      for (let i = targetIndex + 1; i <= frameCount; i++) {
+        if (frames[i]) return i;
+      }
+    } else {
+      for (let i = targetIndex + 1; i <= frameCount; i++) {
+        if (frames[i]) return i;
+      }
+      for (let i = targetIndex - 1; i >= 1; i--) {
+        if (frames[i]) return i;
       }
     }
 
-    // Nearest loaded search without oscillating bias
-    let closestIndex = -1;
-    for (let d = 1; d < frameCount; d++) {
-      const back = targetIndex - d;
-      if (back >= 1 && frames[back]) {
-        closestIndex = back;
-        break;
-      }
-      const fwd = targetIndex + d;
-      if (fwd <= frameCount && frames[fwd]) {
-        closestIndex = fwd;
-        break;
-      }
-    }
-
-    return closestIndex !== -1 ? closestIndex : lastDrawnIndex;
+    return lastDrawnIndex >= 1 && lastDrawnIndex <= frameCount && frames[lastDrawnIndex]
+      ? lastDrawnIndex
+      : 1;
   };
 
   const drawFrameCover = (img: HTMLImageElement) => {
@@ -200,29 +206,50 @@ export function createFrameScrub({
     ctx.drawImage(img, x, y, w, h);
   };
 
-  const render = (floatIndex: number) => {
+  const render = (floatIndex: number, direction: number = scrollDirection) => {
     if (!ctx || canvas.width === 0 || canvas.height === 0) return;
 
     const clamped = Math.min(frameCount, Math.max(1, floatIndex));
     const targetIndex = Math.round(clamped);
 
-    const frameIndex = frames[targetIndex] ? targetIndex : findBestFrame(targetIndex);
-    const img = frames[frameIndex];
+    const frameIndex = frames[targetIndex] ? targetIndex : findBestFrame(targetIndex, direction);
+    if (frameIndex === lastDrawnIndex && !needsRedraw) return;
 
+    const img = frames[frameIndex];
     if (!img) return;
 
     drawFrameCover(img);
     lastDrawnIndex = frameIndex;
+    needsRedraw = false;
   };
 
   const tick = () => {
     const delta = target - smoothed;
-    smoothed += delta * LERP;
-    if (Math.abs(delta) < 0.0001) smoothed = target;
+    const absDelta = Math.abs(delta);
+    const isMoving = absDelta >= 0.0001;
+
+    if (delta > 0.0001) scrollDirection = 1;
+    else if (delta < -0.0001) scrollDirection = -1;
+
+    if (isMoving) {
+      smoothed += delta * LERP;
+      if (Math.abs(target - smoothed) < 0.0001) {
+        smoothed = target;
+      }
+      onProgress?.(smoothed);
+    } else if (smoothed !== target) {
+      smoothed = target;
+      onProgress?.(smoothed);
+    }
+
+    // Suppress GPU draw calls and priority queue reordering when canvas is idle and clean
+    if (!isMoving && !needsRedraw) {
+      return;
+    }
 
     const currentFloat = smoothed * (frameCount - 1) + 1;
     prioritizeWindow(currentFloat);
-    render(currentFloat);
+    render(currentFloat, scrollDirection);
   };
 
   resize();
@@ -233,7 +260,9 @@ export function createFrameScrub({
 
   load(1).then(() => {
     if (!destroyed) {
+      needsRedraw = true;
       render(1);
+      onProgress?.(smoothed);
       pumpQueue();
     }
   });
@@ -243,14 +272,21 @@ export function createFrameScrub({
     start: "top top",
     end: () => `+=${typeof distance === "function" ? distance() : distance}`,
     pin: true,
-    anticipatePin: 1,
+    anticipatePin: 0,
     invalidateOnRefresh: true,
     snap,
     onUpdate: (self) => {
       target = self.progress;
-      onProgress?.(self.progress);
+      if (self.direction !== 0) {
+        scrollDirection = self.direction >= 0 ? 1 : -1;
+      }
     },
   });
+
+  // Align initial progress with trigger position
+  target = scrollTrigger.progress;
+  smoothed = scrollTrigger.progress;
+  onProgress?.(smoothed);
 
   return {
     trigger: scrollTrigger,

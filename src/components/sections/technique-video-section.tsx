@@ -26,8 +26,13 @@ export function TechniqueVideoSection() {
 
       const show = (index: number) => {
         if (index === active) return;
-        gsap.to(".tech-step", { opacity: 0, y: -30, duration: 0.4, overwrite: true });
-        gsap.to(`.tech-step-${index}`, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out", overwrite: true, delay: 0.15 });
+        const direction = active === -1 || index > active ? 1 : -1;
+        gsap.to(".tech-step", { opacity: 0, y: -direction * 20, duration: 0.3, overwrite: true });
+        gsap.fromTo(
+          `.tech-step-${index}`,
+          { opacity: 0, y: direction * 20 },
+          { opacity: 1, y: 0, duration: 0.4, ease: "power2.out", overwrite: true }
+        );
         gsap.to(".tech-dot", { scale: 1, backgroundColor: "#D5DAE0", duration: 0.3 });
         gsap.to(`.tech-dot-${index}`, { scale: 1.6, backgroundColor: "#1A1F25", duration: 0.3 });
         active = index;
