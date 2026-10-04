@@ -54,7 +54,7 @@ export function FaqSection() {
           type="single"
           collapsible
           defaultValue="item-0"
-          className="faq-list max-h-[68vh] md:max-h-[75vh] overflow-y-auto pr-2"
+          className="faq-list w-full"
         >
           {t.faq.items.map((item, i) => (
             <AccordionItem key={item.t} value={`item-${i}`} className="faq-item border-brand-border/30">

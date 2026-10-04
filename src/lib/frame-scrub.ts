@@ -1,9 +1,11 @@
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 
 const LERP = 0.45;
-const KEY_STEP = 6;
-const CONCURRENCY = 6;
+const KEY_STEP = 16;
+const CONCURRENCY = 4;
 const MAX_DPR = 2;
+const MAX_CACHED_FRAMES = 36;
+const WINDOW_RADIUS = 16;
 
 export interface FrameScrubOptions {
   canvas: HTMLCanvasElement;
@@ -33,12 +35,10 @@ function buildInitialOrder(count: number): number[] {
   };
 
   // Immediate first frames for instant cover display
-  for (let i = 1; i <= Math.min(count, 12); i++) add(i);
-  // Dense keyframes across entire timeline
+  for (let i = 1; i <= Math.min(count, 10); i++) add(i);
+  // Sparse keyframes across timeline
   for (let i = KEY_STEP; i <= count; i += KEY_STEP) add(i);
   add(count);
-  // Full sequential fill
-  for (let i = 1; i <= count; i++) add(i);
 
   return order;
 }
@@ -53,11 +53,41 @@ export function createFrameScrub({
   snap,
 }: FrameScrubOptions): FrameScrubHandle {
   const ctx = canvas.getContext("2d", { alpha: false });
-  const frames: (HTMLImageElement | undefined)[] = new Array(frameCount + 1);
+  const frames = new Map<number, HTMLImageElement>();
   const pendingLoads = new Map<number, Promise<HTMLImageElement | null>>();
   let queue: number[] = buildInitialOrder(frameCount);
   let activeWorkers = 0;
   let destroyed = false;
+
+  const evictFrame = (n: number) => {
+    if (n === 1 || n === frameCount) return;
+    const img = frames.get(n);
+    if (!img) return;
+    img.onload = null;
+    img.onerror = null;
+    img.src = "";
+    frames.delete(n);
+  };
+
+  const pruneCache = (center: number) => {
+    if (frames.size <= MAX_CACHED_FRAMES) return;
+
+    const evictable: { index: number; dist: number }[] = [];
+    for (const key of frames.keys()) {
+      if (key === 1 || key === frameCount) continue;
+      const dist = Math.abs(key - center);
+      if (dist > WINDOW_RADIUS) {
+        evictable.push({ index: key, dist });
+      }
+    }
+
+    evictable.sort((a, b) => b.dist - a.dist);
+
+    for (const item of evictable) {
+      if (frames.size <= MAX_CACHED_FRAMES) break;
+      evictFrame(item.index);
+    }
+  };
 
   let target = 0;
   let smoothed = 0;
@@ -94,7 +124,9 @@ export function createFrameScrub({
   };
 
   const load = (n: number): Promise<HTMLImageElement | null> => {
-    if (frames[n]) return Promise.resolve(frames[n]!);
+    if (destroyed) return Promise.resolve(null);
+    const cached = frames.get(n);
+    if (cached) return Promise.resolve(cached);
     const existing = pendingLoads.get(n);
     if (existing) return existing;
 
@@ -104,8 +136,14 @@ export function createFrameScrub({
       img.src = frameUrl(framesPath, n);
 
       const onDecoded = () => {
-        frames[n] = img;
+        if (destroyed) {
+          img.src = "";
+          resolve(null);
+          return;
+        }
+        frames.set(n, img);
         const currentTarget = Math.round(Math.min(frameCount, Math.max(1, smoothed * (frameCount - 1) + 1)));
+        pruneCache(currentTarget);
         if (Math.abs(n - currentTarget) <= Math.abs(lastDrawnIndex - currentTarget)) {
           needsRedraw = true;
         }
@@ -136,7 +174,7 @@ export function createFrameScrub({
     while (!destroyed && activeWorkers < CONCURRENCY && queue.length > 0) {
       const next = queue.shift();
       if (next === undefined) break;
-      if (frames[next] || pendingLoads.has(next)) continue;
+      if (frames.has(next) || pendingLoads.has(next)) continue;
 
       activeWorkers++;
       load(next).then(() => {
@@ -152,58 +190,67 @@ export function createFrameScrub({
     lastPrioritizedCenter = rounded;
 
     const urgent: number[] = [];
-    for (let offset = 0; offset <= 14; offset++) {
+    for (let offset = 0; offset <= WINDOW_RADIUS; offset++) {
       const fwd = rounded + offset;
-      if (fwd <= frameCount && !frames[fwd] && !pendingLoads.has(fwd)) urgent.push(fwd);
+      if (fwd <= frameCount && !frames.has(fwd) && !pendingLoads.has(fwd)) urgent.push(fwd);
       if (offset > 0) {
         const back = rounded - offset;
-        if (back >= 1 && !frames[back] && !pendingLoads.has(back)) urgent.push(back);
+        if (back >= 1 && !frames.has(back) && !pendingLoads.has(back)) urgent.push(back);
       }
     }
 
     if (urgent.length > 0) {
       const urgentSet = new Set(urgent);
-      queue = [...urgent, ...queue.filter((n) => !urgentSet.has(n))];
+      queue = [
+        ...urgent,
+        ...queue.filter((n) => !urgentSet.has(n) && (n === 1 || n % KEY_STEP === 0 || Math.abs(n - rounded) <= WINDOW_RADIUS * 2)),
+      ];
       pumpQueue();
     }
+
+    pruneCache(rounded);
   };
 
   const findBestFrame = (targetIndex: number, direction: number = scrollDirection): number => {
-    if (frames[targetIndex]) return targetIndex;
+    if (frames.has(targetIndex)) return targetIndex;
 
     // Direction-aware search to prevent stroboscopic jumps (forward/backward oscillation).
     // When scrolling forward (direction >= 0), prefer frames <= targetIndex to maintain monotonicity.
     // When scrolling backward (direction < 0), prefer frames >= targetIndex.
     if (direction >= 0) {
       for (let i = targetIndex - 1; i >= 1; i--) {
-        if (frames[i]) return i;
+        if (frames.has(i)) return i;
       }
       for (let i = targetIndex + 1; i <= frameCount; i++) {
-        if (frames[i]) return i;
+        if (frames.has(i)) return i;
       }
     } else {
       for (let i = targetIndex + 1; i <= frameCount; i++) {
-        if (frames[i]) return i;
+        if (frames.has(i)) return i;
       }
       for (let i = targetIndex - 1; i >= 1; i--) {
-        if (frames[i]) return i;
+        if (frames.has(i)) return i;
       }
     }
 
-    return lastDrawnIndex >= 1 && lastDrawnIndex <= frameCount && frames[lastDrawnIndex]
+    return lastDrawnIndex >= 1 && lastDrawnIndex <= frameCount && frames.has(lastDrawnIndex)
       ? lastDrawnIndex
       : 1;
   };
 
   const drawFrameCover = (img: HTMLImageElement) => {
     if (!ctx || !img.naturalWidth || !img.naturalHeight) return;
-    const scale = Math.max(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
-    const w = Math.ceil(img.naturalWidth * scale);
-    const h = Math.ceil(img.naturalHeight * scale);
-    const x = Math.round((canvas.width - w) * 0.5);
-    const y = Math.round((canvas.height - h) * 0.5);
+    try {
+      const scale = Math.max(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
+      const w = Math.ceil(img.naturalWidth * scale);
+      const h = Math.ceil(img.naturalHeight * scale);
+      const x = Math.round((canvas.width - w) * 0.5);
+      const y = Math.round((canvas.height - h) * 0.5);
 
-    ctx.drawImage(img, x, y, w, h);
+      ctx.drawImage(img, x, y, w, h);
+    } catch {
+      // Guard against potential context loss in WebKit/Safari under memory pressure
+    }
   };
 
   const render = (floatIndex: number, direction: number = scrollDirection) => {
@@ -212,10 +259,10 @@ export function createFrameScrub({
     const clamped = Math.min(frameCount, Math.max(1, floatIndex));
     const targetIndex = Math.round(clamped);
 
-    const frameIndex = frames[targetIndex] ? targetIndex : findBestFrame(targetIndex, direction);
+    const frameIndex = frames.has(targetIndex) ? targetIndex : findBestFrame(targetIndex, direction);
     if (frameIndex === lastDrawnIndex && !needsRedraw) return;
 
-    const img = frames[frameIndex];
+    const img = frames.get(frameIndex);
     if (!img) return;
 
     drawFrameCover(img);
@@ -296,6 +343,14 @@ export function createFrameScrub({
       observer?.disconnect();
       window.removeEventListener("resize", resize);
       scrollTrigger.kill();
+      pendingLoads.clear();
+      queue = [];
+      frames.forEach((img) => {
+        img.onload = null;
+        img.onerror = null;
+        img.src = "";
+      });
+      frames.clear();
     },
   };
 }

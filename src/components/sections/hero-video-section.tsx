@@ -57,7 +57,6 @@ export function HeroVideoSection() {
       intro
         .from(".hero-badge", { y: 20, opacity: 0, duration: 0.8, delay: 0.4 })
         .from(".hero-word", { yPercent: 110, opacity: 0, duration: 1.1, stagger: 0.08 }, "-=0.4")
-        .from(".hero-sub", { y: 24, opacity: 0, duration: 0.9 }, "-=0.6")
         .from(".hero-cta", { y: 24, opacity: 0, duration: 0.8, stagger: 0.12 }, "-=0.6");
     },
     { scope: containerRef }
@@ -105,9 +104,12 @@ export function HeroVideoSection() {
 
       {/* Slide 1 (Initial / Branding / CTAs) */}
       <div className="hero-slide hero-slide-0 absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center">
-        <Badge className="hero-badge mb-8 rounded-full border border-brand-border/40 bg-white/60 px-4 py-1.5 font-mono text-[11px] font-normal uppercase tracking-[0.25em] text-brand-text backdrop-blur-md hover:bg-white/60">
-          {slides[0].badge}
-        </Badge>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/logo.png"
+          alt="NAMI STUDIO"
+          className="hero-badge mb-8 h-7 w-auto object-contain sm:h-8"
+        />
 
         <h1 className="font-heading text-4xl font-extrabold leading-[1.05] tracking-tight text-brand-text sm:text-6xl lg:text-7xl">
           {slides[0].title.split(" ").map((word, i) => (
@@ -116,8 +118,6 @@ export function HeroVideoSection() {
             </span>
           ))}
         </h1>
-
-        <p className="hero-sub mt-6 max-w-xl text-base text-brand-text/70 sm:text-lg">{slides[0].sub}</p>
 
         <div className="mt-8 flex flex-col items-center gap-4 sm:mt-10">
           <MobileHeroNav className="hero-cta" />
@@ -152,8 +152,6 @@ export function HeroVideoSection() {
           <h2 className="font-heading text-4xl font-extrabold leading-[1.05] tracking-tight text-brand-text sm:text-6xl lg:text-7xl">
             {slides[1].title}
           </h2>
-
-          <p className="mt-6 max-w-xl text-base text-brand-text/70 sm:text-lg">{slides[1].sub}</p>
         </div>
       )}
 
@@ -167,8 +165,6 @@ export function HeroVideoSection() {
           <h2 className="font-heading text-4xl font-extrabold leading-[1.05] tracking-tight text-brand-text sm:text-6xl lg:text-7xl">
             {slides[2].title}
           </h2>
-
-          <p className="mt-6 max-w-xl text-base text-brand-text/70 sm:text-lg">{slides[2].sub}</p>
         </div>
       )}
 

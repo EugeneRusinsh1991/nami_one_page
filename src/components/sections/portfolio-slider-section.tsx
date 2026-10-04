@@ -48,7 +48,11 @@ export function PortfolioSliderSection() {
     let dragging = false;
     let moved = false;
     let startX = 0;
+    let startY = 0;
+    let startTime = 0;
     let startLeft = 0;
+    let pointerId = -1;
+    let lockDirection: "horizontal" | "vertical" | null = null;
 
     const getSetWidth = () => {
       const first = cards[0];
@@ -160,32 +164,71 @@ export function PortfolioSliderSection() {
     };
 
     const onDown = (e: PointerEvent) => {
-      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      if (e.pointerType === "mouse" && e.button !== 0) return;
       if (smoothRaf) cancelAnimationFrame(smoothRaf);
-      dragging = true;
+      dragging = false;
       moved = false;
       startX = e.clientX;
+      startY = e.clientY;
+      startTime = performance.now();
       startLeft = track.scrollLeft;
       targetLeft = track.scrollLeft;
+      pointerId = e.pointerId;
+      lockDirection = e.pointerType === "mouse" ? "horizontal" : null;
+      if (e.pointerType === "mouse") {
+        dragging = true;
+      }
     };
 
     const onMove = (e: PointerEvent) => {
-      if (!dragging) return;
+      if (pointerId !== -1 && pointerId !== e.pointerId) return;
+
       const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      if (lockDirection === null) {
+        const absX = Math.abs(dx);
+        const absY = Math.abs(dy);
+        if (Math.hypot(absX, absY) > 6) {
+          if (absX >= absY) {
+            lockDirection = "horizontal";
+            dragging = true;
+          } else {
+            lockDirection = "vertical";
+            dragging = false;
+          }
+        }
+      }
+
+      if (!dragging || lockDirection !== "horizontal") return;
+
+      const currentLeft = track.scrollLeft;
+      const nextLeft = startLeft - dx;
       if (!moved && Math.abs(dx) > 4) moved = true;
       if (moved) {
-        track.scrollLeft = startLeft - dx;
-        targetLeft = track.scrollLeft;
+        track.scrollLeft = nextLeft;
+        targetLeft = nextLeft;
         checkWrap();
         updateActiveCard();
       }
     };
 
-    const onUp = () => {
-      if (!dragging) return;
+    const onUp = (e: PointerEvent) => {
+      if (pointerId !== -1 && pointerId !== e.pointerId) return;
+      pointerId = -1;
+      const wasDragging = dragging;
+      const wasMoved = moved;
       dragging = false;
-      if (moved) {
-        const closest = getClosestCardIndex();
+      lockDirection = null;
+
+      if (wasDragging && wasMoved) {
+        const dt = performance.now() - startTime;
+        const dx = e.clientX - startX;
+        let closest = getClosestCardIndex();
+        if (dt < 300 && Math.abs(dx) > 30) {
+          const step = dx < 0 ? 1 : -1;
+          closest = Math.max(0, Math.min(cards.length - 1, closest + step));
+        }
         scrollToDomIndex(closest);
       }
     };
@@ -244,20 +287,20 @@ export function PortfolioSliderSection() {
   }, [total]);
 
   return (
-    <section ref={containerRef} id="works" className="relative h-dvh overflow-hidden bg-brand-bg">
-      <div className="absolute inset-x-0 top-[calc(5rem+env(safe-area-inset-top,0px))] z-10 md:top-24 mx-auto flex max-w-6xl items-end justify-between px-6">
+    <section ref={containerRef} id="works" className="relative flex h-dvh flex-col justify-between overflow-hidden bg-brand-bg pt-[calc(4.5rem+env(safe-area-inset-top,0px))] md:pt-24 pb-6">
+      <div className="mx-auto flex w-full max-w-6xl shrink-0 items-end justify-between px-6 mb-3 sm:mb-4">
         <div>
-          <Badge variant="outline" className="mb-4 border-brand-border/50 font-mono text-[11px] font-normal uppercase tracking-[0.25em] text-brand-border">
+          <Badge variant="outline" className="mb-2 sm:mb-3 border-brand-border/50 font-mono text-[11px] font-normal uppercase tracking-[0.25em] text-brand-border">
             {t.port.label}
           </Badge>
-          <h2 className="font-heading text-3xl font-bold tracking-tight text-brand-text sm:text-5xl">{t.port.title}</h2>
+          <h2 className="font-heading text-2xl font-bold tracking-tight text-brand-text sm:text-3xl md:text-4xl lg:text-5xl">{t.port.title}</h2>
         </div>
 
         <div className="flex items-center gap-3">
           <span className="shrink-0 whitespace-nowrap font-mono text-xs tracking-widest text-brand-text/60">
             {String(activeIndex + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
           </span>
-          <div className="hidden items-center gap-1.5 md:flex">
+          <div className="hidden items-center gap-1.5 lg:flex">
             <button
               type="button"
               onClick={() => navigateRef.current(-1)}
@@ -280,13 +323,14 @@ export function PortfolioSliderSection() {
 
       <div
         ref={trackRef}
-        className="flex h-full w-full cursor-grab touch-pan-x select-none items-end gap-6 overflow-x-auto overflow-y-hidden overscroll-x-contain px-[12vw] pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-52 [scrollbar-width:none] active:cursor-grabbing sm:gap-8 [&::-webkit-scrollbar]:hidden"
+        data-lenis-prevent-horizontal="true"
+        className="flex min-h-0 flex-1 w-full cursor-grab touch-pan-y select-none items-stretch gap-6 overflow-x-auto overflow-y-hidden overscroll-x-contain px-[12vw] py-2 [scrollbar-width:none] active:cursor-grabbing sm:gap-8 [&::-webkit-scrollbar]:hidden"
       >
         {slides.map(({ item, originalIndex, copyIndex }) => (
           <Card
             key={`${item.t}-${copyIndex}-${originalIndex}`}
             data-orig-index={originalIndex}
-            className="port-card group relative h-full w-[76vw] max-w-[500px] shrink-0 cursor-pointer overflow-hidden rounded-3xl border-brand-border/20 bg-brand-surface shadow-lg transition-all duration-500 hover:shadow-2xl data-[active=true]:scale-[1.02] data-[active=true]:shadow-2xl"
+            className="port-card group relative h-full w-[76vw] sm:w-[54vw] md:w-[40vw] lg:w-[32vw] max-w-[460px] shrink-0 cursor-pointer overflow-hidden rounded-3xl border-brand-border/20 bg-brand-surface shadow-lg transition-all duration-500 hover:shadow-2xl data-[active=true]:scale-[1.02] data-[active=true]:shadow-2xl"
           >
             <div className="absolute inset-0 overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -306,16 +350,16 @@ export function PortfolioSliderSection() {
                 {t.port.healed}
               </Badge>
             </div>
-            <div className="absolute inset-x-0 bottom-0 z-10 p-7 text-white">
+            <div className="absolute inset-x-0 bottom-0 z-10 p-5 md:p-6 lg:p-7 text-white">
               <span className="font-mono text-xs tracking-widest text-white/60">{String(originalIndex + 1).padStart(2, "0")}</span>
-              <h3 className="font-heading text-2xl font-semibold">{item.t}</h3>
+              <h3 className="font-heading text-xl md:text-2xl font-semibold">{item.t}</h3>
               <p className="text-sm text-white/75">{item.d}</p>
             </div>
           </Card>
         ))}
       </div>
 
-      <div className="absolute inset-x-6 bottom-8 mx-auto flex max-w-6xl items-center justify-center gap-1.5">
+      <div className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-center gap-1.5 pt-3">
         {cases.map((_, i) => (
           <button
             key={i}

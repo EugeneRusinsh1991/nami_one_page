@@ -82,9 +82,12 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
   useEffect(() => {
     const gesture = {
       isTouch: false,
+      touchActive: false,
+      touchStepsCommitted: 0,
       lockedDirection: null as "horizontal" | "vertical" | null,
       accumX: 0,
       accumY: 0,
+      startX: 0,
       startY: 0,
       startTime: 0,
       lastY: 0,
@@ -99,9 +102,12 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       if (!touch) return;
       const now = performance.now();
       gesture.isTouch = true;
+      gesture.touchActive = true;
+      gesture.touchStepsCommitted = 0;
       gesture.lockedDirection = null;
       gesture.accumX = 0;
       gesture.accumY = 0;
+      gesture.startX = touch.clientX;
       gesture.startY = touch.clientY;
       gesture.startTime = now;
       gesture.lastY = touch.clientY;
@@ -110,6 +116,7 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       gesture.maxDisplacement = 0;
       if (now >= gateUntil) {
         activeDirection = null;
+        gateUntil = 0;
       }
     };
 
@@ -117,12 +124,28 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       const touch = e.touches[0];
       if (!touch) return;
       gesture.isTouch = true;
+      gesture.touchActive = true;
+
       const now = performance.now();
       const dt = now - gesture.lastTime;
       const totalDist = Math.abs(touch.clientY - gesture.startY);
       if (totalDist > gesture.maxDisplacement) {
         gesture.maxDisplacement = totalDist;
       }
+
+      if (gesture.lockedDirection === null) {
+        const dx = Math.abs(touch.clientX - gesture.startX);
+        const dy = Math.abs(touch.clientY - gesture.startY);
+        if (Math.hypot(dx, dy) >= INTENT_LOCK_THRESHOLD) {
+          gesture.lockedDirection = dx >= dy * INTENT_RATIO ? "horizontal" : "vertical";
+        }
+      }
+
+      // Prevent iOS/iPadOS Safari from engaging parallel native momentum scrolling on vertical gestures
+      if (gesture.lockedDirection === "vertical" && e.cancelable) {
+        e.preventDefault();
+      }
+
       if (dt > 12) {
         const instantV = Math.abs(touch.clientY - gesture.lastY) / dt;
         if (instantV > gesture.peakVelocity) {
@@ -134,6 +157,9 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
     };
 
     const onTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length === 0) {
+        gesture.touchActive = false;
+      }
       const touch = e.changedTouches[0];
       if (touch) {
         const totalDist = Math.abs(touch.clientY - gesture.startY);
@@ -148,11 +174,16 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
           }
         }
       }
+      if (gateUntil > 0) {
+        gateUntil = Math.max(gateUntil, performance.now() + GESTURE_RESET_TIMEOUT_MS);
+      }
       scheduleReset();
     };
 
     const resetGesture = () => {
       gesture.isTouch = false;
+      gesture.touchActive = false;
+      gesture.touchStepsCommitted = 0;
       gesture.lockedDirection = null;
       gesture.accumX = 0;
       gesture.accumY = 0;
@@ -160,6 +191,7 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       gesture.maxDisplacement = 0;
       if (performance.now() >= gateUntil) {
         activeDirection = null;
+        gateUntil = 0;
       }
     };
 
@@ -169,7 +201,7 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
     };
 
     window.addEventListener("touchstart", onTouchStart, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
     window.addEventListener("touchcancel", resetGesture, { passive: true });
 
@@ -181,13 +213,18 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       smoothWheel: true,
       wheelMultiplier: 1,
       syncTouch: true,
-      syncTouchLerp: 0.10,
+      syncTouchLerp: 1,
       touchMultiplier: 1.25,
-      touchInertiaExponent: 1.02,
+      touchInertiaExponent: 1,
       virtualScroll: (data) => {
         scheduleReset();
         if (data.event && "touches" in data.event) {
           gesture.isTouch = true;
+        }
+
+        // Suppress Lenis touch inertia on touchend to prevent drift past snap breakpoints
+        if (data.event?.type === "touchend") {
+          return false;
         }
 
         const { deltaX, deltaY } = data;
@@ -208,13 +245,15 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
               Math.abs(gesture.accumX) >= Math.abs(gesture.accumY) * INTENT_RATIO
                 ? "horizontal"
                 : "vertical";
-          } else if (absX > absY) {
-            return false;
           }
         }
 
         if (gesture.lockedDirection === "horizontal") {
           return false;
+        }
+
+        if (gesture.lockedDirection === "vertical" && data.event && "cancelable" in data.event && (data.event as Event).cancelable) {
+          (data.event as Event).preventDefault();
         }
 
         return true;
@@ -235,7 +274,8 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
 
       const now = performance.now();
       const current = lenisInstance.scroll;
-      const isGated = now < gateUntil;
+      const isTouchActive = gesture.isTouch && gesture.touchActive;
+      const isGated = gateUntil > 0 && (now < gateUntil || isTouchActive);
 
       const rawDelta = Math.abs(target - current);
       const evalDistance = gesture.isTouch
@@ -248,7 +288,20 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       );
 
       // In-flight upgrade: if currently running 1 step, but user continued gesture with high velocity/distance
-      const canUpgrade = isGated && currentStepCount === 1 && evaluatedSteps >= 2;
+      const canUpgrade = gesture.isTouch
+        ? gesture.touchStepsCommitted === 1 && evaluatedSteps >= 2
+        : isGated && currentStepCount === 1 && evaluatedSteps >= 2;
+
+      // Isolate touch session: allow max 2 steps per swipe, swallow all subsequent events until full finger lift
+      if (gesture.isTouch && gesture.touchStepsCommitted > 0 && !canUpgrade) {
+        return;
+      }
+
+      // While transition is gated, suppress all trailing micro-deltas and momentum
+      if (isGated && !canUpgrade) {
+        return;
+      }
+
       const effectiveSteps = canUpgrade ? evaluatedSteps : isGated ? currentStepCount : evaluatedSteps;
 
       const { target: resolved, discrete } = resolveScrollTarget(
@@ -259,8 +312,11 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
         effectiveSteps
       );
 
-      // Non-discrete scroll targets (e.g. beyond bounds or micro-deltas): bypass discrete step gating
+      // Non-discrete scroll targets: never allow fallback to !discrete during a touch session
       if (!discrete) {
+        if (gesture.isTouch) {
+          return;
+        }
         activeDirection = null;
         return origScrollTo(resolved, opts);
       }
@@ -268,14 +324,14 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       const quiet = now - lastEvent;
       lastEvent = now;
 
-      // During active step transition, suppress micro-deltas unless this is an in-flight upgrade
-      if (isGated && !canUpgrade) {
-        if (now < gateUntil - STEP_TAIL_MS || quiet < GESTURE_QUIET_MS) return;
-      } else if (!isGated && quiet < GESTURE_QUIET_MS) {
+      if (!isGated && quiet < GESTURE_QUIET_MS) {
         return;
       }
 
       currentStepCount = effectiveSteps;
+      if (gesture.isTouch) {
+        gesture.touchStepsCommitted = effectiveSteps;
+      }
       const durationMs = effectiveSteps >= 3 ? STEP_DURATION_3_MS : effectiveSteps === 2 ? STEP_DURATION_2_MS : STEP_DURATION_1_MS;
       activeDirection = resolved > current ? "down" : "up";
       gateUntil = now + durationMs + STEP_TAIL_MS;
