@@ -95,10 +95,8 @@ export function createFrameScrub({
     const maxDpr = isMobile || lowMemory ? MOBILE_MAX_DPR : MAX_DPR;
     const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
     const parent = canvas.parentElement;
-    const displayWidth = parent ? parent.clientWidth : (canvas.clientWidth || (typeof window !== "undefined" ? window.innerWidth : BREAKPOINTS.md));
-    const displayHeight = isMobile
-      ? Math.max(parent ? parent.clientHeight : 0, canvas.clientHeight || 0, window.innerHeight)
-      : (parent ? parent.clientHeight : (canvas.clientHeight || window.innerHeight));
+    const displayWidth = canvas.clientWidth || (parent ? parent.clientWidth : window.innerWidth);
+    const displayHeight = canvas.clientHeight || (parent ? parent.clientHeight : window.innerHeight);
     const w = Math.max(1, Math.round(displayWidth * dpr));
     const h = Math.max(1, Math.round(displayHeight * dpr));
 

@@ -176,7 +176,7 @@ export function TechniqueVideoSection() {
   );
 
   return (
-    <section ref={containerRef} id="technique" className="relative min-h-[100dvh] w-full overflow-hidden bg-brand-surface isolate">
+    <section ref={containerRef} id="technique" className="relative h-[100lvh] min-h-[100lvh] w-full overflow-hidden bg-brand-surface isolate">
       <canvas
         ref={canvasRef}
         className="tech-video pointer-events-none absolute inset-0 h-full w-full will-change-transform transform-gpu"
@@ -190,11 +190,7 @@ export function TechniqueVideoSection() {
       <div
         className="pointer-events-none absolute inset-0 z-0 isolate"
         style={{
-          background: [
-            "radial-gradient(ellipse 75% 65% at 50% 50%, transparent 35%, rgba(248, 249, 251, 0.2) 70%, rgba(248, 249, 251, 0.5) 100%)",
-            "linear-gradient(to right, rgba(248, 249, 251, 0.82) 0%, rgba(248, 249, 251, 0.5) 22%, rgba(248, 249, 251, 0.18) 38%, rgba(248, 249, 251, 0.04) 50%, transparent 60%)",
-            "linear-gradient(to bottom, rgba(248, 249, 251, 0.7) 0%, rgba(248, 249, 251, 0.2) 18%, transparent 35%)",
-          ].join(", "),
+          background: "linear-gradient(to right, rgba(248, 249, 251, 0.75) 0%, rgba(248, 249, 251, 0.4) 25%, transparent 55%)",
         }}
       />
 
@@ -215,7 +211,7 @@ export function TechniqueVideoSection() {
         <rect width="100%" height="100%" filter="url(#tech-grain)" />
       </svg>
 
-      <div className="relative z-10 mx-auto flex h-svh min-h-svh w-full max-w-6xl items-start px-6 safe-offset-mobile md:items-center">
+      <div className="relative z-10 mx-auto flex h-[100dvh] min-h-[100dvh] w-full max-w-6xl items-start px-6 safe-offset-mobile md:items-center">
         <div className="relative h-80 sm:h-96 w-full max-w-md sm:max-w-lg lg:max-w-xl">
           <Badge variant="brand-outline" className="absolute -top-12 left-0 sm:-top-14">
             {t.tech.label}
@@ -249,7 +245,7 @@ export function TechniqueVideoSection() {
         </div>
       </div>
 
-      <div className="tech-scroll pointer-events-none absolute inset-x-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-10 flex flex-col items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.3em] text-brand-text [text-shadow:0_1px_6px_rgba(255,255,255,0.9)] md:bottom-28 isolate">
+      <div className="tech-scroll pointer-events-none absolute inset-x-0 bottom-[calc(100lvh_-_100dvh_+_5.5rem_+_env(safe-area-inset-bottom,0px))] z-10 flex flex-col items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.3em] text-brand-text [text-shadow:0_1px_6px_rgba(255,255,255,0.9)] md:bottom-28 isolate">
         <span className="select-none [text-shadow:0_1px_8px_rgba(255,255,255,0.9)]">{t.hero.scroll}</span>
         <span className="tech-scroll-line h-10 w-0.5 rounded-full bg-brand-text shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
       </div>

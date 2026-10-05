@@ -135,7 +135,7 @@ export function HeroVideoSection() {
   };
 
   return (
-    <section ref={containerRef} id="hero" className="relative min-h-[100dvh] w-full overflow-hidden bg-brand-bg isolate">
+    <section ref={containerRef} id="hero" className="relative h-[100lvh] min-h-[100lvh] w-full overflow-hidden bg-brand-bg isolate">
       <canvas
         ref={canvasRef}
         className="hero-video pointer-events-none absolute inset-0 h-full w-full will-change-transform transform-gpu"
@@ -149,11 +149,7 @@ export function HeroVideoSection() {
       <div
         className="pointer-events-none absolute inset-0 z-0 isolate"
         style={{
-          background: [
-            "radial-gradient(ellipse 80% 70% at 50% 50%, transparent 40%, rgba(248, 249, 251, 0.15) 75%, rgba(248, 249, 251, 0.35) 100%)",
-            "linear-gradient(to bottom, rgba(248, 249, 251, 0.25) 0%, rgba(248, 249, 251, 0.08) 16%, transparent 36%)",
-            "linear-gradient(to top, rgba(248, 249, 251, 0.35) 0%, transparent 12%)",
-          ].join(", "),
+          background: "radial-gradient(ellipse 90% 80% at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.12) 100%)",
         }}
       />
 
@@ -175,7 +171,7 @@ export function HeroVideoSection() {
       </svg>
 
       {/* Slide 1 (Initial / Branding / CTAs) */}
-      <div className="hero-slide hero-slide-0 isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-full min-h-[100dvh] max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center">
+      <div className="hero-slide hero-slide-0 isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-[100dvh] max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/images/logo.png"
@@ -221,7 +217,7 @@ export function HeroVideoSection() {
 
       {/* Slide 2 (Craftsmanship & Precision) */}
       {slides[1] && (
-        <div className="hero-slide hero-slide-1 pointer-events-none isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-full min-h-[100dvh] max-w-5xl flex-col items-center justify-center px-6 pt-[env(safe-area-inset-top,0px)] pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:py-0 text-center opacity-0">
+        <div className="hero-slide hero-slide-1 pointer-events-none isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-[100dvh] max-w-5xl flex-col items-center justify-center px-6 pt-[env(safe-area-inset-top,0px)] pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:py-0 text-center opacity-0">
           <Heading
             as="h2"
             size="display"
@@ -236,7 +232,7 @@ export function HeroVideoSection() {
 
       {/* Slide 3 (Flawless Result - Heading above logo) */}
       {slides[2] && (
-        <div className="hero-slide hero-slide-2 pointer-events-none isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-full min-h-[100dvh] max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center opacity-0">
+        <div className="hero-slide hero-slide-2 pointer-events-none isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-[100dvh] max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center opacity-0">
           <Heading
             as="h2"
             size="display"
@@ -248,7 +244,7 @@ export function HeroVideoSection() {
           </Heading>
         </div>
       )}
-      <div className="hero-scroll pointer-events-none absolute inset-x-0 bottom-[calc(8.5rem+env(safe-area-inset-bottom))] z-10 flex flex-col items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.3em] text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.85)] md:bottom-36 lg:bottom-40 isolate">
+      <div className="hero-scroll pointer-events-none absolute inset-x-0 bottom-[calc(100lvh_-_100dvh_+_4.5rem_+_env(safe-area-inset-bottom,0px))] z-10 flex flex-col items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.3em] text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.85)] md:bottom-36 lg:bottom-40 isolate">
         <span className="select-none [text-shadow:0_1px_8px_rgba(0,0,0,0.8)]">{t.hero.scroll}</span>
         <span className="hero-scroll-line h-10 w-0.5 rounded-full bg-white/95 shadow-[0_0_8px_rgba(255,255,255,0.7)]" />
       </div>
