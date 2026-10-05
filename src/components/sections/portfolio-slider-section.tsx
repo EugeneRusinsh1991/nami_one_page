@@ -68,11 +68,11 @@ export function PortfolioSliderSection() {
       ref={containerRef}
       id="works"
       className={cn(
-        "relative flex h-svh flex-col justify-between overflow-hidden bg-brand-bg",
+        "relative flex h-svh flex-col justify-between overflow-hidden bg-brand-bg isolate",
         MASTER_CARD_CONFIG.sectionPadding
       )}
     >
-      <div className={cn("port-head mx-auto flex w-full max-w-6xl shrink-0 items-end justify-between gap-3 px-6", MASTER_CARD_CONFIG.headerMargin)}>
+      <div className={cn("port-head mx-auto flex w-full max-w-6xl shrink-0 items-end justify-between gap-3 px-6 isolate", MASTER_CARD_CONFIG.headerMargin)}>
         <SectionHeader
           badge={t.port.label}
           title={t.port.title}
@@ -109,7 +109,7 @@ export function PortfolioSliderSection() {
         ref={trackRef}
         data-lenis-prevent-horizontal="true"
         className={cn(
-          "port-track relative flex min-h-0 flex-1 w-full items-center gap-4 sm:gap-6 md:gap-8 overflow-x-auto overflow-y-hidden px-[9vw] sm:px-[12vw] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overscroll-x-contain",
+          "port-track isolate relative flex min-h-0 flex-1 w-full items-center gap-4 sm:gap-6 md:gap-8 overflow-x-auto overflow-y-hidden px-[9vw] sm:px-[12vw] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overscroll-x-contain",
           MASTER_CARD_CONFIG.mediaPadding
         )}
         style={{
@@ -124,22 +124,32 @@ export function PortfolioSliderSection() {
             data-orig-index={originalIndex}
             variant="surface"
             className={cn(
-              "port-card group relative cursor-pointer select-none self-center snap-center opacity-60 shadow-lg data-[active=true]:opacity-100 data-[active=true]:border-brand-text/50 data-[active=true]:shadow-2xl data-[active=true]:ring-2 data-[active=true]:ring-brand-text/40 touch-pan-x touch-pan-y transition-[transform,opacity,box-shadow,border-color] duration-500 ease-out",
+              "port-card group relative cursor-pointer select-none self-center snap-center opacity-60 shadow-lg data-[active=true]:opacity-100 data-[active=true]:border-brand-text/50 data-[active=true]:shadow-2xl data-[active=true]:ring-2 data-[active=true]:ring-brand-text/40 touch-pan-x touch-pan-y transition-[transform,opacity,box-shadow,border-color] duration-500 ease-out isolate transform-gpu",
               MASTER_CARD_CONFIG.container,
               "h-full scale-[0.93] data-[active=true]:scale-100"
             )}
             style={{ touchAction: "pan-x pan-y" }}
           >
-            <div className="pointer-events-none select-none absolute inset-0 overflow-hidden">
+            <div className="pointer-events-none select-none absolute inset-0 overflow-hidden isolate">
+              {/* Base grayscale image (static filter, no dynamic filter re-rasterization) */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={IMAGES[originalIndex % IMAGES.length]}
                 alt={item.t}
                 draggable={false}
-                className="port-img pointer-events-none select-none absolute inset-y-0 -left-[8%] h-full w-[116%] max-w-none object-cover grayscale transition-[filter,transform] duration-500 group-data-[active=true]:scale-105 group-data-[active=true]:grayscale-0"
+                className="port-img pointer-events-none select-none absolute inset-y-0 -left-[8%] h-full w-[116%] max-w-none object-cover grayscale will-change-transform transform-gpu transition-transform duration-500 ease-out group-data-[active=true]:scale-105"
+              />
+              {/* Color image overlay (fades via GPU opacity transition without invalidating texture raster cache) */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={IMAGES[originalIndex % IMAGES.length]}
+                alt=""
+                aria-hidden="true"
+                draggable={false}
+                className="port-img-color pointer-events-none select-none absolute inset-y-0 -left-[8%] h-full w-[116%] max-w-none object-cover opacity-0 will-change-[transform,opacity] transform-gpu transition-[transform,opacity] duration-500 ease-out group-data-[active=true]:opacity-100 group-data-[active=true]:scale-105"
               />
             </div>
-            <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-brand-text/70 via-transparent to-transparent" />
+            <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-brand-text/70 via-transparent to-transparent isolate" />
 
             <div className="absolute inset-x-0 bottom-0 z-10 p-4 sm:p-5 md:p-6 lg:p-7 text-white">
               <span className="font-mono text-xs tracking-widest text-white/60">{String(originalIndex + 1).padStart(2, "0")}</span>
@@ -156,7 +166,7 @@ export function PortfolioSliderSection() {
 
       <div
         className={cn(
-          "port-dots mx-auto flex w-full max-w-6xl shrink-0 items-center justify-center gap-1.5",
+          "port-dots mx-auto flex w-full max-w-6xl shrink-0 items-center justify-center gap-1.5 isolate",
           MASTER_CARD_CONFIG.bottomBarPadding
         )}
       >

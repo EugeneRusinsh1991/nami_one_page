@@ -9,8 +9,9 @@ import { Progress } from "@/components/ui/progress";
 import { SectionHeader } from "@/components/ui/section-header";
 import { useLanguage } from "@/components/providers/language-provider";
 import { isMobileWidth } from "@/hooks/use-breakpoint";
+import { TECHNIQUE_STEP_POINTS } from "@/lib/scroll-breakpoints";
 
-const STEP_COUNT = 4;
+const STEP_COUNT = TECHNIQUE_STEP_POINTS.length;
 const COLOR_ACTIVE = "#1A1F25";
 const COLOR_INACTIVE = "#D5DAE0";
 
@@ -29,31 +30,42 @@ export interface StepTransformState {
 export function calculateStepTransformState(
   stepIndex: number,
   totalSteps: number,
-  progress: number
+  progress: number,
+  stepPoints: readonly number[] = TECHNIQUE_STEP_POINTS
 ): StepTransformState {
   if (totalSteps <= 1) {
     return { opacity: 1, y: 0, isActive: true };
   }
 
   const p = Math.max(0, Math.min(1, progress));
-  const intervals = totalSteps - 1;
-  const currentStep = Math.min(intervals, Math.max(0, Math.round(p * intervals)));
+  const isFirst = stepIndex === 0;
+  const isLast = stepIndex === totalSteps - 1;
+
+  let currentStep = 0;
+  let minDistance = Infinity;
+  for (let i = 0; i < totalSteps; i++) {
+    const pt = stepPoints[i] ?? i / (totalSteps - 1);
+    const dist = Math.abs(p - pt);
+    if (dist < minDistance) {
+      minDistance = dist;
+      currentStep = i;
+    }
+  }
   const isActive = stepIndex === currentStep;
 
-  const intervalSize = 1 / intervals;
-  const fade = intervalSize * 0.4;
-  const halfFade = fade / 2;
+  const currentPt = stepPoints[stepIndex] ?? stepIndex / (totalSteps - 1);
+  const prevPt = isFirst ? 0 : (stepPoints[stepIndex - 1] ?? (stepIndex - 1) / (totalSteps - 1));
+  const nextPt = isLast ? 1 : (stepPoints[stepIndex + 1] ?? (stepIndex + 1) / (totalSteps - 1));
 
-  const isFirst = stepIndex === 0;
-  const isLast = stepIndex === intervals;
+  const enterMid = (prevPt + currentPt) / 2;
+  const enterFade = (currentPt - prevPt) * 0.4;
+  const enterStart = isFirst ? -1 : enterMid - enterFade / 2;
+  const enterEnd = isFirst ? -1 : enterMid + enterFade / 2;
 
-  const enterMid = (stepIndex - 0.5) / intervals;
-  const enterStart = isFirst ? -1 : enterMid - halfFade;
-  const enterEnd = isFirst ? -1 : enterMid + halfFade;
-
-  const exitMid = (stepIndex + 0.5) / intervals;
-  const exitStart = isLast ? 2 : exitMid - halfFade;
-  const exitEnd = isLast ? 2 : exitMid + halfFade;
+  const exitMid = (currentPt + nextPt) / 2;
+  const exitFade = (nextPt - currentPt) * 0.4;
+  const exitStart = isLast ? 2 : exitMid - exitFade / 2;
+  const exitEnd = isLast ? 2 : exitMid + exitFade / 2;
 
   const Y_OFFSET = 20;
 

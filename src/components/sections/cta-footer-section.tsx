@@ -4,11 +4,9 @@ import { useRef } from "react";
 import { Send, Instagram } from "lucide-react";
 import { revealOnScroll, useGSAP } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Heading } from "@/components/ui/typography";
 import { useLanguage } from "@/components/providers/language-provider";
+import { BookingCalendar } from "@/components/ui/booking-calendar";
 
 function TikTokIcon({ className }: { className?: string }) {
   return (
@@ -34,36 +32,19 @@ export function CtaBlock({ className }: { className?: string }) {
   const { t } = useLanguage();
 
   return (
-    <div className={cn("flex flex-1 min-h-0 items-center justify-center px-4 sm:px-6 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-2 sm:pt-0 sm:py-8 md:py-10", className)}>
-      <Card variant="glass" className="cta-panel mx-auto w-full max-w-3xl rounded-[1.5rem] sm:rounded-[2rem] border-white/70 bg-white/60 p-4 sm:p-8 md:p-12 text-center shadow-xl backdrop-blur-xl">
-        <Heading as="h2" size="h2" className="cta-reveal">
+    <div className={cn("flex flex-1 min-h-0 items-center justify-center px-4 sm:px-6 py-4 sm:py-10", className)}>
+      <div className="cta-panel mx-auto w-full max-w-4xl">
+        <Heading as="h2" size="h2" className="cta-reveal mx-auto min-h-[2.4em] text-center text-balance md:max-w-[16ch]">
           {t.cta.title}
         </Heading>
+        <p className="cta-reveal mx-auto mt-1.5 min-h-8 max-w-xl text-center text-xs sm:min-h-10 sm:text-sm text-brand-text/70">
+          {t.cta.sub}
+        </p>
 
-        <form onSubmit={(e) => e.preventDefault()} className="cta-reveal mx-auto mt-3.5 sm:mt-5 md:mt-6 grid max-w-md gap-2.5 sm:gap-3">
-          <Input
-            variant="pill"
-            size="lg"
-            placeholder={t.cta.name}
-            autoComplete="name"
-          />
-          <Input
-            variant="pill"
-            size="lg"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder={t.cta.phone}
-          />
-          <Button
-            type="submit"
-            variant="brand-primary"
-            size="lg"
-          >
-            {t.cta.send}
-          </Button>
-        </form>
-      </Card>
+        <div className="cta-reveal mt-3 sm:mt-5">
+          <BookingCalendar />
+        </div>
+      </div>
     </div>
   );
 }
@@ -119,7 +100,7 @@ export function CtaFooterSection() {
     <section
       ref={containerRef}
       id="booking"
-      className="relative flex h-svh min-h-svh max-h-svh w-full flex-col justify-between overflow-hidden bg-brand-surface"
+      className="relative flex min-h-svh w-full flex-col justify-between overflow-x-hidden bg-brand-surface"
     >
       <CtaBlock />
       <Footer />

@@ -75,16 +75,16 @@ export function PhilosophySection() {
     <section
       ref={containerRef}
       id="philosophy"
-      className="relative z-20 h-svh min-h-svh max-h-svh overflow-hidden rounded-t-[2rem] bg-brand-bg px-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-[0_-20px_60px_rgba(26,31,37,0.06)] sm:px-5 sm:pt-[calc(1.5rem+env(safe-area-inset-top,0px))] sm:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] md:rounded-t-[2.5rem] md:px-6 md:pt-20 md:pb-8 lg:pt-24 lg:pb-10"
+      className="relative z-20 h-svh min-h-svh max-h-svh overflow-hidden rounded-t-[2rem] bg-brand-bg px-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-[0_-20px_60px_rgba(26,31,37,0.06)] sm:px-5 sm:pt-[calc(1.5rem+env(safe-area-inset-top,0px))] sm:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] md:rounded-t-[2.5rem] md:px-6 md:pt-20 md:pb-8 lg:pt-24 lg:pb-10 isolate"
     >
       <div className="mx-auto flex h-full w-full max-w-6xl flex-col justify-center">
         <SectionHeader
           badge={t.philo.label}
           title={t.philo.title}
-          className="philo-head mb-2 shrink-0 max-w-2xl sm:mb-4 md:mb-8 lg:mb-10"
+          className="philo-head mb-2 shrink-0 max-w-2xl sm:mb-4 md:mb-8 lg:mb-10 isolate"
         />
 
-        <div className="philo-grid grid w-full h-[48svh] max-h-[400px] min-h-[260px] grid-cols-2 grid-rows-3 gap-2 sm:h-[52svh] sm:max-h-[440px] sm:min-h-[320px] sm:gap-3 md:h-[56svh] md:max-h-[500px] md:grid-cols-4 md:grid-rows-2 md:auto-rows-[minmax(0,1fr)] md:gap-4 lg:h-[58svh] lg:max-h-[540px]">
+        <div className="philo-grid isolate relative grid w-full h-[48svh] max-h-[400px] min-h-[260px] grid-cols-2 grid-rows-3 gap-2 sm:h-[52svh] sm:max-h-[440px] sm:min-h-[320px] sm:gap-3 md:h-[56svh] md:max-h-[500px] md:grid-cols-4 md:grid-rows-2 md:auto-rows-[minmax(0,1fr)] md:gap-4 lg:h-[58svh] lg:max-h-[540px]">
           {t.philo.cards.map((card, i) => {
             const Icon = ICONS[i];
             const media = CARD_MEDIA[i];
@@ -93,14 +93,14 @@ export function PhilosophySection() {
                 key={i}
                 variant="surface"
                 className={cn(
-                  "philo-card will-change-transform transform-gpu group relative flex flex-col justify-between p-2.5 sm:p-4 md:p-6 lg:p-7 transition-shadow duration-500 hover:shadow-xl",
+                  "philo-card will-change-transform transform-gpu isolate group relative flex flex-col justify-between p-2.5 sm:p-4 md:p-6 lg:p-7 transition-shadow duration-500 hover:shadow-xl",
                   SPANS[i]
                 )}
               >
                 {media && (
                   <div
                     className={cn(
-                      "pointer-events-none absolute inset-y-0 right-0 overflow-hidden rounded-r-2xl md:rounded-r-3xl",
+                      "pointer-events-none absolute inset-y-0 right-0 overflow-hidden rounded-r-2xl md:rounded-r-3xl isolate",
                       media.containerClass,
                       media.maskClass
                     )}

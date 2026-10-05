@@ -22,27 +22,35 @@ function dedupe(points: number[]): number[] {
 }
 
 let cachedZones: ScrollZone[] | null = null;
+let cachedAllPoints: number[] | null = null;
 const sectionTopCache = new Map<string, number>();
 
 export function invalidateScrollZonesCache(): void {
   cachedZones = null;
+  cachedAllPoints = null;
   sectionTopCache.clear();
 }
 
 let resizeTimer: ReturnType<typeof setTimeout> | null = null;
 let orientationTimer: ReturnType<typeof setTimeout> | null = null;
+let lastWindowWidth = typeof window !== "undefined" ? window.innerWidth : 0;
+let lastWindowHeight = typeof window !== "undefined" ? window.innerHeight : 0;
 
-export function handleViewportChange(): void {
+export function handleViewportChange(force = false): void {
+  if (typeof window === "undefined") return;
+
+  const currentWidth = window.innerWidth;
+  const currentHeight = window.innerHeight;
+  if (!force && currentWidth === lastWindowWidth && currentHeight === lastWindowHeight && lastWindowWidth !== 0) {
+    return;
+  }
+  lastWindowWidth = currentWidth;
+  lastWindowHeight = currentHeight;
+
   invalidateScrollZonesCache();
 
   if (resizeTimer) clearTimeout(resizeTimer);
   if (orientationTimer) clearTimeout(orientationTimer);
-
-  if (typeof requestAnimationFrame !== "undefined") {
-    requestAnimationFrame(() => {
-      invalidateScrollZonesCache();
-    });
-  }
 
   resizeTimer = setTimeout(() => {
     invalidateScrollZonesCache();
@@ -57,10 +65,21 @@ export function handleViewportChange(): void {
 
 if (typeof window !== "undefined") {
   ScrollTrigger.addEventListener("refresh", invalidateScrollZonesCache);
-  window.addEventListener("resize", handleViewportChange, { passive: true });
-  window.addEventListener("orientationchange", handleViewportChange, { passive: true });
+  window.addEventListener("resize", () => handleViewportChange(false), { passive: true });
+  window.addEventListener("orientationchange", () => handleViewportChange(true), { passive: true });
   if (window.visualViewport) {
-    window.visualViewport.addEventListener("resize", handleViewportChange, { passive: true });
+    let lastVvWidth = window.visualViewport.width;
+    window.visualViewport.addEventListener(
+      "resize",
+      () => {
+        const currentVvWidth = window.visualViewport?.width ?? 0;
+        if (Math.abs(currentVvWidth - lastVvWidth) > 1) {
+          lastVvWidth = currentVvWidth;
+          handleViewportChange(true);
+        }
+      },
+      { passive: true }
+    );
   }
 }
 
@@ -109,11 +128,11 @@ function getPhilosophyEntry(): number | null {
 }
 
 export function getMasterPoints(): number[] {
-  const master1 = getSectionTop("master-1") ?? getSectionTop("master");
-  const master2 = getSectionTop("master-2");
+  const master = getSectionTop("master") ?? getSectionTop("master-1");
+  const studio = getSectionTop("studio") ?? getSectionTop("master-2");
   const points: number[] = [];
-  if (master1 != null) points.push(master1);
-  if (master2 != null) points.push(master2);
+  if (master != null) points.push(master);
+  if (studio != null) points.push(studio);
   return points;
 }
 
@@ -154,6 +173,8 @@ function getHandoffZones(pins: Record<string, { start: number; end: number }>): 
   return zones;
 }
 
+export const TECHNIQUE_STEP_POINTS = [0, 0.5, 0.7, 1.0] as const;
+
 export function getScrollZones(forceRefresh = false): ScrollZone[] {
   if (forceRefresh) {
     invalidateScrollZonesCache();
@@ -174,9 +195,8 @@ export function getScrollZones(forceRefresh = false): ScrollZone[] {
     if (id === "hero") {
       zones.push({ points: dedupe([0, start, Math.round((start + end) / 2), end]) });
     } else if (id === "technique") {
-      const step1 = Math.round(start + (end - start) / 3);
-      const step2 = Math.round(start + ((end - start) * 2) / 3);
-      zones.push({ points: dedupe([start, step1, step2, end]) });
+      const points = TECHNIQUE_STEP_POINTS.map((ratio) => Math.round(start + (end - start) * ratio));
+      zones.push({ points: dedupe(points) });
     }
   });
 
@@ -195,12 +215,25 @@ export function getScrollZones(forceRefresh = false): ScrollZone[] {
   const finalZones = zones.filter((z) => z.points.length > 0);
   if (finalZones.length > 0) {
     cachedZones = finalZones;
+    cachedAllPoints = dedupe(finalZones.flatMap((z) => z.points));
   }
   return finalZones;
 }
 
-function resolveDown(current: number, target: number, zones: ScrollZone[], stepCount = 1): ResolvedTarget {
-  const allPoints = dedupe(zones.flatMap((z) => z.points));
+export function getAllScrollPoints(zones?: ScrollZone[]): number[] {
+  if (cachedAllPoints !== null && cachedAllPoints.length > 0) {
+    return cachedAllPoints;
+  }
+  const resolvedZones = zones ?? getScrollZones();
+  if (cachedAllPoints !== null && cachedAllPoints.length > 0) {
+    return cachedAllPoints;
+  }
+  const points = dedupe(resolvedZones.flatMap((z) => z.points));
+  cachedAllPoints = points;
+  return points;
+}
+
+function resolveDown(current: number, target: number, allPoints: number[], stepCount = 1): ResolvedTarget {
   const allForwardPoints = allPoints.filter((p) => p > current + TOLERANCE);
   if (allForwardPoints.length > 0) {
     const normalizedStep = Math.max(1, stepCount);
@@ -208,23 +241,16 @@ function resolveDown(current: number, target: number, zones: ScrollZone[], stepC
     const chosen = allForwardPoints[targetIdx];
     return { target: chosen, discrete: true };
   }
-  if (allPoints.length > 0) {
-    return { target: allPoints[allPoints.length - 1], discrete: true };
-  }
   return { target, discrete: false };
 }
 
-function resolveUp(current: number, target: number, zones: ScrollZone[], stepCount = 1): ResolvedTarget {
-  const allPoints = dedupe(zones.flatMap((z) => z.points));
+function resolveUp(current: number, target: number, allPoints: number[], stepCount = 1): ResolvedTarget {
   const allBackwardPoints = allPoints.filter((p) => p < current - TOLERANCE).sort((a, b) => b - a);
   if (allBackwardPoints.length > 0) {
     const normalizedStep = Math.max(1, stepCount);
     const targetIdx = Math.min(normalizedStep - 1, allBackwardPoints.length - 1);
     const chosen = allBackwardPoints[targetIdx];
     return { target: chosen, discrete: true };
-  }
-  if (allPoints.length > 0) {
-    return { target: allPoints[0], discrete: true };
   }
   return { target, discrete: false };
 }
@@ -249,8 +275,10 @@ export function resolveScrollTarget(
     return { target: current, discrete: false };
   }
 
-  if (delta > 0) return resolveDown(current, target, zones, stepCount);
-  if (delta < 0) return resolveUp(current, target, zones, stepCount);
+  const allPoints = getAllScrollPoints(zones);
+
+  if (delta > 0) return resolveDown(current, target, allPoints, stepCount);
+  if (delta < 0) return resolveUp(current, target, allPoints, stepCount);
   return { target, discrete: false };
 }
 

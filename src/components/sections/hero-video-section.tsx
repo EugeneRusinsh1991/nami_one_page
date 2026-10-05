@@ -134,12 +134,12 @@ export function HeroVideoSection() {
   };
 
   return (
-    <section ref={containerRef} id="hero" className="relative h-svh min-h-svh w-full overflow-hidden bg-brand-bg">
-      <canvas ref={canvasRef} className="hero-video absolute inset-0 h-full w-full" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-brand-bg/85 via-brand-bg/40 to-transparent" />
+    <section ref={containerRef} id="hero" className="relative h-svh min-h-svh w-full overflow-hidden bg-brand-bg isolate">
+      <canvas ref={canvasRef} className="hero-video pointer-events-none absolute inset-0 h-full w-full will-change-transform transform-gpu" style={{ transform: "translate3d(0, 0, 0)" }} />
+      <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-b from-brand-bg/85 via-brand-bg/40 to-transparent isolate" />
 
       {/* Slide 1 (Initial / Branding / CTAs) */}
-      <div className="hero-slide hero-slide-0 absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center">
+      <div className="hero-slide hero-slide-0 isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/images/logo.png"
@@ -150,7 +150,7 @@ export function HeroVideoSection() {
         <Heading
           as="h1"
           size="display"
-          className="min-h-[144px] md:min-h-0 [filter:drop-shadow(0_0_10px_rgba(248,249,251,0.9))] md:[filter:drop-shadow(0_0_12px_rgba(248,249,251,0.95))_drop-shadow(0_0_32px_rgba(248,249,251,0.85))]"
+          className="min-h-[144px] md:min-h-0 [text-shadow:0_0_10px_rgba(248,249,251,0.9)] md:[text-shadow:0_0_12px_rgba(248,249,251,0.95),0_0_32px_rgba(248,249,251,0.85)]"
         >
           {slides[0].title.split(" ").map((word, i) => (
             <span key={`${word}-${i}`} className="mr-[0.25em] inline-block overflow-hidden align-bottom">
@@ -185,7 +185,7 @@ export function HeroVideoSection() {
 
       {/* Slide 2 (Craftsmanship & Precision) */}
       {slides[1] && (
-        <div className="hero-slide hero-slide-1 pointer-events-none absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center opacity-0">
+        <div className="hero-slide hero-slide-1 pointer-events-none isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center opacity-0">
           <Badge variant="glass" className="mb-8">
             {slides[1].badge}
           </Badge>
@@ -193,7 +193,7 @@ export function HeroVideoSection() {
           <Heading
             as="h2"
             size="display"
-            className="[filter:drop-shadow(0_0_10px_rgba(248,249,251,0.9))] md:[filter:drop-shadow(0_0_12px_rgba(248,249,251,0.95))_drop-shadow(0_0_32px_rgba(248,249,251,0.85))]"
+            className="[text-shadow:0_0_10px_rgba(248,249,251,0.9)] md:[text-shadow:0_0_12px_rgba(248,249,251,0.95),0_0_32px_rgba(248,249,251,0.85)]"
           >
             {slides[1].title}
           </Heading>
@@ -202,7 +202,7 @@ export function HeroVideoSection() {
 
       {/* Slide 3 (Longevity & Natural Aesthetics - Badge only) */}
       {slides[2] && (
-        <div className="hero-slide hero-slide-2 pointer-events-none absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center opacity-0">
+        <div className="hero-slide hero-slide-2 pointer-events-none isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center opacity-0">
           <Badge
             variant="glass"
             className="-translate-y-6 sm:-translate-y-24 md:-translate-y-32"
@@ -211,7 +211,7 @@ export function HeroVideoSection() {
           </Badge>
         </div>
       )}
-      <div className="hero-scroll pointer-events-none absolute inset-x-0 bottom-[calc(8.5rem+env(safe-area-inset-bottom))] z-10 flex flex-col items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.3em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] md:bottom-36 lg:bottom-40">
+      <div className="hero-scroll pointer-events-none absolute inset-x-0 bottom-[calc(8.5rem+env(safe-area-inset-bottom))] z-10 flex flex-col items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.3em] text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.85)] md:bottom-36 lg:bottom-40 isolate">
         <span className="select-none [text-shadow:0_1px_8px_rgba(0,0,0,0.8)]">{t.hero.scroll}</span>
         <span className="hero-scroll-line h-10 w-0.5 rounded-full bg-white/95 shadow-[0_0_8px_rgba(255,255,255,0.7)]" />
       </div>

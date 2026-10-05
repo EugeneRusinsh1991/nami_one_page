@@ -1,7 +1,7 @@
 import type { Dict } from "./types";
 
 export const uk: Dict = {
-  nav: { philosophy: "Філософія", technique: "Техніка", works: "Роботи", master: "Майстер", faq: "Питання", book: "Записатися" },
+  nav: { philosophy: "Філософія", technique: "Техніка", works: "Роботи", master: "Майстер", studio: "Студія", faq: "Питання", book: "Записатися" },
   hero: {
     badge: "NAMI STUDIO · PMU",
     title: "Мистецтво природного перманентного макіяжу",
@@ -74,6 +74,18 @@ export const uk: Dict = {
       { t: "98%", d: "Клієнти повертаються" },
     ],
   },
+  studio: {
+    label: "ПРОСТІР ТА СТАНДАРТИ",
+    title: "Атмосфера бездоганності",
+    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.",
+    metrics: [
+      { t: "100%", d: "Стерильність" },
+      { t: "ISO", d: "Стандарти" },
+      { t: "VIP", d: "Зона прийому" },
+      { t: "4.9★", d: "Рейтинг" },
+      { t: "120м²", d: "Простір" },
+    ],
+  },
   faq: {
     label: "Питання",
     title: "Корисно знати",
@@ -96,5 +108,30 @@ export const uk: Dict = {
     map: "Відкрити мапу",
     privacy: "Конфіденційність",
     rights: "© NAMI STUDIO. Усі права захищено.",
+    calendar: {
+      approximateNotice: "Оберіть зручний час (до 3 варіантів). Це орієнтовний вибір — ми перевіримо графік майстра та зв'яжемося з вами для узгодження візиту.",
+      selectDateTitle: "Оберіть дату",
+      selectTimeTitle: "Оберіть зручний час",
+      selectedSlotsTitle: "Обраний час",
+      maxSlotsNotice: "Можна обрати щонайбільше до 3 слотів",
+      maxSlotsReached: "Обрано максимум 3 слоти",
+      noSlotsChosen: "Оберіть дату та зручний час",
+      slotsCount: "з 3",
+      clearAll: "Скинути",
+      nameLabel: "Ваше ім'я",
+      phoneLabel: "Телефон або контакт у Telegram",
+      submitButton: "Записатися на консультацію",
+      submittingButton: "Надсилання заявки...",
+      validationErrorRequired: "Будь ласка, вкажіть ваше ім'я та контактний телефон.",
+      validationErrorSlot: "Будь ласка, оберіть хоча б один варіант часу.",
+      modalTitle: "Заявку надіслано!",
+      modalDescription: "Ваше повідомлення успішно надіслано в наш Telegram чат-бот. Ми зв'яжемося з вами найближчим часом для підтвердження запису.",
+      modalClose: "Зрозуміло",
+      weekdays: ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"],
+      months: [
+        "Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень",
+        "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"
+      ],
+    },
   },
 };

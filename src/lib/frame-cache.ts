@@ -1,13 +1,24 @@
 export const KEY_STEP = 16;
 export const CONCURRENCY = 4;
-export const MAX_CACHED_FRAMES = 36;
-export const WINDOW_RADIUS = 16;
-export const TOUCH_MAX_CACHED_FRAMES = 24;
-export const TOUCH_WINDOW_RADIUS = 8;
+export const MAX_CACHED_FRAMES = 72;
+export const WINDOW_RADIUS = 24;
+export const TOUCH_MAX_CACHED_FRAMES = 48;
+export const TOUCH_WINDOW_RADIUS = 16;
 
-export const isLowMemoryDevice = (): boolean =>
-  typeof window !== "undefined" &&
-  (navigator.maxTouchPoints > 0 || window.matchMedia("(pointer: coarse)").matches);
+export const isLowMemoryDevice = (): boolean => {
+  if (typeof window === "undefined" || typeof navigator === "undefined") return false;
+
+  const nav = navigator as Navigator & { deviceMemory?: number };
+  if (typeof nav.deviceMemory === "number" && nav.deviceMemory < 4) {
+    return true;
+  }
+
+  if (typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 2) {
+    return true;
+  }
+
+  return false;
+};
 
 export const frameUrl = (path: string, n: number): string =>
   `${encodeURI(path)}/frame_${String(n).padStart(4, "0")}.webp`;
@@ -57,9 +68,14 @@ export function createFrameCache({
   const frames = new Map<number, HTMLImageElement>();
   const pendingLoads = new Map<number, Promise<HTMLImageElement | null>>();
   let queue: number[] = buildInitialOrder(frameCount);
+  let nextQueue: number[] = [];
+  let queueHead = 0;
   let activeWorkers = 0;
   let destroyed = false;
   let lastPrioritizedCenter = -1;
+
+  const inUrgent = new Uint8Array(Math.max(1, frameCount + 1));
+  const evictableKeys: number[] = [];
 
   const lowMemory = isLowMemoryDevice();
   const maxCachedFrames = lowMemory ? TOUCH_MAX_CACHED_FRAMES : MAX_CACHED_FRAMES;
@@ -76,29 +92,32 @@ export function createFrameCache({
   };
 
   const trimCache = () => {
-    for (const key of Array.from(frames.keys())) evictFrame(key);
-    queue = [];
+    for (const key of frames.keys()) evictFrame(key);
+    queue.length = 0;
+    nextQueue.length = 0;
+    queueHead = 0;
     lastPrioritizedCenter = -1;
   };
 
   const pruneCache = (center: number) => {
     if (frames.size <= maxCachedFrames) return;
 
-    const evictable: { index: number; dist: number }[] = [];
+    evictableKeys.length = 0;
     for (const key of frames.keys()) {
       if (key === 1 || key === frameCount) continue;
       const dist = Math.abs(key - center);
       if (dist > windowRadius) {
-        evictable.push({ index: key, dist });
+        evictableKeys.push(key);
       }
     }
 
-    evictable.sort((a, b) => b.dist - a.dist);
+    evictableKeys.sort((a, b) => Math.abs(b - center) - Math.abs(a - center));
 
-    for (const item of evictable) {
+    for (let i = 0; i < evictableKeys.length; i++) {
       if (frames.size <= maxCachedFrames) break;
-      evictFrame(item.index);
+      evictFrame(evictableKeys[i]);
     }
+    evictableKeys.length = 0;
   };
 
   const load = (n: number): Promise<HTMLImageElement | null> => {
@@ -109,6 +128,18 @@ export function createFrameCache({
     if (existing) return existing;
 
     const promise = new Promise<HTMLImageElement | null>((resolve) => {
+      let settled = false;
+      const done = (result: HTMLImageElement | null) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
+        resolve(result);
+      };
+
+      const timeoutId = setTimeout(() => {
+        done(null);
+      }, 5000);
+
       const img = new Image();
       img.decoding = "async";
       img.src = frameUrl(framesPath, n);
@@ -116,14 +147,14 @@ export function createFrameCache({
       const onDecoded = () => {
         if (destroyed) {
           img.src = "";
-          resolve(null);
+          done(null);
           return;
         }
         frames.set(n, img);
         const currentTarget = Math.round(Math.min(frameCount, Math.max(1, getCurrentTarget())));
         pruneCache(currentTarget);
         onFrameLoaded?.(n);
-        resolve(img);
+        done(img);
       };
 
       if (typeof img.decode === "function") {
@@ -132,11 +163,11 @@ export function createFrameCache({
           .then(onDecoded)
           .catch(() => {
             img.onload = onDecoded;
-            img.onerror = () => resolve(null);
+            img.onerror = () => done(null);
           });
       } else {
         (img as HTMLImageElement).onload = onDecoded;
-        (img as HTMLImageElement).onerror = () => resolve(null);
+        (img as HTMLImageElement).onerror = () => done(null);
       }
     }).finally(() => {
       pendingLoads.delete(n);
@@ -147,9 +178,8 @@ export function createFrameCache({
   };
 
   const pumpQueue = () => {
-    while (!destroyed && activeWorkers < CONCURRENCY && queue.length > 0) {
-      const next = queue.shift();
-      if (next === undefined) break;
+    while (!destroyed && activeWorkers < CONCURRENCY && queueHead < queue.length) {
+      const next = queue[queueHead++];
       if (frames.has(next) || pendingLoads.has(next)) continue;
 
       activeWorkers++;
@@ -158,6 +188,11 @@ export function createFrameCache({
         pumpQueue();
       });
     }
+
+    if (queueHead >= queue.length) {
+      queue.length = 0;
+      queueHead = 0;
+    }
   };
 
   const prioritizeWindow = (center: number) => {
@@ -165,61 +200,113 @@ export function createFrameCache({
     if (Math.abs(rounded - lastPrioritizedCenter) < 2) return;
     lastPrioritizedCenter = rounded;
 
-    const urgent: number[] = [];
+    inUrgent.fill(0);
+    let urgentCount = 0;
+
     for (let offset = 0; offset <= windowRadius; offset++) {
       const fwd = rounded + offset;
-      if (fwd <= frameCount && !frames.has(fwd) && !pendingLoads.has(fwd)) urgent.push(fwd);
+      if (fwd <= frameCount && !frames.has(fwd) && !pendingLoads.has(fwd) && !inUrgent[fwd]) {
+        inUrgent[fwd] = 1;
+        urgentCount++;
+      }
       if (offset > 0) {
         const back = rounded - offset;
-        if (back >= 1 && !frames.has(back) && !pendingLoads.has(back)) urgent.push(back);
+        if (back >= 1 && !frames.has(back) && !pendingLoads.has(back) && !inUrgent[back]) {
+          inUrgent[back] = 1;
+          urgentCount++;
+        }
       }
     }
 
-    if (urgent.length > 0) {
-      const urgentSet = new Set(urgent);
-      queue = [
-        ...urgent,
-        ...queue.filter((n) => !urgentSet.has(n) && (n === 1 || n % KEY_STEP === 0 || Math.abs(n - rounded) <= windowRadius * 2)),
-      ];
+    if (urgentCount > 0) {
+      nextQueue.length = 0;
+
+      for (let offset = 0; offset <= windowRadius; offset++) {
+        const fwd = rounded + offset;
+        if (fwd <= frameCount && inUrgent[fwd]) {
+          nextQueue.push(fwd);
+        }
+        if (offset > 0) {
+          const back = rounded - offset;
+          if (back >= 1 && inUrgent[back]) {
+            nextQueue.push(back);
+          }
+        }
+      }
+
+      for (let i = queueHead; i < queue.length; i++) {
+        const n = queue[i];
+        if (!inUrgent[n] && !frames.has(n) && !pendingLoads.has(n)) {
+          if (n === 1 || n === frameCount || n % KEY_STEP === 0 || Math.abs(n - rounded) <= windowRadius * 2) {
+            nextQueue.push(n);
+          }
+        }
+      }
+
+      const temp = queue;
+      queue = nextQueue;
+      nextQueue = temp;
+      queueHead = 0;
+
       pumpQueue();
     }
 
     pruneCache(rounded);
   };
 
-  const searchBackward = (from: number): number | undefined => {
-    for (let i = from; i >= 1; i--) {
-      if (frames.has(i)) return i;
+  const findClosestLoadedFrame = (targetIndex: number): number => {
+    let closest = -1;
+    let minDistance = Infinity;
+
+    for (const key of frames.keys()) {
+      const dist = Math.abs(key - targetIndex);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closest = key;
+      }
     }
+
+    return closest > 0 ? closest : 1;
   };
 
-  const searchForward = (from: number): number | undefined => {
-    for (let i = from; i <= frameCount; i++) {
-      if (frames.has(i)) return i;
-    }
-  };
-
-  const getFallbackFrame = (lastDrawnIndex: number): number =>
-    lastDrawnIndex >= 1 && lastDrawnIndex <= frameCount && frames.has(lastDrawnIndex)
-      ? lastDrawnIndex
-      : 1;
-
-  const findBestFrame = (targetIndex: number, direction: number = 1, lastDrawnIndex: number = -1): number => {
+  const findBestFrame = (
+    targetIndex: number,
+    direction: number = 1,
+    lastDrawnIndex: number = -1
+  ): number => {
     if (frames.has(targetIndex)) return targetIndex;
 
-    const first = direction >= 0 ? searchBackward(targetIndex - 1) : searchForward(targetIndex + 1);
-    if (first !== undefined) return first;
+    const searchLimit = Math.max(windowRadius, 16);
+    for (let offset = 1; offset <= searchLimit; offset++) {
+      const primary = direction >= 0 ? targetIndex - offset : targetIndex + offset;
+      if (primary >= 1 && primary <= frameCount && frames.has(primary)) {
+        return primary;
+      }
 
-    const second = direction >= 0 ? searchForward(targetIndex + 1) : searchBackward(targetIndex - 1);
-    if (second !== undefined) return second;
+      const secondary = direction >= 0 ? targetIndex + offset : targetIndex - offset;
+      if (secondary >= 1 && secondary <= frameCount && frames.has(secondary)) {
+        return secondary;
+      }
+    }
 
-    return getFallbackFrame(lastDrawnIndex);
+    if (
+      lastDrawnIndex >= 1 &&
+      lastDrawnIndex <= frameCount &&
+      frames.has(lastDrawnIndex) &&
+      Math.abs(lastDrawnIndex - targetIndex) <= searchLimit * 2
+    ) {
+      return lastDrawnIndex;
+    }
+
+    return findClosestLoadedFrame(targetIndex);
   };
 
   const destroy = () => {
     destroyed = true;
     pendingLoads.clear();
-    queue = [];
+    queue.length = 0;
+    nextQueue.length = 0;
+    queueHead = 0;
     frames.forEach((img) => {
       img.onload = null;
       img.onerror = null;

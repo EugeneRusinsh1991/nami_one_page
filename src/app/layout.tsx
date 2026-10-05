@@ -18,7 +18,6 @@ const geistMono = Geist_Mono({
 const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin", "cyrillic"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 export const viewport: Viewport = {
@@ -40,11 +39,13 @@ export default function RootLayout({
   return (
     <html lang="uk" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} font-sans antialiased bg-[#F8F9FB] text-[#1A1F25]`}
+        className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} font-sans antialiased bg-[#F8F9FB] text-[#1A1F25] isolate relative`}
         suppressHydrationWarning
       >
         <LanguageProvider>
-          <SmoothScrollProvider>{children}</SmoothScrollProvider>
+          <SmoothScrollProvider>
+            <div className="relative isolate min-h-screen w-full">{children}</div>
+          </SmoothScrollProvider>
         </LanguageProvider>
       </body>
     </html>

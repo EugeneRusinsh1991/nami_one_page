@@ -30,15 +30,26 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
     const cards = Array.from(track.querySelectorAll<HTMLElement>(".port-card"));
     if (cards.length === 0) return;
 
+    track.style.willChange = "scroll-position";
+    cards.forEach((card) => {
+      card.style.willChange = "transform, opacity";
+    });
+
     let metrics = computeSliderMetrics(track, cards, total);
-    let targetLeft = track.scrollLeft;
+    let currentScrollLeft = track.scrollLeft;
+    let targetLeft = currentScrollLeft;
     let smoothRaf = 0;
+    let scrollRaf = 0;
+    let dragRaf = 0;
+    let wheelRaf = 0;
+    let activeDomIndex = -1;
 
     const checkWrap = () => {
-      const adjustment = calculateWrapAdjustment(track.scrollLeft, metrics.setWidth);
+      const adjustment = calculateWrapAdjustment(currentScrollLeft, metrics.setWidth);
       if (adjustment !== 0) {
-        track.scrollLeft += adjustment;
+        currentScrollLeft += adjustment;
         targetLeft += adjustment;
+        track.scrollLeft = currentScrollLeft;
         if (adjustment > 0) {
           targetDomIndexRef.current = Math.min(cards.length - 1, targetDomIndexRef.current + total);
         } else {
@@ -47,47 +58,62 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
       }
     };
 
-    const updateActiveCard = () => {
-      const currentCenter = track.scrollLeft + track.clientWidth / 2;
+    const updateActiveCard = (scrollPos = currentScrollLeft) => {
+      const currentCenter = scrollPos + metrics.trackWidth / 2;
       const { closestMetric } = findClosestMetric(metrics.cards, currentCenter);
-      const closestCard = closestMetric ? cards[closestMetric.domIndex] ?? null : null;
-      const closestOrig = closestMetric ? closestMetric.origIndex : 0;
+      if (!closestMetric) return;
 
-      cards.forEach((card) => {
-        const active = card === closestCard ? "true" : "false";
-        if (card.dataset.active !== active) card.dataset.active = active;
-      });
+      const newDomIndex = closestMetric.domIndex;
+      const closestOrig = closestMetric.origIndex;
+      targetDomIndexRef.current = newDomIndex;
 
-      if (closestMetric) {
-        targetDomIndexRef.current = closestMetric.domIndex;
+      if (newDomIndex !== activeDomIndex) {
+        if (activeDomIndex >= 0 && cards[activeDomIndex]) {
+          cards[activeDomIndex].dataset.active = "false";
+        }
+        if (cards[newDomIndex]) {
+          cards[newDomIndex].dataset.active = "true";
+        }
+        activeDomIndex = newDomIndex;
       }
-      setActiveIndex((prev) => (prev !== closestOrig ? closestOrig : prev));
+
+      if (activeIndexRef.current !== closestOrig) {
+        activeIndexRef.current = closestOrig;
+        setActiveIndex(closestOrig);
+      }
     };
 
     const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
     const setNativeSnap = (on: boolean) => {
-      if (coarsePointer) track.style.scrollSnapType = on ? "x mandatory" : "none";
+      if (coarsePointer) {
+        const snapVal = on ? "x mandatory" : "none";
+        if (track.style.scrollSnapType !== snapVal) {
+          track.style.scrollSnapType = snapVal;
+        }
+      }
     };
     setNativeSnap(true);
 
     const smoothScroll = () => {
-      const diff = targetLeft - track.scrollLeft;
+      const diff = targetLeft - currentScrollLeft;
       if (Math.abs(diff) > 0.5) {
-        track.scrollLeft += diff * 0.25;
+        currentScrollLeft += diff * 0.25;
+        track.scrollLeft = currentScrollLeft;
         checkWrap();
-        updateActiveCard();
+        updateActiveCard(currentScrollLeft);
         smoothRaf = requestAnimationFrame(smoothScroll);
       } else {
-        track.scrollLeft = targetLeft;
+        currentScrollLeft = targetLeft;
+        track.scrollLeft = currentScrollLeft;
         smoothRaf = 0;
         checkWrap();
-        updateActiveCard();
+        updateActiveCard(currentScrollLeft);
         setNativeSnap(true);
       }
     };
 
-    const getClosestCardIndex = () => {
-      const currentCenter = track.scrollLeft + track.clientWidth / 2;
+    const getClosestCardIndex = (scrollPos = currentScrollLeft) => {
+      const currentCenter = scrollPos + metrics.trackWidth / 2;
       const { closestMetric } = findClosestMetric(metrics.cards, currentCenter);
       return closestMetric ? closestMetric.domIndex : total;
     };
@@ -96,27 +122,29 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
       setNativeSnap(false);
       let nextIndex = targetDomIndex;
       if (nextIndex < total) {
-        track.scrollLeft += metrics.setWidth;
+        currentScrollLeft += metrics.setWidth;
         targetLeft += metrics.setWidth;
+        track.scrollLeft = currentScrollLeft;
         nextIndex += total;
       } else if (nextIndex >= total * 2) {
-        track.scrollLeft -= metrics.setWidth;
+        currentScrollLeft -= metrics.setWidth;
         targetLeft -= metrics.setWidth;
+        track.scrollLeft = currentScrollLeft;
         nextIndex -= total;
       }
       const boundedIndex = Math.max(0, Math.min(cards.length - 1, nextIndex));
       targetDomIndexRef.current = boundedIndex;
       const targetMetric = metrics.cards[boundedIndex];
       if (!targetMetric) return;
-      targetLeft = getCardCenterOffset(targetMetric, track.clientWidth);
+      targetLeft = getCardCenterOffset(targetMetric, metrics.trackWidth);
       if (smoothRaf) cancelAnimationFrame(smoothRaf);
       smoothRaf = requestAnimationFrame(smoothScroll);
     };
 
     const settle = () => {
       checkWrap();
-      if (coarsePointer) updateActiveCard();
-      else scrollToDomIndex(getClosestCardIndex());
+      if (coarsePointer) updateActiveCard(currentScrollLeft);
+      else scrollToDomIndex(getClosestCardIndex(currentScrollLeft));
     };
 
     let isMouseDragging = false;
@@ -131,12 +159,12 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
     };
 
     navigateRef.current = (step: number) => {
-      const baseIndex = smoothRaf !== 0 ? targetDomIndexRef.current : getClosestCardIndex();
+      const baseIndex = smoothRaf !== 0 ? targetDomIndexRef.current : getClosestCardIndex(currentScrollLeft);
       scrollToDomIndex(baseIndex + step);
     };
 
     goToRef.current = (targetOrigIndex: number) => {
-      const currentDom = smoothRaf !== 0 ? targetDomIndexRef.current : getClosestCardIndex();
+      const currentDom = smoothRaf !== 0 ? targetDomIndexRef.current : getClosestCardIndex(currentScrollLeft);
       const currentMetric = metrics.cards[currentDom];
       const currentOrig = currentMetric ? currentMetric.origIndex : 0;
       let diff = targetOrigIndex - currentOrig;
@@ -149,10 +177,11 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
       const primaryFirstCard = metrics.cards[total];
       if (!primaryFirstCard) return;
       targetDomIndexRef.current = total;
-      const initialOffset = getCardCenterOffset(primaryFirstCard, track.clientWidth);
-      track.scrollLeft = initialOffset;
+      const initialOffset = getCardCenterOffset(primaryFirstCard, metrics.trackWidth);
+      currentScrollLeft = initialOffset;
       targetLeft = initialOffset;
-      updateActiveCard();
+      track.scrollLeft = initialOffset;
+      updateActiveCard(initialOffset);
     };
 
     let startX = 0;
@@ -164,7 +193,8 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
       isMouseDragging = true;
       hasMoved = false;
       startX = e.clientX;
-      startScrollLeft = track.scrollLeft;
+      currentScrollLeft = track.scrollLeft;
+      startScrollLeft = currentScrollLeft;
       window.clearTimeout(snapTimeout);
       if (smoothRaf) {
         cancelAnimationFrame(smoothRaf);
@@ -177,16 +207,31 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
       const dx = e.clientX - startX;
       if (Math.abs(dx) > 4) {
         hasMoved = true;
-        track.scrollLeft = startScrollLeft - dx;
-        targetLeft = track.scrollLeft;
+        const nextPos = startScrollLeft - dx;
+        if (!dragRaf) {
+          dragRaf = requestAnimationFrame(() => {
+            dragRaf = 0;
+            if (!isMouseDragging) return;
+            currentScrollLeft = nextPos;
+            track.scrollLeft = currentScrollLeft;
+            targetLeft = currentScrollLeft;
+            checkWrap();
+            updateActiveCard(currentScrollLeft);
+          });
+        }
       }
     };
 
     const onPointerUp = (e: PointerEvent) => {
       if (!isMouseDragging || (e.pointerType && e.pointerType !== "mouse")) return;
       isMouseDragging = false;
+      if (dragRaf) {
+        cancelAnimationFrame(dragRaf);
+        dragRaf = 0;
+      }
       if (hasMoved) {
-        scrollToDomIndex(getClosestCardIndex());
+        currentScrollLeft = track.scrollLeft;
+        scrollToDomIndex(getClosestCardIndex(currentScrollLeft));
       }
     };
 
@@ -202,6 +247,7 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
 
     const onTouchEnd = () => {
       isTouchActive = false;
+      currentScrollLeft = track.scrollLeft;
       scheduleSnap();
     };
 
@@ -219,14 +265,21 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
 
     const onScroll = () => {
       if (!smoothRaf) {
-        updateActiveCard();
-        scheduleSnap();
+        if (!scrollRaf) {
+          scrollRaf = requestAnimationFrame(() => {
+            scrollRaf = 0;
+            currentScrollLeft = track.scrollLeft;
+            updateActiveCard(currentScrollLeft);
+            scheduleSnap();
+          });
+        }
       }
     };
 
     const onScrollEnd = () => {
       if (!isMouseDragging && !isTouchActive && smoothRaf === 0) {
         window.clearTimeout(snapTimeout);
+        currentScrollLeft = track.scrollLeft;
         settle();
       }
     };
@@ -239,10 +292,11 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
       const currentDom = targetDomIndexRef.current ?? total;
       const targetMetric = metrics.cards[currentDom] || metrics.cards[total];
       if (targetMetric) {
-        const offset = getCardCenterOffset(targetMetric, track.clientWidth);
+        const offset = getCardCenterOffset(targetMetric, metrics.trackWidth);
+        currentScrollLeft = offset;
         track.scrollLeft = offset;
         targetLeft = offset;
-        updateActiveCard();
+        updateActiveCard(offset);
       }
     };
     const resizeObserver = new ResizeObserver(onResize);
@@ -256,11 +310,18 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
         cancelAnimationFrame(smoothRaf);
         smoothRaf = 0;
       }
-      track.scrollLeft += e.deltaX;
-      targetLeft = track.scrollLeft;
-      checkWrap();
-      updateActiveCard();
-      scheduleSnap();
+      const nextWheelScroll = (wheelRaf ? currentScrollLeft : track.scrollLeft) + e.deltaX;
+      currentScrollLeft = nextWheelScroll;
+      if (!wheelRaf) {
+        wheelRaf = requestAnimationFrame(() => {
+          wheelRaf = 0;
+          track.scrollLeft = currentScrollLeft;
+          targetLeft = currentScrollLeft;
+          checkWrap();
+          updateActiveCard(currentScrollLeft);
+          scheduleSnap();
+        });
+      }
     };
 
     track.addEventListener("scroll", onScroll, { passive: true });
@@ -279,6 +340,9 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
 
     return () => {
       if (smoothRaf) cancelAnimationFrame(smoothRaf);
+      if (scrollRaf) cancelAnimationFrame(scrollRaf);
+      if (dragRaf) cancelAnimationFrame(dragRaf);
+      if (wheelRaf) cancelAnimationFrame(wheelRaf);
       window.clearTimeout(snapTimeout);
       track.removeEventListener("scroll", onScroll);
       track.removeEventListener("scrollend", onScrollEnd);

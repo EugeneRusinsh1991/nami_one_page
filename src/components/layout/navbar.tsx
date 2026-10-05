@@ -11,15 +11,15 @@ import { useScrollTo } from "@/hooks/use-scroll-to";
 
 interface NavItem {
   id: string;
-  labelKey: "philosophy" | "technique" | "works" | "master" | "faq";
+  labelKey: "philosophy" | "technique" | "works" | "master" | "studio" | "faq";
 }
 
 const NAV_ITEMS: readonly NavItem[] = [
   { id: "philosophy", labelKey: "philosophy" },
   { id: "technique", labelKey: "technique" },
   { id: "works", labelKey: "works" },
-  { id: "master-1", labelKey: "master" },
-  { id: "master-2", labelKey: "master" },
+  { id: "master", labelKey: "master" },
+  { id: "studio", labelKey: "studio" },
   { id: "faq", labelKey: "faq" },
 ] as const;
 

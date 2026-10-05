@@ -24,14 +24,26 @@ const BADGE_PLACEMENTS_2 = [
   "-right-6 bottom-[8%] sm:-right-8 sm:bottom-[9%] lg:-right-11 lg:bottom-[10%]",
 ];
 
-const BLOCKS = [
-  { id: "master-1", badges: BADGE_PLACEMENTS, mirrored: false },
-  { id: "master-2", badges: BADGE_PLACEMENTS_2, mirrored: true },
-];
-
 export function MasterVideoSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
+
+  const BLOCKS = [
+    {
+      id: "master",
+      image: "/images/image (3).png",
+      data: t.master,
+      badges: BADGE_PLACEMENTS,
+      mirrored: false,
+    },
+    {
+      id: "studio",
+      image: "/images/image (4).png",
+      data: t.studio,
+      badges: BADGE_PLACEMENTS_2,
+      mirrored: true,
+    },
+  ];
 
   useGSAP(
     () => {
@@ -125,8 +137,8 @@ export function MasterVideoSection() {
   );
 
   return (
-    <div ref={containerRef} id="master" className="relative w-full bg-brand-surface">
-      {BLOCKS.map(({ id, badges, mirrored }) => (
+    <div ref={containerRef} className="relative w-full bg-brand-surface">
+      {BLOCKS.map(({ id, image, data, badges, mirrored }) => (
         <section
           key={id}
           id={id}
@@ -157,14 +169,14 @@ export function MasterVideoSection() {
                 mirrored ? "right-3 sm:right-10" : "left-3 sm:left-10"
               )}
             >
-              {t.master.label}
+              {data.label}
             </span>
           </div>
           <div className="relative mx-auto flex h-full max-h-full w-full max-w-6xl flex-col justify-center gap-6 sm:gap-8 md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center">
             <SectionHeader
               align={mirrored ? "left" : "right"}
-              badge={t.master.label}
-              title={t.master.title}
+              badge={data.label}
+              title={data.title}
               className={cn(
                 "master-copy shrink-0 max-w-md",
                 mirrored
@@ -200,12 +212,12 @@ export function MasterVideoSection() {
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src="/images/image (3).png"
-                    alt={t.master.label}
+                    src={image}
+                    alt={data.label}
                     className="master-img absolute inset-x-0 top-0 h-[112%] w-full object-cover will-change-transform transform-gpu"
                   />
                 </Card>
-                {t.master.metrics.map((m, i) => (
+                {data.metrics.map((m, i) => (
                   <div key={i} className={`master-badge absolute z-10 ${badges[i]}`}>
                     <div className="master-badge-card will-change-transform transform-gpu">
                       <MetricBadge

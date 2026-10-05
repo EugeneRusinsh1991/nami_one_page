@@ -1,7 +1,7 @@
 import type { Dict } from "./types";
 
 export const en: Dict = {
-  nav: { philosophy: "Philosophy", technique: "Technique", works: "Works", master: "Master", faq: "FAQ", book: "Book Online" },
+  nav: { philosophy: "Philosophy", technique: "Technique", works: "Works", master: "Master", studio: "Studio", faq: "FAQ", book: "Book Online" },
   hero: {
     badge: "NAMI STUDIO · PMU",
     title: "The Art of Natural Permanent Makeup",
@@ -74,6 +74,18 @@ export const en: Dict = {
       { t: "98%", d: "Client retention" },
     ],
   },
+  studio: {
+    label: "SPACE & STANDARDS",
+    title: "Atmosphere of Perfection",
+    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.",
+    metrics: [
+      { t: "100%", d: "Sterility" },
+      { t: "ISO", d: "Standards" },
+      { t: "VIP", d: "Private Suites" },
+      { t: "4.9★", d: "Rating" },
+      { t: "120m²", d: "Space" },
+    ],
+  },
   faq: {
     label: "FAQ",
     title: "Good to know",
@@ -96,5 +108,30 @@ export const en: Dict = {
     map: "Open map",
     privacy: "Privacy & legal notes",
     rights: "© NAMI STUDIO. All rights reserved.",
+    calendar: {
+      approximateNotice: "Choose convenient times (up to 3 options). This is a preliminary selection — we will check the master's schedule and contact you to coordinate your visit.",
+      selectDateTitle: "Select Date",
+      selectTimeTitle: "Select Convenient Time",
+      selectedSlotsTitle: "Selected Time Slots",
+      maxSlotsNotice: "You can choose up to 3 slots across any dates",
+      maxSlotsReached: "Maximum 3 slots selected",
+      noSlotsChosen: "Choose a date and convenient time",
+      slotsCount: "of 3",
+      clearAll: "Reset",
+      nameLabel: "Your Name",
+      phoneLabel: "Phone or Telegram handle",
+      submitButton: "Request Consultation",
+      submittingButton: "Sending request...",
+      validationErrorRequired: "Please provide your name and contact phone number.",
+      validationErrorSlot: "Please select at least one preferred time slot.",
+      modalTitle: "Request Sent!",
+      modalDescription: "Your message has been forwarded to our Telegram bot. We will contact you shortly to confirm your appointment.",
+      modalClose: "Got it",
+      weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      months: [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ],
+    },
   },
 };

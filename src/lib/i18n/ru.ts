@@ -1,7 +1,7 @@
 import type { Dict } from "./types";
 
 export const ru: Dict = {
-  nav: { philosophy: "Философия", technique: "Техника", works: "Работы", master: "Мастер", faq: "Вопросы", book: "Записаться" },
+  nav: { philosophy: "Философия", technique: "Техника", works: "Работы", master: "Мастер", studio: "Студия", faq: "Вопросы", book: "Записаться" },
   hero: {
     badge: "NAMI STUDIO · PMU",
     title: "Искусство естественного перманентного макияжа",
@@ -74,6 +74,18 @@ export const ru: Dict = {
       { t: "98%", d: "Возвращаются клиенты" },
     ],
   },
+  studio: {
+    label: "ПРОСТРАНСТВО И СТАНДАРТЫ",
+    title: "Атмосфера безупречности",
+    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.",
+    metrics: [
+      { t: "100%", d: "Стерильность" },
+      { t: "ISO", d: "Стандарты" },
+      { t: "VIP", d: "Зона приема" },
+      { t: "4.9★", d: "Рейтинг" },
+      { t: "120м²", d: "Пространство" },
+    ],
+  },
   faq: {
     label: "Вопросы",
     title: "Полезно знать",
@@ -96,5 +108,30 @@ export const ru: Dict = {
     map: "Открыть карту",
     privacy: "Конфиденциальность",
     rights: "© NAMI STUDIO. Все права защищены.",
+    calendar: {
+      approximateNotice: "Выберите удобное время (до 3 вариантов). Это ориентировочный выбор — мы сверим расписание мастера и свяжемся с вами для согласования визита.",
+      selectDateTitle: "Выберите дату",
+      selectTimeTitle: "Выберите удобное время",
+      selectedSlotsTitle: "Выбранное время",
+      maxSlotsNotice: "Можно выбрать максимум до 3 слотов",
+      maxSlotsReached: "Выбрано максимум 3 слота",
+      noSlotsChosen: "Выберите дату и удобное время",
+      slotsCount: "из 3",
+      clearAll: "Сбросить",
+      nameLabel: "Ваше имя",
+      phoneLabel: "Телефон или контакт в Telegram",
+      submitButton: "Записаться на консультацию",
+      submittingButton: "Отправка заявки...",
+      validationErrorRequired: "Пожалуйста, укажите ваше имя и контактный телефон.",
+      validationErrorSlot: "Пожалуйста, выберите хотя бы один вариант времени.",
+      modalTitle: "Заявка отправлена!",
+      modalDescription: "Ваше сообщение успешно отправлено нам в чат-бот Telegram. Мы свяжемся с вами в ближайшее время для подтверждения записи.",
+      modalClose: "Отлично",
+      weekdays: ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"],
+      months: [
+        "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+        "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
+      ],
+    },
   },
 };
