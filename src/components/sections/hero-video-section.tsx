@@ -97,9 +97,9 @@ export function HeroVideoSection() {
         framesPath: "/videos/Banner.1/frames",
         distance: () => (isMobileWidth() ? 1600 : 2600),
         onProgress: (p) => {
-          const s0 = getSlideTransform(p, -1, -1, 0.15, 0.35);
-          const s1 = getSlideTransform(p, 0.15, 0.35, 0.65, 0.85);
-          const s2 = getSlideTransform(p, 0.65, 0.85, 1.05, 1.05);
+          const s0 = getSlideTransform(p, -1, -1, 0.10, 0.45);
+          const s1 = getSlideTransform(p, 0.10, 0.45, 0.60, 0.95);
+          const s2 = getSlideTransform(p, 0.60, 0.95, 1.05, 1.05);
 
           gsap.set(".hero-slide-0", {
             opacity: s0.opacity,
@@ -122,7 +122,7 @@ export function HeroVideoSection() {
             pointerEvents: s2.pointerEvents,
             force3D: true,
           });
-          gsap.set(".hero-scroll", { opacity: Math.max(0, 1 - p * 12) });
+          gsap.set(".hero-scroll", { opacity: s0.opacity });
         },
       });
 

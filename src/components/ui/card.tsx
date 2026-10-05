@@ -24,7 +24,7 @@ const cardVariants = cva(
         surface:
           "overflow-hidden rounded-2xl md:rounded-3xl border border-brand-border/20 bg-brand-surface text-brand-text duration-500 hover:bg-brand-elevated hover:shadow-xl",
         glass:
-          "overflow-hidden rounded-3xl border border-white/60 bg-white/55 shadow-xl backdrop-blur-xl",
+          "overflow-hidden rounded-3xl border border-white/40 bg-white/35 shadow-xl backdrop-blur",
         elevated: "overflow-hidden rounded-2xl md:rounded-3xl bg-brand-elevated shadow-2xl",
       },
     },

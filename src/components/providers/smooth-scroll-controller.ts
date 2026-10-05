@@ -1,11 +1,10 @@
 import Lenis from "lenis";
-import { getScrollZones, resolveScrollTarget } from "@/lib/scroll-breakpoints";
+import { getScrollZones, resolveScrollTarget, resolveActiveSection } from "@/lib/scroll-breakpoints";
 import {
   STEP_TAIL_MS,
-  STEP_EASING,
   shouldBypassDiscreteScroll,
   calculateRawScrollTarget,
-  getStepDuration,
+  getSectionStepTiming,
   isWithinQuietPeriod,
 } from "./smooth-scroll-utils";
 import {
@@ -235,7 +234,8 @@ export function attachDiscreteScroll(
     currentStepCount = evaluatedSteps;
     gesture.stepsCommitted += evaluatedSteps;
     lastStepTime = now;
-    const durationMs = getStepDuration(evaluatedSteps);
+    const section = resolveActiveSection(current, resolved);
+    const { durationMs, easing } = getSectionStepTiming(section, evaluatedSteps);
     gateState.activeDirection = resolved > current ? "down" : "up";
     gateState.gateUntil = now + durationMs + STEP_TAIL_MS;
 
@@ -243,7 +243,7 @@ export function attachDiscreteScroll(
       ...opts,
       lerp: undefined,
       duration: durationMs / 1000,
-      easing: STEP_EASING,
+      easing,
     });
   };
 }

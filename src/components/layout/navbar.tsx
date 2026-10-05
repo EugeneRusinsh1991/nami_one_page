@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
@@ -124,6 +125,8 @@ export function Navbar() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const { t } = useLanguage();
   const { scrollToId, scrollToTop } = useScrollTo();
+  const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     setIsMounted(true);
@@ -182,8 +185,20 @@ export function Navbar() {
     { scope: containerRef, dependencies: [isMounted] }
   );
 
+  const handleLogoClick = () => {
+    if (pathname === "/") {
+      scrollToTop();
+    } else {
+      router.push("/");
+    }
+  };
+
   const goTo = (id: string) => {
-    scrollToId(id);
+    if (pathname === "/") {
+      scrollToId(id);
+    } else {
+      router.push(`/#${id}`);
+    }
   };
 
   return (
@@ -197,7 +212,7 @@ export function Navbar() {
           isMounted && isScrolled && "border-white/80 bg-white/90 shadow-[0_12px_40px_rgba(26,31,37,0.12)]"
         )}
       >
-        <button type="button" onClick={() => scrollToTop()} aria-label="NAMI STUDIO">
+        <button type="button" onClick={handleLogoClick} aria-label="NAMI STUDIO">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/images/logo.png" alt="NAMI STUDIO" className="h-8 w-auto" />
         </button>

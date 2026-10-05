@@ -114,12 +114,87 @@ export const de: Dict = {
   faq: {
     label: "FAQ",
     title: "Gut zu wissen",
+    guideButton: "Zum Client Guide",
     items: [
       { t: "Ist Permanent Make-up für die Augenbrauen schmerzhaft?", d: "Lorem ipsum dolor sit amet. Durch unser sanftes lokales Betäubungsverfahren verläuft die Behandlung äußerst angenehm." },
       { t: "Wie lange hält das Ergebnis?", d: "Lorem ipsum dolor sit amet. In der Regel 1,5 bis 2 Jahre, mit empfohlenen Auffrischungen." },
       { t: "Wie verläuft der Heilungsprozess?", d: "Lorem ipsum dolor sit amet. Es kommt nur zu minimalem Schuppen und keinen groben Krusten." },
       { t: "Wie bereitet man sich auf den Termin vor?", d: "Lorem ipsum dolor sit amet. Detaillierte Empfehlungen zur Vorbereitung erhalten Sie direkt bei der Buchung." },
     ],
+  },
+  clientGuide: {
+    meta: {
+      title: "Kunden-Leitfaden · NAMI PMU",
+      backToHome: "Zur Startseite",
+      badge: "NAMI PMU GUIDE",
+    },
+    hero: {
+      label: "KUNDEN-LEITFADEN & STANDARDS",
+      title: "Alles, was Sie vor der Behandlung wissen sollten",
+      metrics: [
+        { t: "100%", d: "Sterilität & Schutz" },
+        { t: "REACH", d: "Zertifizierte Pigmente" },
+        { t: "Anatomie", d: "Individuelle Vorzeichnung" },
+        { t: "Schmerzfrei", d: "2-Stufen-Betäubung" },
+        { t: "1,5–2 J.", d: "Natürliche Haltbarkeit" },
+      ],
+    },
+    faq: {
+      label: "Häufige Fragen",
+      title: "Sicherheit, Vorbereitung & Nachsorge",
+      items: [
+        {
+          badge: "Sicherheit",
+          t: "Welche absoluten und relativen Kontraindikationen gibt es?",
+          d: "Absolute Kontraindikationen: insulinpflichtiger Diabetes mellitus, onkologische Erkrankungen in Behandlung, Blutgerinnungsstörungen (Hämophilie), Neigung zu Keloidnarben, HIV, Hepatitis B/C, Epilepsie, akute entzündliche Prozesse. Relative (vorübergehende) Kontraindikationen: Schwangerschaft und Stillzeit, Erkältungskrankheiten, Einnahme von Antibiotika oder blutverdünnenden Medikamenten (Aspirin), Menstruation (erhöhte Schmerzempfindlichkeit), akuter Herpes oder Hautausschläge im Behandlungsbereich.",
+        },
+        {
+          badge: "Vorbereitung",
+          t: "Wie bereitet man sich optimal auf den Termin vor (24 Stunden vorher & am Tag selbst)?",
+          d: "Verzichten Sie 24 Stunden vor dem Termin auf Alkohol, Energy Drinks, Aspirin und blutverdünnende Mittel — diese regen den Lymphfluss an und erschweren die gleichmäßige Pigmentaufnahme. Trinken Sie 2–3 Stunden vor der Behandlung keinen Kaffee oder starken Schwarztee. Bei Lippenbehandlungen empfiehlt es sich, die Lippen 2–3 Tage vorher intensiv mit Feuchtigkeitsbalsam zu pflegen. Verzichten Sie 2–3 Wochen vorher auf chemische Peelings, Botox-/Filler-Injektionen und aggressive Gesichtsreinigungen.",
+        },
+        {
+          badge: "Sterilität",
+          t: "Welche Materialien, Nadeln und Pigmente kommen im Studio zum Einsatz?",
+          d: "Wir verwenden ausschließlich sterile Einweg-Modulnadeln aus Chirurgenstahl mit integrierter Sicherheitsmembran, die stets vor Ihren Augen geöffnet werden. Die gesamte Arbeitsausrüstung wird mit medizinischer Einweg-Barrierefolie geschützt. Wir arbeiten ausnahmslos mit zertifizierten Premium-Pigmenten nach EU-REACH-Standard: Diese sind hypoallergen, schwermetallfrei, verfärben sich nicht ins Bläuliche oder Rötliche und verblassen im Laufe der Zeit gleichmäßig und sanft.",
+        },
+        {
+          badge: "Vorzeichnung",
+          t: "Wie wird die individuelle Vorzeichnung der Form erstellt und abgestimmt?",
+          d: "Wir verwenden keine standardisierten Schablonen oder Stempel. Die Vorzeichnung wird individuell unter Berücksichtigung Ihrer Gesichtsanatomie, natürlichen Symmetrie und Mimik kreiert. Die Pigmentierung beginnt erst, nachdem Sie jede Kontur im Spiegel aufmerksam betrachtet und persönlich freigegeben haben.",
+        },
+        {
+          badge: "Komfort",
+          t: "Ist die Behandlung schmerzhaft und wie funktioniert die Betäubung?",
+          d: "Dank sanfter, oberflächlicher Pigmentiertechniken und unseres modernen Behandlungsprotokolls verläuft die Sitzung äußerst angenehm — die meisten Kunden spüren lediglich ein leichtes Kribbeln oder sanfte Vibrationen. Wir verwenden eine 2-Stufen-Oberflächenanästhesie (ohne Spritzen): Ein primäres Gel nimmt die anfängliche Empfindlichkeit, und eine sekundäre Formulierung während der Behandlung verhindert Missempfindungen vollständig und reduziert Schwellungen.",
+        },
+        {
+          badge: "Augen",
+          t: "Darf man während und nach der Pigmentierung der Augen Kontaktlinsen tragen?",
+          d: "Vor Beginn der Behandlung an den Augenlidern oder der Wimpernkranzverdichtung müssen Kontaktlinsen zwingend entfernt werden, da Betäubungscreme und mikroskopische Pigmentpartikel Irritationen der Hornhaut unter der Linse verursachen können. Bitte bringen Sie einen Kontaktlinsenbehälter und eine Brille mit. Das Tragen von Kontaktlinsen ist 24–48 Stunden nach dem Termin wieder möglich, sobald die primäre Schwellung abgeklungen ist und sich die Schleimhaut erholt hat.",
+        },
+        {
+          badge: "Heilung",
+          t: "Wie verlaufen die Heilungs- und Regenerationsphasen nach Tagen?",
+          d: "Tag 1–3: Die Farbe wirkt etwa 30–40 % intensiver, leichte Schwellungen sind möglich. Tag 4–7: Feine mikrofeine Schüppchen lösen sich sanft von selbst ab (keinesfalls abkratzen). Woche 2–4: Der Farbton erscheint durch die Zellerneuerung der Oberhaut vorübergehend heller und stabilisiert sich anschließend zu einem sanften, natürlichen Ton.",
+        },
+        {
+          badge: "Pflege",
+          t: "Welche Einschränkungen gelten während der Regenerationsphase (Sport, Sonne, Wasser)?",
+          d: "In den ersten 7–10 Tagen sollten Sie übermäßige Feuchtigkeit und Hitze vermeiden: kein Besuch von Sauna, Dampfbad, Schwimmbad, heißen Wannenbädern und kein schweißtreibendes Cardiotraining. Schützen Sie die behandelte Partie 3–4 Wochen lang mit LSF 50+ vor direkter Sonneneinstrahlung und Solarien. Verwenden Sie kein Make-up oder Foundation auf der pigmentierten Zone, bis die Schüppchen vollständig abgeheilt sind.",
+        },
+        {
+          badge: "Korrektur",
+          t: "Warum ist die Nachbehandlung unverzichtbar und wie lange hält das Ergebnis?",
+          d: "Die Haut ist ein lebendiges Organ mit individuellem Regenerationsverhalten; nach der Erstbehandlung verbleiben ca. 60–80 % des Pigments. Die Nachbehandlung (Touch-up) nach 30–45 Tagen perfektioniert die Gleichmäßigkeit, verfeinert Konturen und fixiert die Farbstabilität. Das vollendete Ergebnis hält natürlich schön für 1,5 bis 2 Jahre.",
+        },
+        {
+          badge: "Cover-up",
+          t: "Kann altes oder verblasstes Permanent Make-up überarbeitet werden?",
+          d: "Eine Überdeckung (Cover-up) ist erst nach einer persönlichen Beratung oder detaillierten Fotobeurteilung der vorhandenen Farbreste möglich. Wenn die alte Pigmentierung zu tief, zu dicht oder unvorteilhaft blau bzw. rötlich verfärbt ist, empfehlen wir zunächst 1–2 Sitzungen Laseraufhellung oder Remover, um eine saubere und makellose Neugestaltung zu gewährleisten.",
+        },
+      ],
+    },
   },
   cta: {
     title: "Beratungsgespräch vereinbaren",

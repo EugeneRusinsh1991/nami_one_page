@@ -1,9 +1,46 @@
-export const STEP_DURATION_1_MS = 500;
-export const STEP_DURATION_2_MS = 750;
-export const STEP_DURATION_3_MS = 950;
+export type ScrollSectionId = "hero" | "technique" | "default";
+
+export interface SectionScrollTiming {
+  step1Ms: number;
+  step2Ms: number;
+  step3Ms: number;
+  easing: (t: number) => number;
+}
+
+export const SINE_EASING = (t: number) => 0.5 * (1 - Math.cos(Math.PI * t));
+export const CUBIC_OUT_EASING = (t: number) => 1 - Math.pow(1 - t, 3);
+
+export const SECTION_TIMINGS: Record<ScrollSectionId, SectionScrollTiming> = {
+  hero: {
+    step1Ms: 670,
+    step2Ms: 1000,
+    step3Ms: 1270,
+    easing: SINE_EASING,
+  },
+  technique: {
+    step1Ms: 600, // 20% slower than base 500ms (500 * 1.20)
+    step2Ms: 900,
+    step3Ms: 1140,
+    easing: SINE_EASING,
+  },
+  default: {
+    step1Ms: 500,
+    step2Ms: 750,
+    step3Ms: 950,
+    easing: CUBIC_OUT_EASING,
+  },
+};
+
+export const STEP_DURATION_1_MS = SECTION_TIMINGS.default.step1Ms;
+export const STEP_DURATION_2_MS = SECTION_TIMINGS.default.step2Ms;
+export const STEP_DURATION_3_MS = SECTION_TIMINGS.default.step3Ms;
+export const HERO_STEP_DURATION_1_MS = SECTION_TIMINGS.hero.step1Ms;
+export const HERO_STEP_DURATION_2_MS = SECTION_TIMINGS.hero.step2Ms;
+export const HERO_STEP_DURATION_3_MS = SECTION_TIMINGS.hero.step3Ms;
 export const STEP_TAIL_MS = 70;
 export const GESTURE_QUIET_MS = 70;
-export const STEP_EASING = (t: number) => 1 - Math.pow(1 - t, 3);
+export const STEP_EASING = CUBIC_OUT_EASING;
+export const HERO_STEP_EASING = SINE_EASING;
 
 export interface DeviceScrollMode {
   isTouchDevice: boolean;
@@ -106,10 +143,19 @@ export function calculateRawScrollTarget(
   return current + touchDir * Math.max(Math.abs(target - current), 100);
 }
 
-export function getStepDuration(steps: number): number {
-  if (steps >= 3) return STEP_DURATION_3_MS;
-  if (steps === 2) return STEP_DURATION_2_MS;
-  return STEP_DURATION_1_MS;
+export function getSectionStepTiming(
+  section: ScrollSectionId,
+  steps: number
+): { durationMs: number; easing: (t: number) => number } {
+  const profile = SECTION_TIMINGS[section] || SECTION_TIMINGS.default;
+  let durationMs = profile.step1Ms;
+  if (steps >= 3) durationMs = profile.step3Ms;
+  else if (steps === 2) durationMs = profile.step2Ms;
+  return { durationMs, easing: profile.easing };
+}
+
+export function getStepDuration(steps: number, isHero = false): number {
+  return getSectionStepTiming(isHero ? "hero" : "default", steps).durationMs;
 }
 
 export function isWithinQuietPeriod(

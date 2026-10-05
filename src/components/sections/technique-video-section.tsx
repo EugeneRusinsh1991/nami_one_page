@@ -57,15 +57,15 @@ export function calculateStepTransformState(
   const prevPt = isFirst ? 0 : (stepPoints[stepIndex - 1] ?? (stepIndex - 1) / (totalSteps - 1));
   const nextPt = isLast ? 1 : (stepPoints[stepIndex + 1] ?? (stepIndex + 1) / (totalSteps - 1));
 
-  const enterMid = (prevPt + currentPt) / 2;
-  const enterFade = (currentPt - prevPt) * 0.4;
-  const enterStart = isFirst ? -1 : enterMid - enterFade / 2;
-  const enterEnd = isFirst ? -1 : enterMid + enterFade / 2;
+  const prevSpan = currentPt - prevPt;
+  const nextSpan = nextPt - currentPt;
 
-  const exitMid = (currentPt + nextPt) / 2;
-  const exitFade = (nextPt - currentPt) * 0.4;
-  const exitStart = isLast ? 2 : exitMid - exitFade / 2;
-  const exitEnd = isLast ? 2 : exitMid + exitFade / 2;
+  // Staggered card transition: exit earlier, pause, then enter next card without overlap
+  const enterStart = isFirst ? -1 : prevPt + prevSpan * 0.55;
+  const enterEnd = isFirst ? -1 : prevPt + prevSpan * 0.86;
+
+  const exitStart = isLast ? 2 : currentPt + nextSpan * 0.16;
+  const exitEnd = isLast ? 2 : currentPt + nextSpan * 0.45;
 
   const Y_OFFSET = 20;
 

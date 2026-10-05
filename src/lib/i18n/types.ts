@@ -27,11 +27,32 @@ export interface CalendarTranslations {
 export interface ShowcaseSectionData {
   label: string;
   title: string;
-  text: string;
+  text?: string;
   metrics: Pair[];
   link?: {
     text: string;
     href: string;
+  };
+}
+
+export interface ClientGuideFaqItem {
+  t: string;
+  d: string;
+  badge?: string;
+}
+
+export interface ClientGuideData {
+  meta: {
+    title: string;
+    backToHome: string;
+    badge: string;
+  };
+  hero: ShowcaseSectionData;
+  faq: {
+    label: string;
+    title: string;
+    description?: string;
+    items: ClientGuideFaqItem[];
   };
 }
 
@@ -44,7 +65,8 @@ export interface Dict {
   master: ShowcaseSectionData;
   studio: ShowcaseSectionData;
   academy: ShowcaseSectionData;
-  faq: { label: string; title: string; items: Pair[] };
+  faq: { label: string; title: string; items: Pair[]; guideButton: string };
+  clientGuide: ClientGuideData;
   cta: {
     title: string;
     sub: string;

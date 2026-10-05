@@ -12,6 +12,34 @@ export interface ResolvedTarget {
 const TOLERANCE = 25;
 const MERGE_DISTANCE = 40;
 
+export function resolveActiveSection(current: number, target: number): "hero" | "technique" | "default" {
+  if (typeof window === "undefined") return "default";
+  const triggers = ScrollTrigger.getAll();
+  for (const st of triggers) {
+    const triggerEl = st.trigger as HTMLElement | null;
+    const pinEl = st.pin as HTMLElement | null;
+    const id = triggerEl?.id || pinEl?.id;
+    if (!st.pin || !id || st.end <= st.start) continue;
+
+    const start = Math.round(st.start);
+    const end = Math.round(st.end);
+    if (
+      current >= start - TOLERANCE &&
+      current <= end + TOLERANCE &&
+      target >= start - TOLERANCE &&
+      target <= end + TOLERANCE
+    ) {
+      if (id === "hero") return "hero";
+      if (id === "technique") return "technique";
+    }
+  }
+  return "default";
+}
+
+export function isHeroTransition(current: number, target: number): boolean {
+  return resolveActiveSection(current, target) === "hero";
+}
+
 function dedupe(points: number[]): number[] {
   const sorted = points.filter(Number.isFinite).sort((a, b) => a - b);
   const merged: number[] = [];

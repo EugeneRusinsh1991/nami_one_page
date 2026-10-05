@@ -11,19 +11,19 @@ import { useLanguage } from "@/components/providers/language-provider";
 import { cn } from "@/lib/utils";
 
 const BADGE_PLACEMENTS = [
-  "-left-7 top-[7%] sm:-left-9 sm:top-[9%] lg:-left-12 lg:top-[10%]",
-  "-right-4 top-[21%] sm:-right-6 sm:top-[22%] lg:-right-8 lg:top-[24%]",
-  "-left-5 top-[47%] -translate-y-1/2 sm:-left-7 sm:top-[48%] lg:-left-10",
-  "-right-7 bottom-[23%] sm:-right-10 sm:bottom-[24%] lg:-right-14 lg:bottom-[25%]",
-  "-left-6 bottom-[8%] sm:-left-8 sm:bottom-[9%] lg:-left-11 lg:bottom-[10%]",
+  "-left-7 top-[7%] sm:-left-9 sm:top-[8%] lg:-left-12 lg:top-[9%]",
+  "-right-4 top-[24%] sm:-right-6 sm:top-[25%] lg:-right-8 lg:top-[26%]",
+  "-left-5 top-[48%] -translate-y-1/2 sm:-left-7 sm:top-[48%] lg:-left-10",
+  "-right-7 bottom-[24%] sm:-right-10 sm:bottom-[25%] lg:-right-14 lg:bottom-[26%]",
+  "-left-6 bottom-[7%] sm:-left-8 sm:bottom-[8%] lg:-left-11 lg:bottom-[9%]",
 ];
 
 const BADGE_PLACEMENTS_2 = [
-  "-right-7 top-[7%] sm:-right-9 sm:top-[9%] lg:-right-12 lg:top-[10%]",
-  "-left-4 top-[21%] sm:-left-6 sm:top-[22%] lg:-left-8 lg:top-[24%]",
-  "-right-5 top-[47%] -translate-y-1/2 sm:-right-7 sm:top-[48%] lg:-right-10",
-  "-left-7 bottom-[23%] sm:-left-10 sm:bottom-[24%] lg:-left-14 lg:bottom-[25%]",
-  "-right-6 bottom-[8%] sm:-right-8 sm:bottom-[9%] lg:-right-11 lg:bottom-[10%]",
+  "-right-7 top-[7%] sm:-right-9 sm:top-[8%] lg:-right-12 lg:top-[9%]",
+  "-left-4 top-[24%] sm:-left-6 sm:top-[25%] lg:-left-8 lg:top-[26%]",
+  "-right-5 top-[48%] -translate-y-1/2 sm:-right-7 sm:top-[48%] lg:-right-10",
+  "-left-7 bottom-[24%] sm:-left-10 sm:bottom-[25%] lg:-left-14 lg:bottom-[26%]",
+  "-right-6 bottom-[7%] sm:-right-8 sm:bottom-[8%] lg:-right-11 lg:bottom-[9%]",
 ];
 
 export function MasterVideoSection() {
@@ -151,7 +151,10 @@ export function MasterVideoSection() {
         <section
           key={id}
           id={id}
-          className="master-block relative flex h-svh min-h-svh max-h-svh w-full items-center justify-center overflow-hidden bg-brand-surface px-4 sm:px-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:py-12 md:py-16"
+          className={cn(
+            "master-block relative flex h-svh min-h-svh max-h-svh w-full flex-col justify-between overflow-hidden bg-brand-surface px-4 sm:px-6 isolate",
+            MASTER_CARD_CONFIG.sectionPadding
+          )}
         >
           <div aria-hidden className="pointer-events-none absolute inset-0">
             <div
@@ -181,40 +184,31 @@ export function MasterVideoSection() {
               {data.label}
             </span>
           </div>
-          <div className="relative mx-auto flex h-full max-h-full w-full max-w-6xl flex-col justify-center gap-6 sm:gap-8 md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center">
-            <SectionHeader
-              align={mirrored ? "left" : "right"}
-              badge={data.label}
-              title={data.title}
-              description={data.text && !data.text.startsWith("Lorem") ? data.text : undefined}
-              descriptionClassName="text-sm sm:text-base text-brand-text/75 mt-3 leading-relaxed"
+          <div className="relative mx-auto flex h-full max-h-full w-full max-w-6xl flex-col justify-between md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center">
+            <div
               className={cn(
-                "master-copy shrink-0 max-w-md",
+                "master-copy shrink-0 w-full max-w-md",
+                MASTER_CARD_CONFIG.headerMargin,
                 mirrored
                   ? "order-1 md:order-2 md:justify-self-start md:mr-auto"
                   : "order-1 md:order-1 md:justify-self-end md:ml-auto"
               )}
             >
-              {data.link && (
-                <div className={cn("mt-5 flex w-full", mirrored ? "justify-start" : "justify-end")}>
-                  <Button asChild variant="brand-primary" size="default" className="hover:-translate-y-0.5 shadow-sm">
-                    <a
-                      href={data.link.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2"
-                    >
-                      <span>{data.link.text}</span>
-                      <ArrowUpRight className="h-4 w-4" />
-                    </a>
-                  </Button>
-                </div>
-              )}
-            </SectionHeader>
+              <SectionHeader
+                align="left"
+                badge={data.label}
+                title={data.title}
+                titleClassName="break-words"
+                className={cn(
+                  "w-full items-start text-left",
+                  mirrored ? "md:items-start md:text-left" : "md:items-end md:text-right"
+                )}
+              />
+            </div>
 
             <div
               className={cn(
-                "master-media relative flex w-full items-center justify-center",
+                "master-media relative flex flex-1 min-h-0 w-full flex-col items-center justify-center py-1 sm:py-2 md:py-0",
                 mirrored
                   ? "order-2 md:order-1"
                   : "order-2 md:order-2"
@@ -223,8 +217,8 @@ export function MasterVideoSection() {
               <div
                 className={cn(
                   "master-portrait relative transform-gpu",
-                  MASTER_CARD_CONFIG.container,
-                  "h-auto aspect-[3/4] w-[68vw] sm:w-[46vw] md:w-[34vw] lg:w-[28vw] max-w-[440px]"
+                  Boolean(data.link) ? "aspect-[9/16]" : "aspect-[1/2]",
+                  "h-auto max-h-full w-[68vw] sm:w-[46vw] md:w-[34vw] lg:w-[28vw] max-w-[340px] md:max-w-[380px] lg:max-w-[400px]"
                 )}
               >
                 <div aria-hidden className="master-ring pointer-events-none absolute left-1/2 top-1/2 h-[118%] w-[118%] rounded-[3rem] border border-brand-border/25 sm:rounded-[4rem]" />
@@ -258,7 +252,32 @@ export function MasterVideoSection() {
                   </div>
                 ))}
               </div>
+
+              {data.link && (
+                <div className="mt-3 sm:mt-3.5 w-[68vw] sm:w-[46vw] md:w-[34vw] lg:w-[28vw] max-w-[340px] md:max-w-[380px] lg:max-w-[400px] shrink-0 z-20">
+                  <Button asChild variant="brand-primary" size="default" className="w-full shadow-md hover:-translate-y-0.5 transition-transform">
+                    <a
+                      href={data.link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex w-full items-center justify-center gap-2"
+                    >
+                      <span>{data.link.text}</span>
+                      <ArrowUpRight className="h-4 w-4 shrink-0" />
+                    </a>
+                  </Button>
+                </div>
+              )}
             </div>
+
+            <div
+              aria-hidden="true"
+              className={cn(
+                "order-3 w-full shrink-0 md:hidden",
+                Boolean(data.link) ? "h-6 sm:h-8" : "h-10 sm:h-12",
+                MASTER_CARD_CONFIG.bottomBarPadding
+              )}
+            />
           </div>
         </section>
       ))}

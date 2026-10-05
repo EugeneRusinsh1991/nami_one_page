@@ -105,12 +105,87 @@ export const en: Dict = {
   faq: {
     label: "FAQ",
     title: "Good to know",
+    guideButton: "Go to Client Guide",
     items: [
       { t: "Does brow permanent makeup hurt?", d: "Lorem ipsum dolor sit amet. A topical anesthetic protocol keeps the session comfortable." },
       { t: "How long does the result last?", d: "Lorem ipsum dolor sit amet. Typically 1.5 to 2 years, with recommended touch-ups." },
       { t: "What is the healing process like?", d: "Lorem ipsum dolor sit amet. Minimal flaking and no harsh scabs." },
       { t: "How to prepare before the visit?", d: "Lorem ipsum dolor sit amet. Pre-treatment recommendations shared on booking." },
     ],
+  },
+  clientGuide: {
+    meta: {
+      title: "Client Guide · NAMI PMU",
+      backToHome: "Back to Home",
+      badge: "NAMI PMU GUIDE",
+    },
+    hero: {
+      label: "CLIENT GUIDE & STANDARDS",
+      title: "Everything to know before your appointment",
+      metrics: [
+        { t: "100%", d: "Sterility & safety" },
+        { t: "REACH", d: "Certified pigments" },
+        { t: "Anatomy", d: "Bespoke pre-draw" },
+        { t: "Pain-free", d: "2-stage anesthesia" },
+        { t: "1.5–2 yrs", d: "Natural retention" },
+      ],
+    },
+    faq: {
+      label: "FAQ",
+      title: "Safety, preparation & aftercare",
+      items: [
+        {
+          badge: "Safety",
+          t: "What are the absolute and relative contraindications for the procedure?",
+          d: "Absolute contraindications: insulin-dependent diabetes, active oncology treatment, blood clotting disorders (hemophilia), tendency to form keloid scars, HIV, Hepatitis B/C, epilepsy, and acute inflammatory conditions. Relative (temporary) contraindications: pregnancy and nursing, colds or flu, taking antibiotics or blood thinners (aspirin), menstruation (heightened pain sensitivity), active herpes flare-ups, or skin rashes in the treatment area.",
+        },
+        {
+          badge: "Preparation",
+          t: "How should I prepare for my appointment (24 hours prior & on the day)?",
+          d: "24 hours prior to your session, avoid alcohol, energy drinks, aspirin, and blood-thinning medications — these increase lymphatic flow and hinder even pigment deposition. Refrain from coffee and strong black tea 2–3 hours before your visit. For lip procedures, moisturize generously with a nourishing lip balm for 2–3 days beforehand. Avoid chemical peels, Botox or filler injections, and aggressive facials for 2–3 weeks prior.",
+        },
+        {
+          badge: "Sterility",
+          t: "What materials, needles, and pigments are used in the studio?",
+          d: "We use exclusively single-use surgical steel modular cartridges equipped with integrated safety membranes, unsealed strictly in front of each client. All work equipment is enveloped in disposable medical barrier film. We work exclusively with certified premium pigments compliant with EU REACH standards: hypoallergenic, heavy-metal-free, guaranteed not to shift into unwanted blue or red undertones, fading softly and evenly over time.",
+        },
+        {
+          badge: "Pre-draw",
+          t: "How is the bespoke pre-draw created and approved?",
+          d: "We never use generic stencils or pre-made templates. The artist crafts the design individually based on your unique facial anatomy, bone structure, and natural symmetry. The machine work begins only after you thoroughly examine and personally approve every detail and curve of the shape in the mirror.",
+        },
+        {
+          badge: "Comfort",
+          t: "Does permanent makeup hurt and how does anesthesia work?",
+          d: "Thanks to our atraumatic, surface-level pigment implantation technique and refined protocols, the treatment is exceptionally comfortable — most clients feel only slight vibration or a mild tickle. We use a 2-stage non-injectable topical anesthesia: a primary gel numbs initial surface sensitivity, and a secondary solution during the session completely eliminates discomfort and minimizes swelling.",
+        },
+        {
+          badge: "Eyes",
+          t: "Can I wear contact lenses during and after eyeliner permanent makeup?",
+          d: "Contact lenses must be removed prior to eyelid or lash line procedures, as topical anesthetics and micro-pigment particles can irritate the cornea underneath the lens. Please bring your lens case and regular eyeglasses with you. You may safely resume wearing contact lenses 24–48 hours after the procedure once primary swelling subsides and the ocular surface settles.",
+        },
+        {
+          badge: "Healing",
+          t: "What are the healing and skin recovery stages day by day?",
+          d: "Days 1–3: The shade appears 30–40% darker and bolder, with minor swelling possible. Days 4–7: Light micro-flaking forms and sheds naturally (never peel or pick flaking skin). Weeks 2–4: The color temporarily softens as epidermal cells renew, then stabilizes into a soft, natural tone.",
+        },
+        {
+          badge: "Aftercare",
+          t: "What restrictions apply during the recovery period (workouts, sun, water)?",
+          d: "For the first 7–10 days, avoid moisture and steam exposure: refrain from saunas, steam rooms, swimming pools, hot baths, and vigorous cardio with intense sweating. Protect the treated area from direct UV rays and tanning beds with SPF 50+ for 3–4 weeks. Do not apply makeup or foundation to the healing area until peeling is fully complete.",
+        },
+        {
+          badge: "Touch-up",
+          t: "Why is a touch-up mandatory and how long does the result last?",
+          d: "Skin is a living organ with individual healing dynamics; after the initial session, 60–80% of pigment is retained. The touch-up session in 30–45 days evens out color saturation, perfects fine contours, and locks in longevity. The complete treatment retains its beautiful, natural appearance for 1.5 to 2 years.",
+        },
+        {
+          badge: "Cover-up",
+          t: "Is it possible to cover up old permanent makeup or tattooing?",
+          d: "A cover-up is possible only following an in-person or photo consultation to assess residual pigment saturation. If the old tattoo is overly dense, dark, or has shifted to an unwanted blue or reddish tone, we first recommend 1–2 sessions of laser lightening or chemical remover to ensure a clean, flawless new outcome.",
+        },
+      ],
+    },
   },
   cta: {
     title: "Reserve your consultation",
