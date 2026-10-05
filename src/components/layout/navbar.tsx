@@ -25,6 +25,13 @@ const NAV_ITEMS: readonly NavItem[] = [
   { id: "faq", labelKey: "faq" },
 ] as const;
 
+const MENU_LABELS: Record<string, string> = {
+  uk: "Меню сайту",
+  ru: "Меню сайта",
+  de: "Website-Menü",
+  en: "Site Menu",
+};
+
 export function LanguageSwitcher({ className }: { className?: string }) {
   const { locale, setLocale } = useLanguage();
   return (
@@ -51,7 +58,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
 
 export function MobileHeroNav({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
-  const { t } = useLanguage();
+  const { locale, t } = useLanguage();
   const { scrollToId } = useScrollTo();
 
   useEffect(() => {
@@ -73,26 +80,23 @@ export function MobileHeroNav({ className }: { className?: string }) {
   };
 
   return (
-    <div
-      className={cn(
-        "inline-flex h-11 items-center gap-3.5 rounded-full border border-brand-border/50 bg-white/80 px-5 text-brand-text backdrop-blur-md lg:hidden",
-        className
-      )}
-    >
-      <LanguageSwitcher />
-      <span className="h-4 w-px bg-brand-border/40 md:hidden" />
+    <div className={cn("flex flex-col items-center gap-2.5 lg:hidden", className)}>
+      <div className="inline-flex h-10 items-center rounded-full border border-brand-border/50 bg-white/80 px-4 text-brand-text backdrop-blur-md shadow-sm">
+        <LanguageSwitcher />
+      </div>
+
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <button
             type="button"
-            aria-label="Menu"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-brand-text transition-colors hover:bg-black/5 active:scale-95 md:hidden"
+            className="inline-flex h-10 items-center gap-2 rounded-full border border-brand-border/50 bg-white/80 px-4 text-xs font-mono uppercase tracking-widest text-brand-text backdrop-blur-md shadow-sm transition-all hover:bg-white/95 active:scale-95 md:hidden"
           >
-            <Menu className="h-4 w-4" />
+            <Menu className="h-3.5 w-3.5" />
+            <span>{MENU_LABELS[locale] || MENU_LABELS.uk}</span>
           </button>
         </SheetTrigger>
         <SheetContent side="right" className="bg-brand-bg">
-          <SheetTitle className="sr-only">Menu</SheetTitle>
+          <SheetTitle className="sr-only">{MENU_LABELS[locale] || MENU_LABELS.uk}</SheetTitle>
           <div className="mt-10 flex flex-col gap-6 font-heading text-2xl">
             {NAV_ITEMS.map((item) => (
               <button

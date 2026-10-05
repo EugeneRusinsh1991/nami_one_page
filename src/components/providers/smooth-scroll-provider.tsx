@@ -1,9 +1,11 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { useLanguage } from "@/components/providers/language-provider";
+import { invalidateScrollZonesCache } from "@/lib/scroll-breakpoints";
 import { detectDeviceScrollMode } from "./smooth-scroll-utils";
 import { createTouchGestureState, ScrollGateState } from "./smooth-scroll-gestures";
 import {
@@ -27,6 +29,7 @@ interface SmoothScrollProviderProps {
 export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
   const [lenis, setLenis] = useState<Lenis | null>(null);
   const { locale } = useLanguage();
+  const pathname = usePathname();
 
   useEffect(() => {
     const deviceMode = detectDeviceScrollMode();
@@ -84,6 +87,7 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
     let inner = 0;
     const outer = requestAnimationFrame(() => {
       inner = requestAnimationFrame(() => {
+        invalidateScrollZonesCache();
         ScrollTrigger.refresh();
         lenis.resize();
       });
@@ -101,7 +105,7 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       window.removeEventListener("resize", onResize);
       window.removeEventListener("orientationchange", onResize);
     };
-  }, [locale, lenis]);
+  }, [locale, pathname, lenis]);
 
   return (
     <LenisContext.Provider value={lenis}>

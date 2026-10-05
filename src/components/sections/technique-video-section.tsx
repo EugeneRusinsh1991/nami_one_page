@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, useGSAP } from "@/lib/gsap";
+import { gsap, useGSAP, prefersReducedMotion } from "@/lib/gsap";
 import { createFrameScrub } from "@/lib/frame-scrub";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -106,6 +106,18 @@ export function TechniqueVideoSection() {
 
   useGSAP(
     () => {
+      if (prefersReducedMotion()) return;
+      gsap.fromTo(
+        ".tech-scroll-line",
+        { scaleY: 0.35, transformOrigin: "top" },
+        { scaleY: 1, duration: 1.2, ease: "sine.inOut", repeat: -1, yoyo: true }
+      );
+    },
+    { scope: containerRef }
+  );
+
+  useGSAP(
+    () => {
       const canvas = canvasRef.current;
       const container = containerRef.current;
       if (!canvas || !container) return;
@@ -143,6 +155,8 @@ export function TechniqueVideoSection() {
         if (progressBar) {
           progressBar.style.transform = `translateX(-${100 - p * 100}%)`;
         }
+
+        gsap.set(".tech-scroll", { opacity: 1, pointerEvents: "auto" });
       };
 
       applyProgress(0);
@@ -162,7 +176,7 @@ export function TechniqueVideoSection() {
   );
 
   return (
-    <section ref={containerRef} id="technique" className="relative h-svh min-h-svh w-full overflow-hidden bg-brand-surface isolate">
+    <section ref={containerRef} id="technique" className="relative min-h-[100dvh] w-full overflow-hidden bg-brand-surface isolate">
       <canvas
         ref={canvasRef}
         className="tech-video pointer-events-none absolute inset-0 h-full w-full will-change-transform transform-gpu"
@@ -201,7 +215,7 @@ export function TechniqueVideoSection() {
         <rect width="100%" height="100%" filter="url(#tech-grain)" />
       </svg>
 
-      <div className="relative z-10 mx-auto flex h-full max-w-6xl items-start px-6 safe-offset-mobile md:items-center">
+      <div className="relative z-10 mx-auto flex h-svh min-h-svh w-full max-w-6xl items-start px-6 safe-offset-mobile md:items-center">
         <div className="relative h-80 sm:h-96 w-full max-w-md sm:max-w-lg lg:max-w-xl">
           <Badge variant="brand-outline" className="absolute -top-12 left-0 sm:-top-14">
             {t.tech.label}
@@ -233,6 +247,11 @@ export function TechniqueVideoSection() {
         <div ref={progressRef} className="absolute inset-x-6 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] mx-auto max-w-6xl md:bottom-10">
           <Progress value={0} className="h-px bg-brand-elevated [&>div]:bg-brand-text [&>div]:transition-none" />
         </div>
+      </div>
+
+      <div className="tech-scroll pointer-events-none absolute inset-x-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-10 flex flex-col items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.3em] text-brand-text [text-shadow:0_1px_6px_rgba(255,255,255,0.9)] md:bottom-28 isolate">
+        <span className="select-none [text-shadow:0_1px_8px_rgba(255,255,255,0.9)]">{t.hero.scroll}</span>
+        <span className="tech-scroll-line h-10 w-0.5 rounded-full bg-brand-text shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
       </div>
     </section>
   );

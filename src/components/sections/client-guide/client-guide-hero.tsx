@@ -1,7 +1,10 @@
 "use client";
 
 import { useRef } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { gsap, useGSAP, prefersReducedMotion } from "@/lib/gsap";
+import { Button } from "@/components/ui/button";
 import { Card, MASTER_CARD_CONFIG } from "@/components/ui/card";
 import { MetricBadge } from "@/components/ui/metric-badge";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -23,21 +26,24 @@ export interface ClientGuideHeroProps {
 export function ClientGuideHero({ className }: ClientGuideHeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
+  const data = t.clientGuide.hero;
 
   useGSAP(
     () => {
       const copy = containerRef.current?.querySelector(".guide-copy");
       const media = containerRef.current?.querySelector(".guide-media");
       const img = containerRef.current?.querySelector(".guide-img");
+      const rings = containerRef.current?.querySelectorAll(".guide-ring");
+      const cards = containerRef.current?.querySelectorAll<HTMLElement>(".guide-badge-card");
 
       if (copy) {
         gsap.from(copy.children, {
-          y: 30,
+          y: 40,
           opacity: 0,
           stagger: 0.12,
           duration: 1,
           ease: "power3.out",
-          scrollTrigger: { trigger: copy, start: "top 85%" },
+          scrollTrigger: { trigger: copy, start: "top 80%" },
         });
       }
 
@@ -70,7 +76,6 @@ export function ClientGuideHero({ className }: ClientGuideHeroProps) {
         }
       }
 
-      const rings = containerRef.current?.querySelectorAll(".guide-ring");
       if (rings && rings.length > 0) {
         if (!prefersReducedMotion()) {
           gsap.fromTo(
@@ -92,13 +97,12 @@ export function ClientGuideHero({ className }: ClientGuideHeroProps) {
         }
       }
 
-      const cards = containerRef.current?.querySelectorAll<HTMLElement>(".guide-badge-card");
       if (cards && cards.length > 0) {
         gsap.fromTo(
           cards,
           {
-            y: -16,
-            scale: 1.06,
+            y: -18,
+            scale: 1.08,
             opacity: 0,
           },
           {
@@ -118,11 +122,18 @@ export function ClientGuideHero({ className }: ClientGuideHeroProps) {
     { scope: containerRef }
   );
 
+  const linkData = data.link || {
+    href: "/",
+    text: t.clientGuide.meta.backToHome || "Повернутися на головну",
+  };
+
   return (
     <section
       ref={containerRef}
+      id="client-guide-hero"
       className={cn(
-        "client-guide-hero relative w-full overflow-hidden bg-brand-surface px-4 sm:px-6 py-12 sm:py-16 md:py-20 lg:py-24 isolate",
+        "client-guide-hero relative flex min-h-[100dvh] w-full flex-col justify-between overflow-hidden bg-brand-surface px-4 sm:px-6 isolate",
+        MASTER_CARD_CONFIG.sectionPadding,
         className
       )}
     >
@@ -131,36 +142,37 @@ export function ClientGuideHero({ className }: ClientGuideHeroProps) {
         <div className="guide-decor absolute -bottom-24 -right-20 h-72 w-72 rounded-full bg-brand-elevated/70 blur-3xl sm:h-96 sm:w-96" />
         <div className="guide-dots absolute top-[8%] right-4 hidden h-32 w-32 opacity-40 [background-image:radial-gradient(#7C8794_1.5px,transparent_1.5px)] [background-size:14px_14px] sm:block sm:h-40 sm:w-40 sm:right-10" />
         <span className="absolute bottom-2 left-3 hidden select-none whitespace-nowrap text-[8rem] font-bold uppercase leading-none tracking-tighter text-brand-accent/20 sm:block lg:text-[12rem]">
-          {t.clientGuide.hero.label}
+          {data.label}
         </span>
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center gap-12 md:grid md:grid-cols-2 md:gap-12 lg:gap-16">
-        <div className="guide-copy w-full max-w-lg shrink-0 text-left md:justify-self-start">
+      <div className="relative mx-auto flex flex-1 h-full max-h-full w-full max-w-6xl flex-col justify-between md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center">
+        <div
+          className={cn(
+            "guide-copy shrink-0 w-full max-w-md",
+            MASTER_CARD_CONFIG.headerMargin,
+            "order-1 md:order-1 md:justify-self-end md:ml-auto"
+          )}
+        >
           <SectionHeader
             align="left"
-            badge={t.clientGuide.hero.label}
-            title={t.clientGuide.hero.title}
-            titleClassName="break-words font-heading text-3xl sm:text-4xl md:text-5xl font-medium tracking-tight"
-            className="w-full items-start text-left"
+            badge={data.label}
+            title={data.title}
+            titleClassName="break-words"
+            className="w-full items-start text-left md:items-end md:text-right"
           />
         </div>
 
-        <div className="guide-media relative flex w-full items-center justify-center py-6 sm:py-8 md:py-0">
+        <div className="guide-media relative flex flex-1 min-h-0 w-full flex-col items-center justify-center py-1 sm:py-2 md:py-0 order-2 md:order-2">
           <div
             className={cn(
               "guide-portrait relative transform-gpu",
-              "h-auto aspect-[1/2] max-h-[580px] w-[62vw] sm:w-[44vw] md:w-[32vw] lg:w-[26vw] max-w-[320px] md:max-w-[340px] lg:max-w-[360px]"
+              Boolean(linkData) ? "aspect-[9/16]" : "aspect-[1/2]",
+              "h-auto max-h-full w-[68vw] sm:w-[46vw] md:w-[34vw] lg:w-[28vw] max-w-[340px] md:max-w-[380px] lg:max-w-[400px]"
             )}
           >
-            <div
-              aria-hidden
-              className="guide-ring pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[118%] w-[118%] rounded-[3rem] border border-brand-border/25 sm:rounded-[4rem]"
-            />
-            <div
-              aria-hidden
-              className="guide-ring pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[136%] w-[136%] rounded-[4rem] border border-brand-border/15 sm:rounded-[5rem]"
-            />
+            <div aria-hidden className="guide-ring pointer-events-none absolute left-1/2 top-1/2 h-[118%] w-[118%] rounded-[3rem] border border-brand-border/25 sm:rounded-[4rem]" />
+            <div aria-hidden className="guide-ring pointer-events-none absolute left-1/2 top-1/2 h-[136%] w-[136%] rounded-[4rem] border border-brand-border/15 sm:rounded-[5rem]" />
             <Card
               variant="elevated"
               className={cn(
@@ -172,17 +184,17 @@ export function ClientGuideHero({ className }: ClientGuideHeroProps) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/image (3).png"
-                alt={t.clientGuide.hero.label}
+                alt={data.label}
                 className="guide-img absolute inset-x-0 top-0 h-[112%] w-full object-cover will-change-transform transform-gpu"
               />
             </Card>
-            {t.clientGuide.hero.metrics.map((m, i) => (
+            {data.metrics.map((m, i) => (
               <div key={i} className={cn("guide-badge absolute z-10", BADGE_PLACEMENTS[i] || "")}>
                 <div className="guide-badge-card will-change-transform transform-gpu">
                   <MetricBadge
                     value={m.t}
                     label={m.d}
-                    className="w-auto min-w-[110px] max-w-[155px] sm:min-w-[135px] sm:max-w-[195px] lg:min-w-[160px] lg:max-w-[230px] px-3.5 py-2 sm:px-4 sm:py-2.5 lg:px-5 lg:py-3"
+                    className="w-auto min-w-[112px] max-w-[155px] sm:min-w-[140px] sm:max-w-[205px] lg:min-w-[165px] lg:max-w-[245px] px-4 py-2.5 sm:px-5 sm:py-3 lg:px-6 lg:py-3.5"
                     valueClassName="text-sm sm:text-base md:text-lg lg:text-xl font-bold whitespace-nowrap leading-none mb-1 sm:mb-1.5"
                     labelClassName="text-[10px] sm:text-[11px] lg:text-xs uppercase tracking-wider text-brand-text/70 leading-snug break-words hyphens-none"
                   />
@@ -190,7 +202,30 @@ export function ClientGuideHero({ className }: ClientGuideHeroProps) {
               </div>
             ))}
           </div>
+
+          {linkData && (
+            <div className="mt-3 sm:mt-3.5 w-[68vw] sm:w-[46vw] md:w-[34vw] lg:w-[28vw] max-w-[340px] md:max-w-[380px] lg:max-w-[400px] shrink-0 z-20">
+              <Button asChild variant="brand-primary" size="default" className="w-full shadow-md hover:-translate-y-0.5 transition-transform">
+                <Link
+                  href={linkData.href}
+                  className="inline-flex w-full items-center justify-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4 shrink-0" />
+                  <span>{linkData.text}</span>
+                </Link>
+              </Button>
+            </div>
+          )}
         </div>
+
+        <div
+          aria-hidden="true"
+          className={cn(
+            "order-3 w-full shrink-0 md:hidden",
+            Boolean(linkData) ? "h-6 sm:h-8" : "h-10 sm:h-12",
+            MASTER_CARD_CONFIG.bottomBarPadding
+          )}
+        />
       </div>
     </section>
   );

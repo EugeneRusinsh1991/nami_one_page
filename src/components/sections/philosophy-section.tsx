@@ -6,7 +6,7 @@ import { gsap, prefersReducedMotion, revealOnScroll, useGSAP } from "@/lib/gsap"
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Card } from "@/components/ui/card";
-import { Heading, Text } from "@/components/ui/typography";
+import { Heading } from "@/components/ui/typography";
 import { useLanguage } from "@/components/providers/language-provider";
 
 const ICONS = [Ruler, Droplets, Fingerprint, Sparkles];
@@ -75,7 +75,7 @@ export function PhilosophySection() {
     <section
       ref={containerRef}
       id="philosophy"
-      className="relative z-20 h-svh min-h-svh max-h-svh overflow-hidden rounded-t-[2rem] bg-brand-bg px-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-[0_-20px_60px_rgba(26,31,37,0.06)] sm:px-5 sm:pt-[calc(1.5rem+env(safe-area-inset-top,0px))] sm:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] md:rounded-t-[2.5rem] md:px-6 md:pt-20 md:pb-8 lg:pt-24 lg:pb-10 isolate"
+      className="relative z-20 flex min-h-[100dvh] flex-col justify-center overflow-hidden rounded-t-[2rem] bg-brand-bg px-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-[0_-20px_60px_rgba(26,31,37,0.06)] sm:px-5 sm:pt-[calc(1.5rem+env(safe-area-inset-top,0px))] sm:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] md:rounded-t-[2.5rem] md:px-6 md:pt-20 md:pb-8 lg:pt-24 lg:pb-10 isolate"
     >
       <div className="mx-auto flex h-full w-full max-w-6xl flex-col justify-center">
         <SectionHeader
@@ -120,12 +120,9 @@ export function PhilosophySection() {
                   strokeWidth={1.25}
                 />
                 <div className={cn("relative z-10 max-w-xs", media?.textClass)}>
-                  <Heading as="h3" size="h4" className="mb-0.5 text-xs font-semibold leading-tight sm:text-sm md:mb-2 md:text-xl">
+                  <Heading as="h3" size="h4" className="text-sm font-semibold leading-tight sm:text-base md:text-2xl">
                     {card.t}
                   </Heading>
-                  <Text variant="subtle" className="text-[10px] leading-tight sm:text-xs md:text-sm md:leading-relaxed line-clamp-2 sm:line-clamp-3 md:line-clamp-none">
-                    {card.d}
-                  </Text>
                 </div>
               </Card>
             );

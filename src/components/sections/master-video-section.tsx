@@ -152,7 +152,7 @@ export function MasterVideoSection() {
           key={id}
           id={id}
           className={cn(
-            "master-block relative flex h-svh min-h-svh max-h-svh w-full flex-col justify-between overflow-hidden bg-brand-surface px-4 sm:px-6 isolate",
+            "master-block relative flex min-h-[100dvh] w-full flex-col justify-between overflow-hidden bg-brand-surface px-4 sm:px-6 isolate",
             MASTER_CARD_CONFIG.sectionPadding
           )}
         >
@@ -184,7 +184,7 @@ export function MasterVideoSection() {
               {data.label}
             </span>
           </div>
-          <div className="relative mx-auto flex h-full max-h-full w-full max-w-6xl flex-col justify-between md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center">
+          <div className="relative mx-auto flex flex-1 h-full max-h-full w-full max-w-6xl flex-col justify-between md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center">
             <div
               className={cn(
                 "master-copy shrink-0 w-full max-w-md",

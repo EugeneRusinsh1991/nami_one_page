@@ -26,6 +26,7 @@ export function attachTouchGestureTracker(
     gesture.touchActive = false;
     gesture.stepsCommitted = 0;
     gesture.lockedDirection = null;
+    gesture.lockedVerticalDirection = null;
     gesture.accumX = 0;
     gesture.accumY = 0;
     gesture.peakVelocity = 0;
@@ -51,6 +52,7 @@ export function attachTouchGestureTracker(
     gesture.touchActive = true;
     gesture.stepsCommitted = 0;
     gesture.lockedDirection = null;
+    gesture.lockedVerticalDirection = null;
     gesture.accumX = 0;
     gesture.accumY = 0;
     gesture.startX = touch.clientX;
@@ -84,6 +86,14 @@ export function attachTouchGestureTracker(
       const dy = Math.abs(touch.clientY - gesture.startY);
       if (Math.hypot(dx, dy) >= INTENT_LOCK_THRESHOLD) {
         gesture.lockedDirection = dx >= dy * INTENT_RATIO ? "horizontal" : "vertical";
+      }
+    }
+
+    if (gesture.lockedVerticalDirection === null) {
+      const dy = touch.clientY - gesture.startY;
+      if (Math.abs(dy) >= INTENT_LOCK_THRESHOLD) {
+        // Swipe up (touch.clientY < startY) moves page down
+        gesture.lockedVerticalDirection = dy < 0 ? "down" : "up";
       }
     }
 
@@ -154,8 +164,22 @@ export function createVirtualScrollHandler(
     const target = (data.event as any)?.target as HTMLElement | null;
     const { deltaX, deltaY } = data;
 
+    if (gesture.lockedVerticalDirection === null && Math.abs(gesture.accumY) >= INTENT_LOCK_THRESHOLD) {
+      gesture.lockedVerticalDirection = gesture.accumY > 0 ? "down" : "up";
+    }
+
+    // Suppress contrary vertical deltas during an active locked gesture (e.g. finger recoil, rubber-band back)
+    if (gesture.lockedVerticalDirection === "down" && deltaY < 0) {
+      return false;
+    }
+    if (gesture.lockedVerticalDirection === "up" && deltaY > 0) {
+      return false;
+    }
+
     if ((gesture.accumY > 0 && deltaY < 0) || (gesture.accumY < 0 && deltaY > 0)) {
-      gesture.accumY = 0;
+      if (gesture.lockedVerticalDirection === null) {
+        gesture.accumY = 0;
+      }
     }
 
     gesture.accumX += deltaX;
@@ -216,18 +240,29 @@ export function attachDiscreteScroll(
     }
 
     const current = lenis.scroll;
-    const rawTarget = calculateRawScrollTarget(target, current, gesture.isTouch, gesture.accumY);
+    const rawTarget = calculateRawScrollTarget(
+      target,
+      current,
+      gesture.isTouch,
+      gesture.accumY,
+      gesture.lockedVerticalDirection
+    );
 
     const { target: resolved, discrete } = resolveScrollTarget(
       current,
       rawTarget,
       getScrollZones(),
-      null,
+      gesture.lockedVerticalDirection,
       evaluatedSteps
     );
 
     if (!discrete) {
-      gateState.activeDirection = null;
+      if (gesture.isTouch) {
+        gesture.stepsCommitted += evaluatedSteps;
+      }
+      gateState.activeDirection = rawTarget > current ? "down" : "up";
+      gateState.gateUntil = Math.max(gateState.gateUntil, now + 350);
+      lastStepTime = now;
       return origScrollTo(resolved, opts);
     }
 

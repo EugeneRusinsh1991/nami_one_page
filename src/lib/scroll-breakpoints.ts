@@ -167,7 +167,7 @@ export function getMasterPoints(): number[] {
 }
 
 export function getBottomSectionPoints(): number[] {
-  const faq = getSectionTop("faq");
+  const faq = getSectionTop("faq") ?? getSectionTop("guide-faq");
   const booking = getSectionTop("booking");
   const points: number[] = [];
   if (faq != null) points.push(faq);
@@ -176,7 +176,12 @@ export function getBottomSectionPoints(): number[] {
 }
 
 function getHandoffZones(pins: Record<string, { start: number; end: number }>): ScrollZone[] {
-  const heroEnd = pins.hero?.end ?? (getSectionTop("hero") ?? 0);
+  const heroEnd =
+    pins.hero?.end ??
+    (getSectionTop("hero") ??
+      getSectionTop("client-guide-hero") ??
+      getSectionTop("guide-hero") ??
+      0);
   const philoEntry = getPhilosophyEntry();
   const techStart = pins.technique?.start ?? getSectionTop("technique");
   const techEnd = pins.technique?.end ?? techStart;
@@ -231,7 +236,11 @@ export function getScrollZones(forceRefresh = false): ScrollZone[] {
   });
 
   if (!pins.hero) {
-    const heroTop = getSectionTop("hero") ?? 0;
+    const heroTop =
+      getSectionTop("hero") ??
+      getSectionTop("client-guide-hero") ??
+      getSectionTop("guide-hero") ??
+      0;
     zones.push({ points: [heroTop] });
   }
   if (!pins.technique) {
@@ -297,11 +306,11 @@ export function resolveScrollTarget(
     return { target: current, discrete: false };
   }
 
-  // Suppress contrary micro-deltas during an active directional gesture
-  if (lockedDirection === "down" && delta < 0 && Math.abs(delta) < 30) {
+  // Suppress contrary deltas during an active directional gesture
+  if (lockedDirection === "down" && delta < 0) {
     return { target: current, discrete: false };
   }
-  if (lockedDirection === "up" && delta > 0 && Math.abs(delta) < 30) {
+  if (lockedDirection === "up" && delta > 0) {
     return { target: current, discrete: false };
   }
 

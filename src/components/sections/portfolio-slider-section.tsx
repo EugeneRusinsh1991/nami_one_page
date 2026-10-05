@@ -126,7 +126,7 @@ export function PortfolioSliderSection() {
             className={cn(
               "port-card group relative cursor-pointer select-none self-center snap-center opacity-60 shadow-lg data-[active=true]:opacity-100 data-[active=true]:border-brand-text/50 data-[active=true]:shadow-2xl data-[active=true]:ring-2 data-[active=true]:ring-brand-text/40 touch-pan-x touch-pan-y transition-[transform,opacity,box-shadow,border-color] duration-500 ease-out isolate transform-gpu",
               MASTER_CARD_CONFIG.container,
-              "h-full scale-[0.93] data-[active=true]:scale-100"
+              "scale-[0.93] data-[active=true]:scale-100"
             )}
             style={{ touchAction: "pan-x pan-y" }}
           >
@@ -166,7 +166,7 @@ export function PortfolioSliderSection() {
 
       <div
         className={cn(
-          "port-dots mx-auto flex w-full max-w-6xl shrink-0 items-center justify-center gap-1.5 isolate",
+          "port-dots mx-auto flex w-full max-w-6xl shrink-0 items-center justify-center gap-1.5 isolate -translate-y-8 sm:translate-y-0",
           MASTER_CARD_CONFIG.bottomBarPadding
         )}
       >

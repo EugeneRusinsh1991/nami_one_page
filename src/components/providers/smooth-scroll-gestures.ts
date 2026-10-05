@@ -58,6 +58,7 @@ export interface TouchGestureState {
   maxDisplacement: number;
   peakVelocity: number;
   lockedDirection: "horizontal" | "vertical" | null;
+  lockedVerticalDirection: "down" | "up" | null;
   touchActive: boolean;
   stepsCommitted: number;
 }
@@ -86,14 +87,14 @@ export function evaluateTouchStep(
     return { shouldTriggerStep: false, direction: null, stepCount: 0 };
   }
 
-  const dy = -state.accumY; // Swipe up moves page down
+  const dy = state.accumY !== 0 ? state.accumY : state.startY - state.lastY;
   const absDy = Math.max(Math.abs(dy), state.maxDisplacement);
 
   if (absDy < minThreshold) {
     return { shouldTriggerStep: false, direction: null, stepCount: 0 };
   }
 
-  const direction: "down" | "up" = dy > 0 ? "down" : "up";
+  const direction: "down" | "up" = state.lockedVerticalDirection ?? (dy > 0 ? "down" : "up");
   const stepCount = state.peakVelocity > 2.0 || absDy > 350 ? 2 : 1;
 
   return {
@@ -124,6 +125,7 @@ export function createTouchGestureState(): TouchTrackerState {
     touchActive: false,
     stepsCommitted: 0,
     lockedDirection: null,
+    lockedVerticalDirection: null,
     accumX: 0,
     accumY: 0,
     startX: 0,

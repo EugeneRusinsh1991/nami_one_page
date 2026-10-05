@@ -96,12 +96,14 @@ export function createFrameScrub({
     const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
     const parent = canvas.parentElement;
     const displayWidth = parent ? parent.clientWidth : (canvas.clientWidth || (typeof window !== "undefined" ? window.innerWidth : BREAKPOINTS.md));
-    const displayHeight = parent ? parent.clientHeight : (canvas.clientHeight || window.innerHeight);
+    const displayHeight = isMobile
+      ? Math.max(parent ? parent.clientHeight : 0, canvas.clientHeight || 0, window.innerHeight)
+      : (parent ? parent.clientHeight : (canvas.clientHeight || window.innerHeight));
     const w = Math.max(1, Math.round(displayWidth * dpr));
     const h = Math.max(1, Math.round(displayHeight * dpr));
 
-    // Guard against vertical address-bar jitter on mobile touch devices
-    const isHeightOnlyJitter = canvas.width === w && canvas.height > 0 && Math.abs(canvas.height - h) <= 120 * dpr;
+    // Guard against sub-pixel micro-jitter on mobile touch devices while allowing toolbar expansion/collapse to resize
+    const isHeightOnlyJitter = canvas.width === w && canvas.height > 0 && Math.abs(canvas.height - h) <= 2 * dpr;
     if (isHeightOnlyJitter) return;
 
     if (canvas.width !== w || canvas.height !== h) {

@@ -22,7 +22,7 @@ export const en: Dict = {
       },
       {
         badge: "TIMELESS AESTHETICS",
-        title: "Natural Softness That Endures",
+        title: "Flawless Result",
         sub: "Stable premium pigments that fade evenly and harmoniously over years without color shifting.",
       },
     ],
@@ -129,6 +129,10 @@ export const en: Dict = {
         { t: "Pain-free", d: "2-stage anesthesia" },
         { t: "1.5–2 yrs", d: "Natural retention" },
       ],
+      link: {
+        text: "Back to Home",
+        href: "/",
+      },
     },
     faq: {
       label: "FAQ",

@@ -3,7 +3,6 @@
 import { useRef } from "react";
 import { gsap, useGSAP, prefersReducedMotion } from "@/lib/gsap";
 import { createFrameScrub } from "@/lib/frame-scrub";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/typography";
 import { MobileHeroNav } from "@/components/layout/navbar";
@@ -122,7 +121,7 @@ export function HeroVideoSection() {
             pointerEvents: s2.pointerEvents,
             force3D: true,
           });
-          gsap.set(".hero-scroll", { opacity: s0.opacity });
+          gsap.set(".hero-scroll", { opacity: 1, pointerEvents: "auto" });
         },
       });
 
@@ -136,7 +135,7 @@ export function HeroVideoSection() {
   };
 
   return (
-    <section ref={containerRef} id="hero" className="relative h-svh min-h-svh w-full overflow-hidden bg-brand-bg isolate">
+    <section ref={containerRef} id="hero" className="relative min-h-[100dvh] w-full overflow-hidden bg-brand-bg isolate">
       <canvas
         ref={canvasRef}
         className="hero-video pointer-events-none absolute inset-0 h-full w-full will-change-transform transform-gpu"
@@ -176,7 +175,7 @@ export function HeroVideoSection() {
       </svg>
 
       {/* Slide 1 (Initial / Branding / CTAs) */}
-      <div className="hero-slide hero-slide-0 isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center">
+      <div className="hero-slide hero-slide-0 isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-svh min-h-svh max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/images/logo.png"
@@ -222,11 +221,7 @@ export function HeroVideoSection() {
 
       {/* Slide 2 (Craftsmanship & Precision) */}
       {slides[1] && (
-        <div className="hero-slide hero-slide-1 pointer-events-none isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-center px-6 pb-20 md:pb-0 text-center opacity-0">
-          <Badge variant="glass" className="mb-6 md:mb-8">
-            {slides[1].badge}
-          </Badge>
-
+        <div className="hero-slide hero-slide-1 pointer-events-none isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-svh min-h-svh max-w-5xl flex-col items-center justify-center px-6 pt-[env(safe-area-inset-top,0px)] pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:py-0 text-center opacity-0">
           <Heading
             as="h2"
             size="display"
@@ -239,15 +234,18 @@ export function HeroVideoSection() {
         </div>
       )}
 
-      {/* Slide 3 (Longevity & Natural Aesthetics - Badge only) */}
+      {/* Slide 3 (Flawless Result - Heading above logo) */}
       {slides[2] && (
-        <div className="hero-slide hero-slide-2 pointer-events-none isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center opacity-0">
-          <Badge
-            variant="glass"
-            className="translate-y-[5.5rem] md:-translate-y-32"
+        <div className="hero-slide hero-slide-2 pointer-events-none isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-svh min-h-svh max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center opacity-0">
+          <Heading
+            as="h2"
+            size="display"
+            className="font-semibold tracking-[-0.025em] text-white [text-shadow:0_2px_16px_rgba(0,0,0,0.6)] relative before:pointer-events-none before:absolute before:-inset-x-[15%] before:-inset-y-[30%] before:-z-10 before:content-[''] before:bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.65),transparent_72%)] before:blur-2xl translate-y-[4.5rem] sm:translate-y-[5.5rem] md:-translate-y-36 lg:-translate-y-40"
           >
-            {slides[2].badge}
-          </Badge>
+            {slides[2].title.split(" ").map((word, i) => (
+              <span key={`${word}-${i}`} className={`block${i !== 0 ? ACCENT_CLASS : ""}`}>{word}</span>
+            ))}
+          </Heading>
         </div>
       )}
       <div className="hero-scroll pointer-events-none absolute inset-x-0 bottom-[calc(8.5rem+env(safe-area-inset-bottom))] z-10 flex flex-col items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.3em] text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.85)] md:bottom-36 lg:bottom-40 isolate">

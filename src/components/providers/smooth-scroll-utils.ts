@@ -134,12 +134,14 @@ export function calculateRawScrollTarget(
   target: number,
   current: number,
   isTouch: boolean,
-  accumY: number
+  accumY: number,
+  lockedDirection?: "down" | "up" | null
 ): number {
   if (!isTouch) {
     return target;
   }
-  const touchDir = Math.sign(target - current) || Math.sign(accumY);
+  const dirFromLock = lockedDirection === "down" ? 1 : lockedDirection === "up" ? -1 : 0;
+  const touchDir = dirFromLock || Math.sign(target - current) || Math.sign(accumY);
   return current + touchDir * Math.max(Math.abs(target - current), 100);
 }
 

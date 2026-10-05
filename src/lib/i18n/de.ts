@@ -138,6 +138,10 @@ export const de: Dict = {
         { t: "Schmerzfrei", d: "2-Stufen-Betäubung" },
         { t: "1,5–2 J.", d: "Natürliche Haltbarkeit" },
       ],
+      link: {
+        text: "Zur Startseite",
+        href: "/",
+      },
     },
     faq: {
       label: "Häufige Fragen",

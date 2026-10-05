@@ -30,7 +30,7 @@ export function FaqSection() {
     <section
       ref={containerRef}
       id="faq"
-      className="relative flex h-svh min-h-svh max-h-svh w-full items-center justify-center overflow-hidden bg-brand-bg px-4 sm:px-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:py-12 md:py-16"
+      className="relative flex min-h-[100dvh] w-full items-center justify-center overflow-hidden bg-brand-bg px-4 sm:px-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:py-12 md:py-16"
     >
       <div className="mx-auto flex h-full max-h-full w-full max-w-6xl flex-col justify-center gap-4 sm:gap-8 md:grid md:grid-cols-[1fr_1.4fr] md:gap-12 md:items-center">
         <SectionHeader

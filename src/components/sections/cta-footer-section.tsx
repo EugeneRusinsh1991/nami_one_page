@@ -112,7 +112,7 @@ export function CtaFooterSection() {
     <section
       ref={containerRef}
       id="booking"
-      className="relative flex min-h-svh w-full flex-col justify-between overflow-x-hidden bg-brand-surface"
+      className="relative flex min-h-[100dvh] w-full flex-col justify-between overflow-x-hidden bg-brand-surface isolate"
     >
       <CtaBlock />
       <Footer />
