@@ -25,15 +25,22 @@ const buttonVariants = cva(
         "brand-outline-pill":
           "rounded-full border border-brand-border/40 bg-transparent text-brand-text transition-colors hover:bg-brand-text/5 active:scale-95",
         "icon-glass":
-          "h-9 w-9 rounded-full border border-brand-border/40 bg-white/70 text-brand-text backdrop-blur-md transition-all hover:bg-brand-text hover:text-white active:scale-95 p-0 flex items-center justify-center",
+          "rounded-full border border-brand-border/40 bg-white/70 text-brand-text backdrop-blur-md transition-all hover:bg-brand-text hover:text-white active:scale-95",
       },
       size: {
         default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        sm: "h-9 px-3",
+        lg: "h-11 px-8",
+        icon: "h-10 w-10 p-0",
+        "icon-sm": "h-9 w-9 p-0",
       },
     },
+    compoundVariants: [
+      {
+        variant: "icon-glass",
+        className: "h-9 w-9 p-0",
+      },
+    ],
     defaultVariants: {
       variant: "default",
       size: "default",
@@ -52,7 +59,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const Comp = asChild ? Slot : "button"
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(buttonVariants({ variant, size }), className)}
         ref={ref}
         {...props}
       />

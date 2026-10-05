@@ -41,3 +41,4 @@ next-env.d.ts
 .logs
 .todos
 .fallow
+.vscode

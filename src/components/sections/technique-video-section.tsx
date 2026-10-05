@@ -6,7 +6,7 @@ import { createFrameScrub } from "@/lib/frame-scrub";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Eyebrow, Heading, Text } from "@/components/ui/typography";
+import { SectionHeader } from "@/components/ui/section-header";
 import { useLanguage } from "@/components/providers/language-provider";
 import { isMobileWidth } from "@/hooks/use-breakpoint";
 
@@ -145,7 +145,7 @@ export function TechniqueVideoSection() {
 
       return () => handle.destroy();
     },
-    { scope: containerRef, dependencies: [t], revertOnUpdate: true }
+    { scope: containerRef }
   );
 
   return (
@@ -154,21 +154,21 @@ export function TechniqueVideoSection() {
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-brand-bg/85 via-brand-bg/30 to-transparent" />
 
       <div className="relative z-10 mx-auto flex h-full max-w-6xl items-start px-6 safe-offset-mobile md:items-center">
-        <div className="relative h-72 w-full max-w-md">
-          <Badge variant="glass" className="absolute -top-14 left-0">
+        <div className="relative h-80 sm:h-96 w-full max-w-md sm:max-w-lg lg:max-w-xl">
+          <Badge variant="brand-outline" className="absolute -top-12 left-0 sm:-top-14">
             {t.tech.label}
           </Badge>
           {t.tech.steps.map((step, i) => (
             <Card
-              key={step.t}
+              key={i}
               variant="glass"
-              className={`tech-step tech-step-${i} absolute inset-0 flex flex-col justify-center p-6 sm:p-8 ${i > 0 ? "pointer-events-none opacity-0" : ""}`}
+              className={`tech-step tech-step-${i} absolute inset-0 flex flex-col justify-center p-6 sm:p-8 md:p-10 ${i > 0 ? "pointer-events-none opacity-0" : ""}`}
             >
-              <Eyebrow accent className="mb-2 sm:mb-3">0{i + 1} / 0{STEP_COUNT}</Eyebrow>
-              <Heading as="h2" size="h2" className="mb-2 text-xl sm:mb-3 sm:text-2xl md:text-3xl">
-                {step.t}
-              </Heading>
-              <Text className="text-sm leading-relaxed sm:text-base">{step.d}</Text>
+              <SectionHeader
+                eyebrow={`0${i + 1} / 0${STEP_COUNT}`}
+                title={step.t}
+                description={step.d}
+              />
             </Card>
           ))}
         </div>

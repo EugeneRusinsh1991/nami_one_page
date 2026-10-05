@@ -38,8 +38,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} font-sans antialiased bg-[#F8F9FB] text-[#1A1F25]`}>
+    <html lang="uk" suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} font-sans antialiased bg-[#F8F9FB] text-[#1A1F25]`}
+        suppressHydrationWarning
+      >
         <LanguageProvider>
           <SmoothScrollProvider>{children}</SmoothScrollProvider>
         </LanguageProvider>

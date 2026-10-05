@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Menu } from "lucide-react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
@@ -39,6 +39,19 @@ export function MobileHeroNav({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
   const { t } = useLanguage();
   const { scrollToId } = useScrollTo();
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
 
   const goTo = (id: string) => {
     setOpen(false);
@@ -93,21 +106,53 @@ export function MobileHeroNav({ className }: { className?: string }) {
 
 export function Navbar() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const { t } = useLanguage();
   const { scrollToId, scrollToTop } = useScrollTo();
 
+  useEffect(() => {
+    setIsMounted(true);
+
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (containerRef.current?.contains(document.activeElement)) {
+          (document.activeElement as HTMLElement)?.blur?.();
+        }
+      }
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   useGSAP(
     () => {
-      gsap.from(".nav-pill", {
-        y: -40,
-        opacity: 0,
-        duration: 1,
-        ease: "power3.out",
-        delay: 0.3,
-        clearProps: "transform",
+      if (!isMounted) return;
+      const mm = gsap.matchMedia();
+      mm.add("(min-width: 768px)", () => {
+        gsap.from(".nav-pill", {
+          y: -40,
+          opacity: 0,
+          duration: 1,
+          ease: "power3.out",
+          delay: 0.3,
+          clearProps: "transform,opacity",
+        });
       });
+      return () => mm.revert();
     },
-    { scope: containerRef }
+    { scope: containerRef, dependencies: [isMounted] }
   );
 
   const goTo = (id: string) => {
@@ -117,9 +162,14 @@ export function Navbar() {
   return (
     <div
       ref={containerRef}
-      className="pointer-events-none fixed inset-x-0 top-0 z-40 hidden justify-center px-4 pt-4 md:flex"
+      className="pointer-events-none fixed inset-x-0 top-0 z-50 isolate hidden justify-center px-4 pt-4 md:flex"
     >
-      <header className="nav-pill pointer-events-auto flex w-full max-w-6xl items-center justify-between gap-4 md:gap-6 rounded-full border border-white/60 bg-white/70 px-5 py-2.5 shadow-[0_8px_32px_rgba(26,31,37,0.08)] backdrop-blur-md transform-gpu will-change-transform">
+      <header
+        className={cn(
+          "nav-pill pointer-events-auto flex w-full max-w-6xl items-center justify-between gap-4 md:gap-6 rounded-full border border-white/60 bg-white/70 px-5 py-2.5 shadow-[0_8px_32px_rgba(26,31,37,0.08)] backdrop-blur-md transform-gpu will-change-transform transition-colors duration-300",
+          isMounted && isScrolled && "border-white/80 bg-white/90 shadow-[0_12px_40px_rgba(26,31,37,0.12)]"
+        )}
+      >
         <button type="button" onClick={() => scrollToTop()} aria-label="NAMI STUDIO">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/images/logo.png" alt="NAMI STUDIO" className="h-8 w-auto" />

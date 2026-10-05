@@ -95,7 +95,7 @@ export function HeroVideoSection() {
 
       return () => handle.destroy();
     },
-    { scope: containerRef, dependencies: [t], revertOnUpdate: true }
+    { scope: containerRef }
   );
 
   const goTo = (id: string) => {
@@ -119,7 +119,7 @@ export function HeroVideoSection() {
         <Heading
           as="h1"
           size="display"
-          className="[filter:drop-shadow(0_0_10px_rgba(248,249,251,0.9))] md:[filter:drop-shadow(0_0_12px_rgba(248,249,251,0.95))_drop-shadow(0_0_32px_rgba(248,249,251,0.85))]"
+          className="min-h-[144px] md:min-h-0 [filter:drop-shadow(0_0_10px_rgba(248,249,251,0.9))] md:[filter:drop-shadow(0_0_12px_rgba(248,249,251,0.95))_drop-shadow(0_0_32px_rgba(248,249,251,0.85))]"
         >
           {slides[0].title.split(" ").map((word, i) => (
             <span key={`${word}-${i}`} className="mr-[0.25em] inline-block overflow-hidden align-bottom">
@@ -180,9 +180,9 @@ export function HeroVideoSection() {
           </Badge>
         </div>
       )}
-      <div className="hero-scroll absolute inset-x-0 bottom-[calc(6rem+env(safe-area-inset-bottom))] z-10 flex flex-col items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-brand-border md:bottom-[calc(4rem+env(safe-area-inset-bottom))]">
-        {t.hero.scroll}
-        <span className="h-10 w-px animate-pulse bg-brand-border" />
+      <div className="hero-scroll pointer-events-none absolute inset-x-0 bottom-[calc(8.5rem+env(safe-area-inset-bottom))] z-10 flex flex-col items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.3em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] animate-pulse md:bottom-36 lg:bottom-40">
+        <span className="select-none [text-shadow:0_1px_8px_rgba(0,0,0,0.8)]">{t.hero.scroll}</span>
+        <span className="h-10 w-0.5 rounded-full bg-white/95 shadow-[0_0_8px_rgba(255,255,255,0.7)]" />
       </div>
     </section>
   );

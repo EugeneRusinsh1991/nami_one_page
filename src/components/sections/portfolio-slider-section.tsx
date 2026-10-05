@@ -2,9 +2,8 @@
 
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, MASTER_CARD_CONFIG } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Heading, Text } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
@@ -36,8 +35,15 @@ export function PortfolioSliderSection() {
   ];
 
   return (
-    <section ref={containerRef} id="works" className="relative flex h-svh flex-col justify-between overflow-hidden bg-brand-bg pt-[calc(1.25rem+env(safe-area-inset-top,0px))] sm:pt-[calc(2rem+env(safe-area-inset-top,0px))] md:pt-20 lg:pt-24 pb-0 md:pb-6">
-      <div className="mx-auto flex w-full max-w-6xl shrink-0 items-end justify-between px-6 mb-2 sm:mb-3 md:mb-4">
+    <section
+      ref={containerRef}
+      id="works"
+      className={cn(
+        "relative flex h-svh flex-col justify-between overflow-hidden bg-brand-bg",
+        MASTER_CARD_CONFIG.sectionPadding
+      )}
+    >
+      <div className={cn("mx-auto flex w-full max-w-6xl shrink-0 items-end justify-between px-6", MASTER_CARD_CONFIG.headerMargin)}>
         <SectionHeader
           badge={t.port.label}
           title={t.port.title}
@@ -71,7 +77,10 @@ export function PortfolioSliderSection() {
       <div
         ref={trackRef}
         data-lenis-prevent-horizontal="true"
-        className="flex min-h-0 flex-1 w-full items-stretch gap-4 sm:gap-6 md:gap-8 overflow-x-auto overflow-y-hidden px-[9vw] sm:px-[12vw] py-1.5 sm:py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overscroll-x-contain"
+        className={cn(
+          "flex min-h-0 flex-1 w-full items-stretch gap-4 sm:gap-6 md:gap-8 overflow-x-auto overflow-y-hidden px-[9vw] sm:px-[12vw] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overscroll-x-contain",
+          MASTER_CARD_CONFIG.mediaPadding
+        )}
         style={{
           WebkitOverflowScrolling: "touch",
           touchAction: "pan-x pan-y",
@@ -83,7 +92,10 @@ export function PortfolioSliderSection() {
             key={`${item.t}-${copyIndex}-${originalIndex}`}
             data-orig-index={originalIndex}
             variant="surface"
-            className="port-card group relative h-full w-[82vw] sm:w-[54vw] md:w-[40vw] lg:w-[32vw] max-w-[460px] shrink-0 cursor-pointer select-none shadow-lg hover:shadow-2xl data-[active=true]:shadow-2xl touch-pan-x touch-pan-y"
+            className={cn(
+              "port-card group relative cursor-pointer select-none shadow-lg hover:shadow-2xl data-[active=true]:shadow-2xl touch-pan-x touch-pan-y",
+              MASTER_CARD_CONFIG.container
+            )}
             style={{ touchAction: "pan-x pan-y" }}
           >
             <div className="pointer-events-none select-none absolute inset-0 overflow-hidden">
@@ -96,20 +108,7 @@ export function PortfolioSliderSection() {
               />
             </div>
             <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-brand-text/70 via-transparent to-transparent" />
-            <div className="absolute left-5 top-5 z-10 flex gap-2">
-              <Badge
-                variant="glass-subtle"
-                className="opacity-100 transition-opacity duration-500 group-hover:opacity-0 group-data-[active=true]:opacity-0"
-              >
-                {t.port.before}
-              </Badge>
-              <Badge
-                variant="pill-dark"
-                className="absolute left-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-data-[active=true]:opacity-100"
-              >
-                {t.port.healed}
-              </Badge>
-            </div>
+
             <div className="absolute inset-x-0 bottom-0 z-10 p-4 sm:p-5 md:p-6 lg:p-7 text-white">
               <span className="font-mono text-xs tracking-widest text-white/60">{String(originalIndex + 1).padStart(2, "0")}</span>
               <Heading as="h3" size="h3" className="text-white md:text-2xl">
@@ -123,7 +122,12 @@ export function PortfolioSliderSection() {
         ))}
       </div>
 
-      <div className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-center gap-1.5 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pt-3 md:pb-0">
+      <div
+        className={cn(
+          "mx-auto flex w-full max-w-6xl shrink-0 items-center justify-center gap-1.5",
+          MASTER_CARD_CONFIG.bottomBarPadding
+        )}
+      >
         {cases.map((_, i) => (
           <button
             key={i}

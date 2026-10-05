@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 export interface MetricBadgeProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -17,9 +18,10 @@ export function MetricBadge({
   ...props
 }: MetricBadgeProps): React.JSX.Element {
   return (
-    <div
+    <Card
+      variant="glass"
       className={cn(
-        "rounded-2xl border border-white bg-white/90 px-3 py-1.5 sm:px-3.5 sm:py-2 md:px-3.5 md:py-2 lg:px-5 lg:py-3 shadow-[0_18px_40px_-12px_rgba(26,31,37,0.35)] ring-1 ring-brand-border/20 backdrop-blur-2xl transition-transform duration-300 hover:scale-105",
+        "px-4 py-2.5 sm:px-5 sm:py-3 lg:px-6 lg:py-3.5 transition-transform duration-300 hover:scale-105",
         className
       )}
       {...props}
@@ -30,6 +32,6 @@ export function MetricBadge({
       <div className={cn("font-mono text-[10px] uppercase tracking-wider text-brand-text/60 sm:text-[11px] lg:text-xs", labelClassName)}>
         {label}
       </div>
-    </div>
+    </Card>
   );
 }

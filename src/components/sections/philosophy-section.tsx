@@ -16,6 +16,36 @@ const SPANS = [
   "col-span-1 row-span-1 col-start-2 row-start-1 md:col-span-1 md:row-span-1 md:col-start-3 md:row-start-2",
   "col-span-1 row-span-1 col-start-2 row-start-2 md:col-span-1 md:row-span-1 md:col-start-4 md:row-start-2",
 ];
+const CARD_MEDIA = [
+  {
+    src: "/images/image (3).png",
+    containerClass: "w-3/5 md:w-3/5",
+    maskClass: "[mask-image:linear-gradient(to_right,transparent_0%,transparent_15%,black_60%,black_100%)] [-webkit-mask-image:linear-gradient(to_right,transparent_0%,transparent_15%,black_60%,black_100%)]",
+    imgClass: "object-cover object-[center_15%] opacity-70 group-hover:scale-105 group-hover:opacity-60 group-hover:brightness-[0.92] md:opacity-80 md:group-hover:opacity-70",
+    textClass: "max-w-[75%] md:max-w-[55%]",
+  },
+  {
+    src: "/images/image (4).png",
+    containerClass: "w-2/5 md:w-1/2",
+    maskClass: "[mask-image:linear-gradient(to_right,transparent_0%,transparent_15%,black_55%,black_100%)] [-webkit-mask-image:linear-gradient(to_right,transparent_0%,transparent_15%,black_55%,black_100%)]",
+    imgClass: "object-cover opacity-75 group-hover:scale-105 group-hover:opacity-65 group-hover:brightness-[0.92] md:opacity-80 md:group-hover:opacity-70",
+    textClass: "max-w-[62%] md:max-w-[45%]",
+  },
+  {
+    src: "/images/image (2).png",
+    containerClass: "w-1/2 md:w-1/2",
+    maskClass: "[mask-image:linear-gradient(to_right,transparent_0%,transparent_10%,black_50%,black_100%)] [-webkit-mask-image:linear-gradient(to_right,transparent_0%,transparent_10%,black_50%,black_100%)]",
+    imgClass: "object-cover object-left opacity-60 group-hover:scale-105 group-hover:opacity-50 group-hover:brightness-[0.92] md:opacity-75 md:group-hover:opacity-65",
+    textClass: "max-w-[80%]",
+  },
+  {
+    src: "/images/image (4).png",
+    containerClass: "w-1/2 md:w-1/2",
+    maskClass: "[mask-image:linear-gradient(to_right,transparent_0%,transparent_10%,black_50%,black_100%)] [-webkit-mask-image:linear-gradient(to_right,transparent_0%,transparent_10%,black_50%,black_100%)]",
+    imgClass: "object-cover object-[85%_center] opacity-60 group-hover:scale-105 group-hover:opacity-50 group-hover:brightness-[0.92] md:opacity-75 md:group-hover:opacity-65",
+    textClass: "max-w-[80%]",
+  },
+];
 
 export function PhilosophySection() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -54,7 +84,7 @@ export function PhilosophySection() {
         scrollTrigger: { trigger: ".philo-grid", start: "top bottom", end: "bottom top", scrub: true },
       });
     },
-    { scope: containerRef, dependencies: [t], revertOnUpdate: true }
+    { scope: containerRef }
   );
 
   return (
@@ -73,33 +103,39 @@ export function PhilosophySection() {
         <div className="philo-grid grid w-full h-[48svh] max-h-[400px] min-h-[260px] grid-cols-2 grid-rows-3 gap-2 sm:h-[52svh] sm:max-h-[440px] sm:min-h-[320px] sm:gap-3 md:h-[56svh] md:max-h-[500px] md:grid-cols-4 md:grid-rows-2 md:auto-rows-[minmax(0,1fr)] md:gap-4 lg:h-[58svh] lg:max-h-[540px]">
           {t.philo.cards.map((card, i) => {
             const Icon = ICONS[i];
+            const media = CARD_MEDIA[i];
             return (
               <Card
-                key={card.t}
+                key={i}
                 variant="surface"
                 className={cn(
                   "philo-card will-change-transform transform-gpu group relative flex flex-col justify-between p-2.5 sm:p-4 md:p-6 lg:p-7",
                   SPANS[i]
                 )}
               >
-                {i === 1 && (
-                  <div className="pointer-events-none absolute inset-y-0 right-0 w-2/5 overflow-hidden rounded-r-2xl md:w-1/2 md:rounded-r-3xl">
+                {media && (
+                  <div
+                    className={cn(
+                      "pointer-events-none absolute inset-y-0 right-0 overflow-hidden rounded-r-2xl md:rounded-r-3xl",
+                      media.containerClass,
+                      media.maskClass
+                    )}
+                  >
                     <div className="philo-img absolute inset-x-0 top-0 h-[115%] w-full will-change-transform transform-gpu">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src="/images/image (4).png"
+                        src={media.src}
                         alt=""
-                        className="h-full w-full object-cover opacity-75 transition-transform duration-700 group-hover:scale-105 md:opacity-80"
+                        className={cn("h-full w-full transition-all duration-700", media.imgClass)}
                       />
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-brand-surface via-brand-surface/40 to-transparent transition-colors duration-500 group-hover:from-brand-elevated" />
                   </div>
                 )}
                 <Icon
                   className="relative z-10 h-4 w-4 shrink-0 text-brand-border transition-transform duration-500 group-hover:rotate-12 sm:h-5 sm:w-5 md:h-8 md:w-8"
                   strokeWidth={1.25}
                 />
-                <div className={cn("relative z-10 max-w-xs", i === 1 && "max-w-[62%] md:max-w-[45%]")}>
+                <div className={cn("relative z-10 max-w-xs", media?.textClass)}>
                   <Heading as="h3" size="h4" className="mb-0.5 text-xs font-semibold leading-tight sm:text-sm md:mb-2 md:text-xl">
                     {card.t}
                   </Heading>

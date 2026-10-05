@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { Send, Instagram } from "lucide-react";
 import { gsap, useGSAP } from "@/lib/gsap";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,71 @@ const SOCIAL_LINKS: SocialLink[] = [
   { label: "TikTok", href: "https://tiktok.com/", icon: TikTokIcon },
 ];
 
+export function CtaBlock({ className }: { className?: string }) {
+  const { t } = useLanguage();
+
+  return (
+    <div className={cn("flex flex-1 min-h-0 items-center justify-center px-4 sm:px-6 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-2 sm:pt-0 sm:py-8 md:py-10", className)}>
+      <Card variant="glass" className="cta-panel mx-auto w-full max-w-3xl rounded-[1.5rem] sm:rounded-[2rem] border-white/70 bg-white/60 p-4 sm:p-8 md:p-12 text-center shadow-xl backdrop-blur-xl">
+        <Heading as="h2" size="h2" className="cta-reveal">
+          {t.cta.title}
+        </Heading>
+
+        <form onSubmit={(e) => e.preventDefault()} className="cta-reveal mx-auto mt-3.5 sm:mt-5 md:mt-6 grid max-w-md gap-2.5 sm:gap-3">
+          <Input
+            variant="pill"
+            size="lg"
+            placeholder={t.cta.name}
+            autoComplete="name"
+          />
+          <Input
+            variant="pill"
+            size="lg"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            placeholder={t.cta.phone}
+          />
+          <Button
+            type="submit"
+            variant="brand-primary"
+            size="lg"
+          >
+            {t.cta.send}
+          </Button>
+        </form>
+      </Card>
+    </div>
+  );
+}
+
+export function Footer({ className }: { className?: string }) {
+  return (
+    <footer className={cn("cta-footer shrink-0 border-t border-brand-border/20 bg-brand-bg px-4 sm:px-6 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pt-3 sm:pb-[calc(1rem+env(safe-area-inset-bottom,0px))]", className)}>
+      <div className="mx-auto flex max-w-6xl flex-col items-center justify-center text-center">
+        <div className="footer-reveal">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/logo.png" alt="NAMI STUDIO" className="h-7 w-auto sm:h-9 md:h-10" />
+        </div>
+        <div className="footer-reveal mt-1.5 sm:mt-2.5 flex items-center justify-center gap-3 sm:gap-4 text-brand-text/70">
+          {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => (
+            <a
+              key={label}
+              href={href}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={label}
+              className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full transition-colors hover:text-brand-text"
+            >
+              <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            </a>
+          ))}
+        </div>
+      </div>
+    </footer>
+  );
+}
+
 export function CtaFooterSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
@@ -52,7 +118,7 @@ export function CtaFooterSection() {
         scrollTrigger: { trigger: ".cta-footer", start: "top 98%" },
       });
     },
-    { scope: containerRef, dependencies: [t], revertOnUpdate: true }
+    { scope: containerRef }
   );
 
   return (
@@ -61,59 +127,8 @@ export function CtaFooterSection() {
       id="booking"
       className="relative flex h-svh min-h-svh max-h-svh w-full flex-col justify-between overflow-hidden bg-brand-surface"
     >
-      <div className="flex flex-1 min-h-0 items-center justify-center px-4 sm:px-6 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-2 sm:pt-0 sm:py-8 md:py-10">
-        <Card variant="glass" className="cta-panel mx-auto w-full max-w-3xl rounded-[1.5rem] sm:rounded-[2rem] border-white/70 bg-white/60 p-4 sm:p-8 md:p-12 text-center shadow-xl backdrop-blur-xl">
-          <Heading as="h2" size="h2" className="cta-reveal font-bold text-xl sm:text-3xl md:text-4xl lg:text-5xl">
-            {t.cta.title}
-          </Heading>
-
-          <form onSubmit={(e) => e.preventDefault()} className="cta-reveal mx-auto mt-3.5 sm:mt-5 md:mt-6 grid max-w-md gap-2.5 sm:gap-3">
-            <Input placeholder={t.cta.name} autoComplete="name" className="h-10 sm:h-11 md:h-12 rounded-full border-brand-border/30 bg-white/80 px-4 sm:px-5 text-base" />
-            <Input type="tel" inputMode="tel" autoComplete="tel" placeholder={t.cta.phone} className="h-10 sm:h-11 md:h-12 rounded-full border-brand-border/30 bg-white/80 px-4 sm:px-5 text-base" />
-            <Button
-              type="submit"
-              variant="brand-primary"
-              size="lg"
-              className="h-10 sm:h-11 md:h-12 text-sm sm:text-base"
-            >
-              {t.cta.send}
-            </Button>
-          </form>
-
-          <div className="cta-reveal mt-3 flex justify-center gap-2.5 sm:mt-6 sm:gap-3">
-            {SOCIAL_LINKS.slice(0, 2).map(({ label, href, icon: Icon }) => (
-              <Button key={label} asChild variant="brand-outline-pill" size="sm" className="h-8 sm:h-9 text-xs sm:text-sm">
-                <a href={href} target="_blank" rel="noreferrer">
-                  <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> {label}
-                </a>
-              </Button>
-            ))}
-          </div>
-        </Card>
-      </div>
-
-      <footer className="cta-footer shrink-0 border-t border-brand-border/20 bg-brand-bg px-4 sm:px-6 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pt-3 sm:pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-center text-center">
-          <div className="footer-reveal">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/logo.png" alt="NAMI STUDIO" className="h-7 w-auto sm:h-9 md:h-10" />
-          </div>
-          <div className="footer-reveal mt-1.5 sm:mt-2.5 flex items-center justify-center gap-3 sm:gap-4 text-brand-text/70">
-            {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => (
-              <a
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={label}
-                className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full transition-colors hover:text-brand-text"
-              >
-                <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              </a>
-            ))}
-          </div>
-        </div>
-      </footer>
+      <CtaBlock />
+      <Footer />
     </section>
   );
 }

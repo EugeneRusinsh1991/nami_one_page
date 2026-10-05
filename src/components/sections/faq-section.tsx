@@ -29,7 +29,7 @@ export function FaqSection() {
         scrollTrigger: { trigger: ".faq-list", start: "top 80%" },
       });
     },
-    { scope: containerRef, dependencies: [t], revertOnUpdate: true }
+    { scope: containerRef }
   );
 
   return (
@@ -50,10 +50,10 @@ export function FaqSection() {
           type="single"
           collapsible
           defaultValue="item-0"
-          className="faq-list w-full max-h-[58svh] overflow-y-auto sm:max-h-none sm:overflow-visible pr-1 sm:pr-0 overscroll-contain"
+          className="faq-list w-full"
         >
           {t.faq.items.map((item, i) => (
-            <AccordionItem key={item.t} value={`item-${i}`} className="faq-item border-brand-border/30">
+            <AccordionItem key={i} value={`item-${i}`} className="faq-item border-brand-border/30">
               <AccordionTrigger className="py-2.5 sm:py-3.5 md:py-5 text-left font-heading text-sm sm:text-base md:text-lg font-semibold text-brand-text hover:no-underline">
                 {item.t}
               </AccordionTrigger>
