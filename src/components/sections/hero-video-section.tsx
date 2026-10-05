@@ -150,8 +150,8 @@ export function HeroVideoSection() {
         className="pointer-events-none absolute inset-0 z-0 isolate"
         style={{
           background: [
-            "radial-gradient(ellipse 75% 65% at 50% 50%, transparent 35%, rgba(248, 249, 251, 0.2) 70%, rgba(248, 249, 251, 0.5) 100%)",
-            "linear-gradient(to bottom, rgba(248, 249, 251, 0.85) 0%, rgba(248, 249, 251, 0.55) 14%, rgba(248, 249, 251, 0.22) 28%, rgba(248, 249, 251, 0.06) 42%, transparent 52%)",
+            "radial-gradient(ellipse 80% 70% at 50% 50%, transparent 40%, rgba(248, 249, 251, 0.15) 75%, rgba(248, 249, 251, 0.35) 100%)",
+            "linear-gradient(to bottom, rgba(248, 249, 251, 0.25) 0%, rgba(248, 249, 251, 0.08) 16%, transparent 36%)",
             "linear-gradient(to top, rgba(248, 249, 251, 0.35) 0%, transparent 12%)",
           ].join(", "),
         }}
@@ -175,7 +175,7 @@ export function HeroVideoSection() {
       </svg>
 
       {/* Slide 1 (Initial / Branding / CTAs) */}
-      <div className="hero-slide hero-slide-0 isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-svh min-h-svh max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center">
+      <div className="hero-slide hero-slide-0 isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-full min-h-[100dvh] max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/images/logo.png"
@@ -221,7 +221,7 @@ export function HeroVideoSection() {
 
       {/* Slide 2 (Craftsmanship & Precision) */}
       {slides[1] && (
-        <div className="hero-slide hero-slide-1 pointer-events-none isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-svh min-h-svh max-w-5xl flex-col items-center justify-center px-6 pt-[env(safe-area-inset-top,0px)] pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:py-0 text-center opacity-0">
+        <div className="hero-slide hero-slide-1 pointer-events-none isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-full min-h-[100dvh] max-w-5xl flex-col items-center justify-center px-6 pt-[env(safe-area-inset-top,0px)] pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:py-0 text-center opacity-0">
           <Heading
             as="h2"
             size="display"
@@ -236,7 +236,7 @@ export function HeroVideoSection() {
 
       {/* Slide 3 (Flawless Result - Heading above logo) */}
       {slides[2] && (
-        <div className="hero-slide hero-slide-2 pointer-events-none isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-svh min-h-svh max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center opacity-0">
+        <div className="hero-slide hero-slide-2 pointer-events-none isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-full min-h-[100dvh] max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center opacity-0">
           <Heading
             as="h2"
             size="display"
