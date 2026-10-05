@@ -1,7 +1,9 @@
 "use client";
 
 import { useRef } from "react";
+import { ArrowUpRight } from "lucide-react";
 import { gsap, useGSAP, prefersReducedMotion } from "@/lib/gsap";
+import { Button } from "@/components/ui/button";
 import { Card, MASTER_CARD_CONFIG } from "@/components/ui/card";
 import { MetricBadge } from "@/components/ui/metric-badge";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -42,6 +44,13 @@ export function MasterVideoSection() {
       data: t.studio,
       badges: BADGE_PLACEMENTS_2,
       mirrored: true,
+    },
+    {
+      id: "academy",
+      image: "/images/image (2).png",
+      data: t.academy,
+      badges: BADGE_PLACEMENTS,
+      mirrored: false,
     },
   ];
 
@@ -177,13 +186,31 @@ export function MasterVideoSection() {
               align={mirrored ? "left" : "right"}
               badge={data.label}
               title={data.title}
+              description={data.text && !data.text.startsWith("Lorem") ? data.text : undefined}
+              descriptionClassName="text-sm sm:text-base text-brand-text/75 mt-3 leading-relaxed"
               className={cn(
                 "master-copy shrink-0 max-w-md",
                 mirrored
                   ? "order-1 md:order-2 md:justify-self-start md:mr-auto"
                   : "order-1 md:order-1 md:justify-self-end md:ml-auto"
               )}
-            />
+            >
+              {data.link && (
+                <div className={cn("mt-5 flex w-full", mirrored ? "justify-start" : "justify-end")}>
+                  <Button asChild variant="brand-primary" size="default" className="hover:-translate-y-0.5 shadow-sm">
+                    <a
+                      href={data.link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2"
+                    >
+                      <span>{data.link.text}</span>
+                      <ArrowUpRight className="h-4 w-4" />
+                    </a>
+                  </Button>
+                </div>
+              )}
+            </SectionHeader>
 
             <div
               className={cn(

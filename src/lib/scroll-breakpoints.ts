@@ -130,9 +130,11 @@ function getPhilosophyEntry(): number | null {
 export function getMasterPoints(): number[] {
   const master = getSectionTop("master") ?? getSectionTop("master-1");
   const studio = getSectionTop("studio") ?? getSectionTop("master-2");
+  const academy = getSectionTop("academy");
   const points: number[] = [];
   if (master != null) points.push(master);
   if (studio != null) points.push(studio);
+  if (academy != null) points.push(academy);
   return points;
 }
 

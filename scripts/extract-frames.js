@@ -12,6 +12,8 @@ try {
 const videos = [
   {
     candidateNames: [
+      'video centered 2 .mp4',
+      'first baner centered.mp4',
       'nami video first.mp4',
       'baner 1.mp4',
       'banner 1.mp4',
@@ -20,7 +22,7 @@ const videos = [
     folderName: 'Banner.1',
     targetFrames: 120,
     fps: '20',
-    quality: 92,
+    quality: 95,
   },
   {
     candidateNames: [

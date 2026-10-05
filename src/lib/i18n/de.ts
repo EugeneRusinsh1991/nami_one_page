@@ -7,6 +7,7 @@ export const de: Dict = {
     works: "Arbeiten",
     master: "Master",
     studio: "Studio",
+    academy: "Akademie",
     faq: "FAQ",
     book: "Termin buchen",
   },
@@ -92,6 +93,22 @@ export const de: Dict = {
       { t: "VIP", d: "Suiten" },
       { t: "4.9★", d: "Bewertung" },
       { t: "120m²", d: "Raum" },
+    ],
+  },
+  academy: {
+    label: "AKADEMIE",
+    title: "Kunst & PMU-Technik",
+    text: "Exklusive Online-Kurse, persönliches Mentoring und praxisnahe Masterclasses für Permanent Make-up Artists auf jedem Niveau.",
+    link: {
+      text: "Zur Akademie",
+      href: "https://namipmu.com",
+    },
+    metrics: [
+      { t: "350+", d: "Absolventen" },
+      { t: "PRO", d: "Eigene Technik" },
+      { t: "1-on-1", d: "Persönliches Coaching" },
+      { t: "Int.", d: "Zertifikat & Diplom" },
+      { t: "100%", d: "Modell-Praxis" },
     ],
   },
   faq: {

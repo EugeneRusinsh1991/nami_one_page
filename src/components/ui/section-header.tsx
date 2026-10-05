@@ -86,6 +86,7 @@ export const SectionHeader = React.forwardRef<HTMLDivElement, SectionHeaderProps
       badgeClassName,
       descriptionClassName,
       className,
+      children,
       ...props
     },
     ref
@@ -135,6 +136,7 @@ export const SectionHeader = React.forwardRef<HTMLDivElement, SectionHeaderProps
             {description}
           </Text>
         )}
+        {children}
       </div>
     );
   }

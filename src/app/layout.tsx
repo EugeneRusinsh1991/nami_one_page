@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Montserrat } from "next/font/google";
+import { Geist, Geist_Mono, Montserrat, Cormorant_Garamond } from "next/font/google";
 import "lenis/dist/lenis.css";
 import "./globals.css";
 import { SmoothScrollProvider } from "@/components/providers/smooth-scroll-provider";
@@ -18,6 +18,13 @@ const geistMono = Geist_Mono({
 const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin", "cyrillic"],
+});
+
+const cormorant = Cormorant_Garamond({
+  variable: "--font-serif-accent",
+  subsets: ["latin", "cyrillic"],
+  style: ["italic"],
+  weight: ["500", "600"],
 });
 
 export const viewport: Viewport = {
@@ -39,7 +46,7 @@ export default function RootLayout({
   return (
     <html lang="uk" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} font-sans antialiased bg-[#F8F9FB] text-[#1A1F25] isolate relative`}
+        className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} ${cormorant.variable} font-sans antialiased bg-[#F8F9FB] text-[#1A1F25] isolate relative`}
         suppressHydrationWarning
       >
         <LanguageProvider>

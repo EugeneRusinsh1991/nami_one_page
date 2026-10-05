@@ -49,6 +49,8 @@ function getSlideTransform(
   return { opacity: 0, yPercent: -30, pointerEvents: "none" as const };
 }
 
+const ACCENT_CLASS = " font-[family-name:var(--font-serif-accent)] font-semibold italic tracking-normal text-[1.16em] leading-[0.9]";
+
 export function HeroVideoSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -135,8 +137,43 @@ export function HeroVideoSection() {
 
   return (
     <section ref={containerRef} id="hero" className="relative h-svh min-h-svh w-full overflow-hidden bg-brand-bg isolate">
-      <canvas ref={canvasRef} className="hero-video pointer-events-none absolute inset-0 h-full w-full will-change-transform transform-gpu" style={{ transform: "translate3d(0, 0, 0)" }} />
-      <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-b from-brand-bg/85 via-brand-bg/40 to-transparent isolate" />
+      <canvas
+        ref={canvasRef}
+        className="hero-video pointer-events-none absolute inset-0 h-full w-full will-change-transform transform-gpu"
+        style={{
+          transform: "translate3d(0, 0, 0)",
+          filter: "contrast(1.04) brightness(1.02)",
+        }}
+      />
+
+      {/* Smooth easing gradient + radial vignette */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0 isolate"
+        style={{
+          background: [
+            "radial-gradient(ellipse 75% 65% at 50% 50%, transparent 35%, rgba(248, 249, 251, 0.2) 70%, rgba(248, 249, 251, 0.5) 100%)",
+            "linear-gradient(to bottom, rgba(248, 249, 251, 0.85) 0%, rgba(248, 249, 251, 0.55) 14%, rgba(248, 249, 251, 0.22) 28%, rgba(248, 249, 251, 0.06) 42%, transparent 52%)",
+            "linear-gradient(to top, rgba(248, 249, 251, 0.35) 0%, transparent 12%)",
+          ].join(", "),
+        }}
+      />
+
+      {/* Procedural Film Grain for dithering & cinematic texture */}
+      <svg
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-0 h-full w-full opacity-[0.05] mix-blend-overlay will-change-transform transform-gpu"
+      >
+        <filter id="hero-grain">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.8"
+            numOctaves="3"
+            stitchTiles="stitch"
+          />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#hero-grain)" />
+      </svg>
 
       {/* Slide 1 (Initial / Branding / CTAs) */}
       <div className="hero-slide hero-slide-0 isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center">
@@ -150,11 +187,11 @@ export function HeroVideoSection() {
         <Heading
           as="h1"
           size="display"
-          className="min-h-[144px] md:min-h-0 [text-shadow:0_0_10px_rgba(248,249,251,0.9)] md:[text-shadow:0_0_12px_rgba(248,249,251,0.95),0_0_32px_rgba(248,249,251,0.85)]"
+          className="min-h-[144px] md:min-h-0 font-semibold tracking-[-0.025em] text-white [text-shadow:0_2px_16px_rgba(0,0,0,0.6)] relative before:pointer-events-none before:absolute before:-inset-x-[15%] before:-inset-y-[30%] before:-z-10 before:content-[''] before:bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.65),transparent_72%)] before:blur-2xl"
         >
           {slides[0].title.split(" ").map((word, i) => (
-            <span key={`${word}-${i}`} className="mr-[0.25em] inline-block overflow-hidden align-bottom">
-              <span className="hero-word inline-block">{word}</span>
+            <span key={`${word}-${i}`} className="block overflow-hidden px-[0.1em] py-[0.05em]">
+              <span className={`hero-word inline-block${i !== 1 ? ACCENT_CLASS : ""}`}>{word}</span>
             </span>
           ))}
         </Heading>
@@ -185,17 +222,19 @@ export function HeroVideoSection() {
 
       {/* Slide 2 (Craftsmanship & Precision) */}
       {slides[1] && (
-        <div className="hero-slide hero-slide-1 pointer-events-none isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center opacity-0">
-          <Badge variant="glass" className="mb-8">
+        <div className="hero-slide hero-slide-1 pointer-events-none isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-center px-6 pb-20 md:pb-0 text-center opacity-0">
+          <Badge variant="glass" className="mb-6 md:mb-8">
             {slides[1].badge}
           </Badge>
 
           <Heading
             as="h2"
             size="display"
-            className="[text-shadow:0_0_10px_rgba(248,249,251,0.9)] md:[text-shadow:0_0_12px_rgba(248,249,251,0.95),0_0_32px_rgba(248,249,251,0.85)]"
+            className="font-semibold tracking-[-0.025em] text-white [text-shadow:0_2px_16px_rgba(0,0,0,0.6)] relative before:pointer-events-none before:absolute before:-inset-x-[15%] before:-inset-y-[30%] before:-z-10 before:content-[''] before:bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.65),transparent_72%)] before:blur-2xl"
           >
-            {slides[1].title}
+            {slides[1].title.split(" ").map((word, i) => (
+              <span key={`${word}-${i}`} className={`block${i !== 0 ? ACCENT_CLASS : ""}`}>{word}</span>
+            ))}
           </Heading>
         </div>
       )}
@@ -205,7 +244,7 @@ export function HeroVideoSection() {
         <div className="hero-slide hero-slide-2 pointer-events-none isolate will-change-transform transform-gpu absolute inset-0 z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 safe-offset-mobile md:justify-center text-center opacity-0">
           <Badge
             variant="glass"
-            className="-translate-y-6 sm:-translate-y-24 md:-translate-y-32"
+            className="translate-y-[5.5rem] md:-translate-y-32"
           >
             {slides[2].badge}
           </Badge>

@@ -1,7 +1,7 @@
 import type { Dict } from "./types";
 
 export const en: Dict = {
-  nav: { philosophy: "Philosophy", technique: "Technique", works: "Works", master: "Master", studio: "Studio", faq: "FAQ", book: "Book Online" },
+  nav: { philosophy: "Philosophy", technique: "Technique", works: "Works", master: "Master", studio: "Studio", academy: "Academy", faq: "FAQ", book: "Book Online" },
   hero: {
     badge: "NAMI STUDIO · PMU",
     title: "The Art of Natural Permanent Makeup",
@@ -84,6 +84,22 @@ export const en: Dict = {
       { t: "VIP", d: "Private Suites" },
       { t: "4.9★", d: "Rating" },
       { t: "120m²", d: "Space" },
+    ],
+  },
+  academy: {
+    label: "ACADEMY",
+    title: "Artistry & PMU Technique",
+    text: "Signature online courses, one-on-one mentorship, and hands-on masterclasses designed for permanent makeup artists worldwide.",
+    link: {
+      text: "Explore Academy",
+      href: "https://namipmu.com",
+    },
+    metrics: [
+      { t: "350+", d: "Graduates" },
+      { t: "PRO", d: "Signature technique" },
+      { t: "1-on-1", d: "Personal coaching" },
+      { t: "Intl.", d: "Accredited diploma" },
+      { t: "100%", d: "Live model practice" },
     ],
   },
   faq: {

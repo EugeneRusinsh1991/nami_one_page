@@ -162,9 +162,44 @@ export function TechniqueVideoSection() {
   );
 
   return (
-    <section ref={containerRef} id="technique" className="relative h-svh min-h-svh w-full overflow-hidden bg-brand-surface">
-      <canvas ref={canvasRef} className="tech-video absolute inset-0 h-full w-full" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-brand-bg/85 via-brand-bg/30 to-transparent" />
+    <section ref={containerRef} id="technique" className="relative h-svh min-h-svh w-full overflow-hidden bg-brand-surface isolate">
+      <canvas
+        ref={canvasRef}
+        className="tech-video pointer-events-none absolute inset-0 h-full w-full will-change-transform transform-gpu"
+        style={{
+          transform: "translate3d(0, 0, 0)",
+          filter: "contrast(1.04) brightness(1.02)",
+        }}
+      />
+
+      {/* Smooth easing gradient + radial vignette */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0 isolate"
+        style={{
+          background: [
+            "radial-gradient(ellipse 75% 65% at 50% 50%, transparent 35%, rgba(248, 249, 251, 0.2) 70%, rgba(248, 249, 251, 0.5) 100%)",
+            "linear-gradient(to right, rgba(248, 249, 251, 0.82) 0%, rgba(248, 249, 251, 0.5) 22%, rgba(248, 249, 251, 0.18) 38%, rgba(248, 249, 251, 0.04) 50%, transparent 60%)",
+            "linear-gradient(to bottom, rgba(248, 249, 251, 0.7) 0%, rgba(248, 249, 251, 0.2) 18%, transparent 35%)",
+          ].join(", "),
+        }}
+      />
+
+      {/* Procedural Film Grain for dithering & cinematic texture */}
+      <svg
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-0 h-full w-full opacity-[0.05] mix-blend-overlay will-change-transform transform-gpu"
+      >
+        <filter id="tech-grain">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.8"
+            numOctaves="3"
+            stitchTiles="stitch"
+          />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#tech-grain)" />
+      </svg>
 
       <div className="relative z-10 mx-auto flex h-full max-w-6xl items-start px-6 safe-offset-mobile md:items-center">
         <div className="relative h-80 sm:h-96 w-full max-w-md sm:max-w-lg lg:max-w-xl">

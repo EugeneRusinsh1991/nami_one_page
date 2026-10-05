@@ -9,15 +9,15 @@ import type { Dict } from "@/lib/i18n/types";
 
 export type { Dict } from "@/lib/i18n/types";
 
-export type Locale = "uk" | "ru" | "en" | "de";
+export type Locale = "uk" | "ru" | "de" | "en";
 export const LOCALES: { code: Locale; label: string }[] = [
   { code: "uk", label: "UA" },
   { code: "ru", label: "RU" },
-  { code: "en", label: "EN" },
   { code: "de", label: "DE" },
+  { code: "en", label: "EN" },
 ];
 
-const dictionaries: Record<Locale, Dict> = { uk, ru, en, de };
+const dictionaries: Record<Locale, Dict> = { uk, ru, de, en };
 
 type Ctx = { locale: Locale; setLocale: (l: Locale) => void; t: Dict };
 const LanguageContext = createContext<Ctx | null>(null);

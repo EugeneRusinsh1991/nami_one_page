@@ -29,16 +29,21 @@ export interface ShowcaseSectionData {
   title: string;
   text: string;
   metrics: Pair[];
+  link?: {
+    text: string;
+    href: string;
+  };
 }
 
 export interface Dict {
-  nav: { philosophy: string; technique: string; works: string; master: string; studio: string; faq: string; book: string };
+  nav: { philosophy: string; technique: string; works: string; master: string; studio: string; academy: string; faq: string; book: string };
   hero: { badge: string; title: string; sub: string; cta1: string; cta2: string; scroll: string; slides: HeroSlide[] };
   philo: { label: string; title: string; cards: Pair[] };
   tech: { label: string; steps: Pair[] };
   port: { label: string; title: string; before: string; healed: string; cases: Pair[] };
   master: ShowcaseSectionData;
   studio: ShowcaseSectionData;
+  academy: ShowcaseSectionData;
   faq: { label: string; title: string; items: Pair[] };
   cta: {
     title: string;
