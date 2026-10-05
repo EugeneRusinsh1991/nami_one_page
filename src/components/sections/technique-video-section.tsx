@@ -150,7 +150,7 @@ export function TechniqueVideoSection() {
       const handle = createFrameScrub({
         canvas,
         trigger: container,
-        frameCount: 235,
+        frameCount: 160,
         framesPath: "/videos/exploded view/frames",
         distance: () => (isMobileWidth() ? 1600 : 3000),
         onProgress: applyProgress,

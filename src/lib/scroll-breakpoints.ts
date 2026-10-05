@@ -173,7 +173,7 @@ function getHandoffZones(pins: Record<string, { start: number; end: number }>): 
   return zones;
 }
 
-export const TECHNIQUE_STEP_POINTS = [0, 0.5, 0.7, 1.0] as const;
+export const TECHNIQUE_STEP_POINTS = [0, 1 / 3, 2 / 3, 1] as const;
 
 export function getScrollZones(forceRefresh = false): ScrollZone[] {
   if (forceRefresh) {
