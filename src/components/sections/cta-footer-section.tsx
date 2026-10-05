@@ -46,7 +46,6 @@ export function CtaBlock({ className }: { className?: string }) {
             size="lg"
             placeholder={t.cta.name}
             autoComplete="name"
-            className="cta-field"
           />
           <Input
             variant="pill"
@@ -55,13 +54,11 @@ export function CtaBlock({ className }: { className?: string }) {
             inputMode="tel"
             autoComplete="tel"
             placeholder={t.cta.phone}
-            className="cta-field"
           />
           <Button
             type="submit"
             variant="brand-primary"
             size="lg"
-            className="cta-field"
           >
             {t.cta.send}
           </Button>
@@ -108,12 +105,6 @@ export function CtaFooterSection() {
         y: 50,
         duration: 1,
         stagger: 0.12,
-      });
-      revealOnScroll(".cta-field", ".cta-panel", {
-        y: 16,
-        duration: 0.7,
-        stagger: 0.08,
-        delay: 0.4,
       });
       revealOnScroll(".footer-reveal", ".cta-footer", {
         y: 30,

@@ -9,7 +9,19 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/s
 import { LOCALES, useLanguage } from "@/components/providers/language-provider";
 import { useScrollTo } from "@/hooks/use-scroll-to";
 
-const LINKS = ["philosophy", "technique", "works", "master", "faq"] as const;
+interface NavItem {
+  id: string;
+  labelKey: "philosophy" | "technique" | "works" | "master" | "faq";
+}
+
+const NAV_ITEMS: readonly NavItem[] = [
+  { id: "philosophy", labelKey: "philosophy" },
+  { id: "technique", labelKey: "technique" },
+  { id: "works", labelKey: "works" },
+  { id: "master-1", labelKey: "master" },
+  { id: "master-2", labelKey: "master" },
+  { id: "faq", labelKey: "faq" },
+] as const;
 
 export function LanguageSwitcher({ className }: { className?: string }) {
   const { locale, setLocale } = useLanguage();
@@ -80,14 +92,14 @@ export function MobileHeroNav({ className }: { className?: string }) {
         <SheetContent side="right" className="bg-brand-bg">
           <SheetTitle className="sr-only">Menu</SheetTitle>
           <div className="mt-10 flex flex-col gap-6 font-heading text-2xl">
-            {LINKS.map((key) => (
+            {NAV_ITEMS.map((item) => (
               <button
-                key={key}
+                key={item.id}
                 type="button"
-                onClick={() => goTo(key)}
+                onClick={() => goTo(item.id)}
                 className="text-left transition-colors hover:text-brand-text/70"
               >
-                {t.nav[key]}
+                {t.nav[item.labelKey]}
               </button>
             ))}
             <Button
@@ -151,7 +163,7 @@ export function Navbar() {
           clearProps: "transform,opacity",
         });
 
-        LINKS.forEach((id) => {
+        NAV_ITEMS.forEach(({ id }) => {
           const el = document.getElementById(id);
           if (el) {
             ScrollTrigger.create({
@@ -190,21 +202,21 @@ export function Navbar() {
         </button>
 
         <nav className="flex items-center gap-4 lg:gap-7">
-          {LINKS.map((key) => (
+          {NAV_ITEMS.map((item) => (
             <button
-              key={key}
+              key={item.id}
               type="button"
-              onClick={() => goTo(key)}
+              onClick={() => goTo(item.id)}
               className={cn(
                 "group relative text-sm text-brand-text/80 transition-colors hover:text-brand-text",
-                activeId === key && "text-brand-text"
+                activeId === item.id && "text-brand-text"
               )}
             >
-              {t.nav[key]}
+              {t.nav[item.labelKey]}
               <span
                 className={cn(
                   "absolute -bottom-1 left-0 h-px bg-brand-text transition-all duration-300",
-                  activeId === key ? "w-full" : "w-0 group-hover:w-full"
+                  activeId === item.id ? "w-full" : "w-0 group-hover:w-full"
                 )}
               />
             </button>

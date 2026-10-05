@@ -52,7 +52,7 @@ function revealOnScroll(
     stagger,
     delay,
     ease: "power3.out",
-    clearProps: "transform",
+    clearProps: "transform,opacity",
     scrollTrigger: {
       trigger,
       start,

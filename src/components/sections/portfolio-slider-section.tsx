@@ -72,13 +72,15 @@ export function PortfolioSliderSection() {
         MASTER_CARD_CONFIG.sectionPadding
       )}
     >
-      <div className={cn("port-head mx-auto flex w-full max-w-6xl shrink-0 items-end justify-between px-6", MASTER_CARD_CONFIG.headerMargin)}>
+      <div className={cn("port-head mx-auto flex w-full max-w-6xl shrink-0 items-end justify-between gap-3 px-6", MASTER_CARD_CONFIG.headerMargin)}>
         <SectionHeader
           badge={t.port.label}
           title={t.port.title}
+          className="min-w-0 flex-1 shrink pr-2 sm:pr-4"
+          titleClassName="break-words"
         />
 
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3 self-end mb-1 lg:mb-0">
           <span className="port-counter shrink-0 whitespace-nowrap font-mono text-xs tracking-widest text-brand-text/60">
             {String(activeIndex + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
           </span>

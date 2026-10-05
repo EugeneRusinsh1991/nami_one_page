@@ -119,12 +119,14 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
       else scrollToDomIndex(getClosestCardIndex());
     };
 
+    let isMouseDragging = false;
+    let isTouchActive = false;
     let snapTimeout = 0;
     const scheduleSnap = () => {
-      if (isPointerDown) return;
+      if (isMouseDragging || isTouchActive) return;
       window.clearTimeout(snapTimeout);
       snapTimeout = window.setTimeout(() => {
-        if (!isPointerDown && smoothRaf === 0) settle();
+        if (!isMouseDragging && !isTouchActive && smoothRaf === 0) settle();
       }, 140);
     };
 
@@ -153,14 +155,13 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
       updateActiveCard();
     };
 
-    let isPointerDown = false;
     let startX = 0;
     let startScrollLeft = 0;
     let hasMoved = false;
 
     const onPointerDown = (e: PointerEvent) => {
       if (e.pointerType !== "mouse" || e.button !== 0) return;
-      isPointerDown = true;
+      isMouseDragging = true;
       hasMoved = false;
       startX = e.clientX;
       startScrollLeft = track.scrollLeft;
@@ -172,7 +173,7 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
     };
 
     const onPointerMove = (e: PointerEvent) => {
-      if (!isPointerDown) return;
+      if (!isMouseDragging || e.pointerType !== "mouse") return;
       const dx = e.clientX - startX;
       if (Math.abs(dx) > 4) {
         hasMoved = true;
@@ -181,16 +182,16 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
       }
     };
 
-    const onPointerUp = () => {
-      if (!isPointerDown) return;
-      isPointerDown = false;
+    const onPointerUp = (e: PointerEvent) => {
+      if (!isMouseDragging || (e.pointerType && e.pointerType !== "mouse")) return;
+      isMouseDragging = false;
       if (hasMoved) {
         scrollToDomIndex(getClosestCardIndex());
       }
     };
 
     const onTouchStart = () => {
-      isPointerDown = true;
+      isTouchActive = true;
       window.clearTimeout(snapTimeout);
       if (smoothRaf) {
         cancelAnimationFrame(smoothRaf);
@@ -200,7 +201,7 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
     };
 
     const onTouchEnd = () => {
-      isPointerDown = false;
+      isTouchActive = false;
       scheduleSnap();
     };
 
@@ -224,7 +225,7 @@ export function usePortfolioSlider({ total, locale }: UsePortfolioSliderOptions)
     };
 
     const onScrollEnd = () => {
-      if (!isPointerDown && smoothRaf === 0) {
+      if (!isMouseDragging && !isTouchActive && smoothRaf === 0) {
         window.clearTimeout(snapTimeout);
         settle();
       }

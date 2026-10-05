@@ -11,7 +11,7 @@ export const MASTER_CARD_CONFIG = {
   radius: "rounded-2xl md:rounded-3xl",
   sectionPadding: "pt-[calc(1.25rem+env(safe-area-inset-top,0px))] sm:pt-[calc(2rem+env(safe-area-inset-top,0px))] md:pt-20 lg:pt-24 pb-0 md:pb-6",
   headerMargin: "mb-2 sm:mb-3 md:mb-4",
-  mediaPadding: "py-1.5 sm:py-2",
+  mediaPadding: "py-2.5 sm:py-2",
   bottomBarPadding: "pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pt-3 md:pb-0",
 } as const;
 
