@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, useGSAP } from "@/lib/gsap";
+import { gsap, useGSAP, prefersReducedMotion } from "@/lib/gsap";
 import { createFrameScrub } from "@/lib/frame-scrub";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,11 +60,24 @@ export function HeroVideoSection() {
 
   useGSAP(
     () => {
+      if (prefersReducedMotion()) return;
       const intro = gsap.timeline({ defaults: { ease: "power3.out" } });
       intro
         .from(".hero-badge", { y: 20, opacity: 0, duration: 0.8, delay: 0.4 })
         .from(".hero-word", { yPercent: 110, opacity: 0, duration: 1.1, stagger: 0.08 }, "-=0.4")
         .from(".hero-cta", { y: 24, opacity: 0, duration: 0.8, stagger: 0.12 }, "-=0.6");
+    },
+    { scope: containerRef }
+  );
+
+  useGSAP(
+    () => {
+      if (prefersReducedMotion()) return;
+      gsap.fromTo(
+        ".hero-scroll-line",
+        { scaleY: 0.35, transformOrigin: "top" },
+        { scaleY: 1, duration: 1.2, ease: "sine.inOut", repeat: -1, yoyo: true }
+      );
     },
     { scope: containerRef }
   );
@@ -78,7 +91,7 @@ export function HeroVideoSection() {
       const handle = createFrameScrub({
         canvas,
         trigger: container,
-        frameCount: 240,
+        frameCount: 120,
         framesPath: "/videos/Banner.1/frames",
         distance: () => (isMobileWidth() ? 1600 : 2600),
         onProgress: (p) => {
@@ -86,9 +99,27 @@ export function HeroVideoSection() {
           const s1 = getSlideTransform(p, 0.15, 0.35, 0.65, 0.85);
           const s2 = getSlideTransform(p, 0.65, 0.85, 1.05, 1.05);
 
-          gsap.set(".hero-slide-0", { opacity: s0.opacity, yPercent: s0.yPercent, pointerEvents: s0.pointerEvents, force3D: true });
-          gsap.set(".hero-slide-1", { opacity: s1.opacity, yPercent: s1.yPercent, pointerEvents: s1.pointerEvents, force3D: true });
-          gsap.set(".hero-slide-2", { opacity: s2.opacity, yPercent: s2.yPercent, pointerEvents: s2.pointerEvents, force3D: true });
+          gsap.set(".hero-slide-0", {
+            opacity: s0.opacity,
+            yPercent: s0.yPercent,
+            scale: 0.96 + 0.04 * s0.opacity,
+            pointerEvents: s0.pointerEvents,
+            force3D: true,
+          });
+          gsap.set(".hero-slide-1", {
+            opacity: s1.opacity,
+            yPercent: s1.yPercent,
+            scale: 0.96 + 0.04 * s1.opacity,
+            pointerEvents: s1.pointerEvents,
+            force3D: true,
+          });
+          gsap.set(".hero-slide-2", {
+            opacity: s2.opacity,
+            yPercent: s2.yPercent,
+            scale: 0.96 + 0.04 * s2.opacity,
+            pointerEvents: s2.pointerEvents,
+            force3D: true,
+          });
           gsap.set(".hero-scroll", { opacity: Math.max(0, 1 - p * 12) });
         },
       });
@@ -180,9 +211,9 @@ export function HeroVideoSection() {
           </Badge>
         </div>
       )}
-      <div className="hero-scroll pointer-events-none absolute inset-x-0 bottom-[calc(8.5rem+env(safe-area-inset-bottom))] z-10 flex flex-col items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.3em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] animate-pulse md:bottom-36 lg:bottom-40">
+      <div className="hero-scroll pointer-events-none absolute inset-x-0 bottom-[calc(8.5rem+env(safe-area-inset-bottom))] z-10 flex flex-col items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.3em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] md:bottom-36 lg:bottom-40">
         <span className="select-none [text-shadow:0_1px_8px_rgba(0,0,0,0.8)]">{t.hero.scroll}</span>
-        <span className="h-10 w-0.5 rounded-full bg-white/95 shadow-[0_0_8px_rgba(255,255,255,0.7)]" />
+        <span className="hero-scroll-line h-10 w-0.5 rounded-full bg-white/95 shadow-[0_0_8px_rgba(255,255,255,0.7)]" />
       </div>
     </section>
   );

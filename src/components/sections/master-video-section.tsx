@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, useGSAP } from "@/lib/gsap";
-import { Card } from "@/components/ui/card";
+import { gsap, useGSAP, prefersReducedMotion } from "@/lib/gsap";
+import { Card, MASTER_CARD_CONFIG } from "@/components/ui/card";
 import { MetricBadge } from "@/components/ui/metric-badge";
 import { SectionHeader } from "@/components/ui/section-header";
 import { useLanguage } from "@/components/providers/language-provider";
@@ -62,6 +62,41 @@ export function MasterVideoSection() {
           });
         }
 
+        if (!prefersReducedMotion()) {
+          gsap.to(block.querySelectorAll(".master-decor"), {
+            yPercent: 12,
+            ease: "none",
+            scrollTrigger: { trigger: block, start: "top bottom", end: "bottom top", scrub: true },
+          });
+          gsap.to(block.querySelectorAll(".master-dots"), {
+            yPercent: -20,
+            ease: "none",
+            scrollTrigger: { trigger: block, start: "top bottom", end: "bottom top", scrub: true },
+          });
+        }
+
+        const rings = block.querySelectorAll(".master-ring");
+        if (rings.length > 0) {
+          if (!prefersReducedMotion()) {
+            gsap.fromTo(
+              rings,
+              { scale: 0.92, opacity: 0, xPercent: -50, yPercent: -50 },
+              {
+                scale: 1,
+                opacity: 1,
+                xPercent: -50,
+                yPercent: -50,
+                duration: 1.2,
+                ease: "power3.out",
+                stagger: 0.12,
+                scrollTrigger: { trigger: media ?? block, start: "top 80%", once: true },
+              }
+            );
+          } else {
+            gsap.set(rings, { xPercent: -50, yPercent: -50 });
+          }
+        }
+
         const cards = block.querySelectorAll<HTMLElement>(".master-badge-card");
         if (cards.length > 0) {
           gsap.fromTo(
@@ -97,7 +132,35 @@ export function MasterVideoSection() {
           id={id}
           className="master-block relative flex h-svh min-h-svh max-h-svh w-full items-center justify-center overflow-hidden bg-brand-surface px-4 sm:px-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:py-12 md:py-16"
         >
-          <div className="mx-auto flex h-full max-h-full w-full max-w-6xl flex-col justify-center gap-6 sm:gap-8 md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center">
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <div
+              className={cn(
+                "master-decor absolute -top-24 h-72 w-72 rounded-full bg-brand-bg blur-3xl sm:h-96 sm:w-96",
+                mirrored ? "-right-20" : "-left-20"
+              )}
+            />
+            <div
+              className={cn(
+                "master-decor absolute -bottom-24 h-72 w-72 rounded-full bg-brand-elevated/70 blur-3xl sm:h-96 sm:w-96",
+                mirrored ? "-left-20" : "-right-20"
+              )}
+            />
+            <div
+              className={cn(
+                "master-dots absolute top-[8%] hidden h-32 w-32 opacity-40 [background-image:radial-gradient(#7C8794_1.5px,transparent_1.5px)] [background-size:14px_14px] sm:block sm:h-40 sm:w-40",
+                mirrored ? "left-4 sm:left-10" : "right-4 sm:right-10"
+              )}
+            />
+            <span
+              className={cn(
+                "absolute bottom-2 hidden select-none whitespace-nowrap text-[8rem] font-bold uppercase leading-none tracking-tighter text-brand-accent/20 sm:block lg:text-[12rem]",
+                mirrored ? "right-3 sm:right-10" : "left-3 sm:left-10"
+              )}
+            >
+              {t.master.label}
+            </span>
+          </div>
+          <div className="relative mx-auto flex h-full max-h-full w-full max-w-6xl flex-col justify-center gap-6 sm:gap-8 md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center">
             <SectionHeader
               align={mirrored ? "left" : "right"}
               badge={t.master.label}
@@ -118,10 +181,22 @@ export function MasterVideoSection() {
                   : "order-2 md:order-2"
               )}
             >
-              <div className="master-portrait relative h-[52svh] sm:h-[58svh] md:h-[62svh] lg:h-[68svh] max-h-[580px] aspect-[9/14] sm:aspect-[3/5] shrink-0 transform-gpu">
+              <div
+                className={cn(
+                  "master-portrait relative transform-gpu",
+                  MASTER_CARD_CONFIG.container,
+                  "h-auto aspect-[3/4] w-[68vw] sm:w-[46vw] md:w-[34vw] lg:w-[28vw] max-w-[440px]"
+                )}
+              >
+                <div aria-hidden className="master-ring pointer-events-none absolute left-1/2 top-1/2 h-[118%] w-[118%] rounded-[3rem] border border-brand-border/25 sm:rounded-[4rem]" />
+                <div aria-hidden className="master-ring pointer-events-none absolute left-1/2 top-1/2 h-[136%] w-[136%] rounded-[4rem] border border-brand-border/15 sm:rounded-[5rem]" />
                 <Card
                   variant="elevated"
-                  className="absolute inset-0 overflow-hidden rounded-2xl md:rounded-3xl shadow-2xl"
+                  className={cn(
+                    "absolute inset-0 overflow-hidden",
+                    MASTER_CARD_CONFIG.radius,
+                    MASTER_CARD_CONFIG.shadow
+                  )}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img

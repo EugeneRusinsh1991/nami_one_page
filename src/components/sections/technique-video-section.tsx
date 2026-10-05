@@ -114,6 +114,7 @@ export function TechniqueVideoSection() {
             gsap.set(stepEl, {
               opacity: s.opacity,
               y: s.y,
+              scale: 0.98 + 0.02 * s.opacity,
               pointerEvents: s.isActive ? "auto" : "none",
               force3D: true,
             });
@@ -137,7 +138,7 @@ export function TechniqueVideoSection() {
       const handle = createFrameScrub({
         canvas,
         trigger: container,
-        frameCount: 470,
+        frameCount: 235,
         framesPath: "/videos/exploded view/frames",
         distance: () => (isMobileWidth() ? 1600 : 3000),
         onProgress: applyProgress,

@@ -2,6 +2,8 @@
 
 import { useCallback } from "react";
 import { useLenis } from "@/components/providers/smooth-scroll-provider";
+import { ScrollTrigger } from "@/lib/gsap";
+import { runSceneTransition } from "./scene-transition";
 
 export interface ScrollToOptions {
   duration?: number;
@@ -26,6 +28,19 @@ export function useScrollTo(): UseScrollToReturn {
   const scrollToTarget = useCallback(
     (target: number | HTMLElement, options?: ScrollToOptions) => {
       if (typeof window === "undefined") return;
+
+      if (lenis && !options?.immediate) {
+        void runSceneTransition(() => {
+          lenis.scrollTo(target, {
+            offset: options?.offset,
+            immediate: true,
+            force: true,
+          });
+          ScrollTrigger.update();
+          options?.onComplete?.();
+        });
+        return;
+      }
 
       if (lenis) {
         lenis.scrollTo(target, {

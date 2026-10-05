@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Menu } from "lucide-react";
-import { gsap, useGSAP } from "@/lib/gsap";
+import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -108,6 +108,7 @@ export function Navbar() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const { t } = useLanguage();
   const { scrollToId, scrollToTop } = useScrollTo();
 
@@ -149,6 +150,19 @@ export function Navbar() {
           delay: 0.3,
           clearProps: "transform,opacity",
         });
+
+        LINKS.forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) {
+            ScrollTrigger.create({
+              trigger: el,
+              start: "top 50%",
+              end: "bottom 50%",
+              onToggle: (self) =>
+                setActiveId((prev) => (self.isActive ? id : prev === id ? null : prev)),
+            });
+          }
+        });
       });
       return () => mm.revert();
     },
@@ -181,10 +195,18 @@ export function Navbar() {
               key={key}
               type="button"
               onClick={() => goTo(key)}
-              className="group relative text-sm text-brand-text/80 transition-colors hover:text-brand-text"
+              className={cn(
+                "group relative text-sm text-brand-text/80 transition-colors hover:text-brand-text",
+                activeId === key && "text-brand-text"
+              )}
             >
               {t.nav[key]}
-              <span className="absolute -bottom-1 left-0 h-px w-0 bg-brand-text transition-all duration-300 group-hover:w-full" />
+              <span
+                className={cn(
+                  "absolute -bottom-1 left-0 h-px bg-brand-text transition-all duration-300",
+                  activeId === key ? "w-full" : "w-0 group-hover:w-full"
+                )}
+              />
             </button>
           ))}
         </nav>

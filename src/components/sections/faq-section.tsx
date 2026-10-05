@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, useGSAP } from "@/lib/gsap";
+import { revealOnScroll, useGSAP } from "@/lib/gsap";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Text } from "@/components/ui/typography";
@@ -13,20 +13,11 @@ export function FaqSection() {
 
   useGSAP(
     () => {
-      gsap.from(".faq-head", {
-        y: 40,
-        opacity: 0,
-        duration: 1,
-        ease: "power3.out",
-        scrollTrigger: { trigger: ".faq-head", start: "top 85%" },
-      });
-      gsap.from(".faq-item", {
+      revealOnScroll(".faq-head", ".faq-head", { y: 40, duration: 1 });
+      revealOnScroll(".faq-item", ".faq-list", {
         y: 30,
-        opacity: 0,
-        duration: 0.8,
         stagger: 0.1,
-        ease: "power3.out",
-        scrollTrigger: { trigger: ".faq-list", start: "top 80%" },
+        start: "top 80%",
       });
     },
     { scope: containerRef }
@@ -54,7 +45,7 @@ export function FaqSection() {
         >
           {t.faq.items.map((item, i) => (
             <AccordionItem key={i} value={`item-${i}`} className="faq-item border-brand-border/30">
-              <AccordionTrigger className="py-2.5 sm:py-3.5 md:py-5 text-left font-heading text-sm sm:text-base md:text-lg font-semibold text-brand-text hover:no-underline">
+              <AccordionTrigger className="py-2.5 sm:py-3.5 md:py-5 text-left font-heading text-sm sm:text-base md:text-lg font-semibold text-brand-text transition-colors hover:text-brand-text/70 hover:no-underline">
                 {item.t}
               </AccordionTrigger>
               <AccordionContent className="pb-2.5 pt-0 sm:pb-4">

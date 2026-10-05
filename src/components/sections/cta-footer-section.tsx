@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { Send, Instagram } from "lucide-react";
-import { gsap, useGSAP } from "@/lib/gsap";
+import { revealOnScroll, useGSAP } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -46,6 +46,7 @@ export function CtaBlock({ className }: { className?: string }) {
             size="lg"
             placeholder={t.cta.name}
             autoComplete="name"
+            className="cta-field"
           />
           <Input
             variant="pill"
@@ -54,11 +55,13 @@ export function CtaBlock({ className }: { className?: string }) {
             inputMode="tel"
             autoComplete="tel"
             placeholder={t.cta.phone}
+            className="cta-field"
           />
           <Button
             type="submit"
             variant="brand-primary"
             size="lg"
+            className="cta-field"
           >
             {t.cta.send}
           </Button>
@@ -84,7 +87,7 @@ export function Footer({ className }: { className?: string }) {
               target="_blank"
               rel="noreferrer"
               aria-label={label}
-              className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full transition-colors hover:text-brand-text"
+              className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full transition-colors hover:text-brand-text hover:-translate-y-0.5"
             >
               <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </a>
@@ -101,21 +104,21 @@ export function CtaFooterSection() {
 
   useGSAP(
     () => {
-      gsap.from(".cta-reveal", {
+      revealOnScroll(".cta-reveal", ".cta-panel", {
         y: 50,
-        opacity: 0,
         duration: 1,
         stagger: 0.12,
-        ease: "power3.out",
-        scrollTrigger: { trigger: ".cta-panel", start: "top 85%" },
       });
-      gsap.from(".footer-reveal", {
+      revealOnScroll(".cta-field", ".cta-panel", {
+        y: 16,
+        duration: 0.7,
+        stagger: 0.08,
+        delay: 0.4,
+      });
+      revealOnScroll(".footer-reveal", ".cta-footer", {
         y: 30,
-        opacity: 0,
-        duration: 0.9,
         stagger: 0.1,
-        ease: "power3.out",
-        scrollTrigger: { trigger: ".cta-footer", start: "top 98%" },
+        start: "top 98%",
       });
     },
     { scope: containerRef }

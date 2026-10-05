@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { Droplets, Fingerprint, Ruler, Sparkles } from "lucide-react";
-import { gsap, useGSAP } from "@/lib/gsap";
+import { gsap, prefersReducedMotion, revealOnScroll, useGSAP } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Card } from "@/components/ui/card";
@@ -53,36 +53,20 @@ export function PhilosophySection() {
 
   useGSAP(
     () => {
-      gsap.fromTo(
-        ".philo-head",
-        { y: 30, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.9,
-          ease: "power3.out",
-          scrollTrigger: { trigger: ".philo-head", start: "top 85%", once: true },
-        }
-      );
-      gsap.fromTo(
-        ".philo-card",
-        { y: 40, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.9,
-          ease: "power3.out",
-          stagger: 0.08,
-          force3D: true,
-          scrollTrigger: { trigger: ".philo-grid", start: "top 85%", once: true },
-        }
-      );
-      gsap.to(".philo-img", {
-        yPercent: -6,
-        ease: "none",
-        force3D: true,
-        scrollTrigger: { trigger: ".philo-grid", start: "top bottom", end: "bottom top", scrub: true },
+      revealOnScroll(".philo-head", ".philo-head", { y: 30 });
+      revealOnScroll(".philo-card", ".philo-grid", {
+        y: 40,
+        scale: 0.97,
+        stagger: 0.08,
       });
+      if (!prefersReducedMotion()) {
+        gsap.to(".philo-img", {
+          yPercent: -6,
+          ease: "none",
+          force3D: true,
+          scrollTrigger: { trigger: ".philo-grid", start: "top bottom", end: "bottom top", scrub: true },
+        });
+      }
     },
     { scope: containerRef }
   );
@@ -109,7 +93,7 @@ export function PhilosophySection() {
                 key={i}
                 variant="surface"
                 className={cn(
-                  "philo-card will-change-transform transform-gpu group relative flex flex-col justify-between p-2.5 sm:p-4 md:p-6 lg:p-7",
+                  "philo-card will-change-transform transform-gpu group relative flex flex-col justify-between p-2.5 sm:p-4 md:p-6 lg:p-7 transition-shadow duration-500 hover:shadow-xl",
                   SPANS[i]
                 )}
               >

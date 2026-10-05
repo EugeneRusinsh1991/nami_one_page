@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, MASTER_CARD_CONFIG } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Heading, Text } from "@/components/ui/typography";
+import { gsap, useGSAP, revealOnScroll, prefersReducedMotion } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/language-provider";
 import {
@@ -21,12 +22,40 @@ export { computeSliderMetrics, IMAGES };
 
 export function PortfolioSliderSection() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { t } = useLanguage();
+  const isFirstRender = useRef(true);
+  const { locale, t } = useLanguage();
 
   const cases = t.port.cases;
   const total = cases.length;
 
-  const { trackRef, activeIndex, navigate, goTo } = usePortfolioSlider({ total });
+  const { trackRef, activeIndex, navigate, goTo } = usePortfolioSlider({ total, locale });
+
+  useGSAP(
+    () => {
+      if (!containerRef.current) return;
+      revealOnScroll(".port-head", containerRef.current, { y: 24 });
+      revealOnScroll(".port-track", containerRef.current, { y: 40, delay: 0.15 });
+      revealOnScroll(".port-dots", containerRef.current, { y: 16, delay: 0.3 });
+    },
+    { scope: containerRef }
+  );
+
+  useGSAP(
+    () => {
+      if (isFirstRender.current) {
+        isFirstRender.current = false;
+        return;
+      }
+      if (prefersReducedMotion()) return;
+
+      gsap.fromTo(
+        ".port-counter",
+        { y: 6, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }
+      );
+    },
+    { dependencies: [activeIndex], scope: containerRef }
+  );
 
   const slides = [
     ...cases.map((item, originalIndex) => ({ item, originalIndex, copyIndex: 0 })),
@@ -43,14 +72,14 @@ export function PortfolioSliderSection() {
         MASTER_CARD_CONFIG.sectionPadding
       )}
     >
-      <div className={cn("mx-auto flex w-full max-w-6xl shrink-0 items-end justify-between px-6", MASTER_CARD_CONFIG.headerMargin)}>
+      <div className={cn("port-head mx-auto flex w-full max-w-6xl shrink-0 items-end justify-between px-6", MASTER_CARD_CONFIG.headerMargin)}>
         <SectionHeader
           badge={t.port.label}
           title={t.port.title}
         />
 
         <div className="flex items-center gap-3">
-          <span className="shrink-0 whitespace-nowrap font-mono text-xs tracking-widest text-brand-text/60">
+          <span className="port-counter shrink-0 whitespace-nowrap font-mono text-xs tracking-widest text-brand-text/60">
             {String(activeIndex + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
           </span>
           <div className="hidden items-center gap-1.5 lg:flex">
@@ -78,7 +107,7 @@ export function PortfolioSliderSection() {
         ref={trackRef}
         data-lenis-prevent-horizontal="true"
         className={cn(
-          "flex min-h-0 flex-1 w-full items-stretch gap-4 sm:gap-6 md:gap-8 overflow-x-auto overflow-y-hidden px-[9vw] sm:px-[12vw] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overscroll-x-contain",
+          "port-track relative flex min-h-0 flex-1 w-full items-center gap-4 sm:gap-6 md:gap-8 overflow-x-auto overflow-y-hidden px-[9vw] sm:px-[12vw] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overscroll-x-contain",
           MASTER_CARD_CONFIG.mediaPadding
         )}
         style={{
@@ -89,12 +118,13 @@ export function PortfolioSliderSection() {
       >
         {slides.map(({ item, originalIndex, copyIndex }) => (
           <Card
-            key={`${item.t}-${copyIndex}-${originalIndex}`}
+            key={`${copyIndex}-${originalIndex}`}
             data-orig-index={originalIndex}
             variant="surface"
             className={cn(
-              "port-card group relative cursor-pointer select-none shadow-lg hover:shadow-2xl data-[active=true]:shadow-2xl touch-pan-x touch-pan-y",
-              MASTER_CARD_CONFIG.container
+              "port-card group relative cursor-pointer select-none self-center snap-center opacity-60 shadow-lg data-[active=true]:opacity-100 data-[active=true]:border-brand-text/50 data-[active=true]:shadow-2xl data-[active=true]:ring-2 data-[active=true]:ring-brand-text/40 touch-pan-x touch-pan-y transition-[transform,opacity,box-shadow,border-color] duration-500 ease-out",
+              MASTER_CARD_CONFIG.container,
+              "h-full scale-[0.93] data-[active=true]:scale-100"
             )}
             style={{ touchAction: "pan-x pan-y" }}
           >
@@ -104,7 +134,7 @@ export function PortfolioSliderSection() {
                 src={IMAGES[originalIndex % IMAGES.length]}
                 alt={item.t}
                 draggable={false}
-                className="port-img pointer-events-none select-none absolute inset-y-0 -left-[8%] h-full w-[116%] max-w-none object-cover grayscale transition-[filter,transform] duration-500 group-hover:scale-105 group-hover:grayscale-0 group-data-[active=true]:scale-105 group-data-[active=true]:grayscale-0"
+                className="port-img pointer-events-none select-none absolute inset-y-0 -left-[8%] h-full w-[116%] max-w-none object-cover grayscale transition-[filter,transform] duration-500 group-data-[active=true]:scale-105 group-data-[active=true]:grayscale-0"
               />
             </div>
             <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-brand-text/70 via-transparent to-transparent" />
@@ -124,7 +154,7 @@ export function PortfolioSliderSection() {
 
       <div
         className={cn(
-          "mx-auto flex w-full max-w-6xl shrink-0 items-center justify-center gap-1.5",
+          "port-dots mx-auto flex w-full max-w-6xl shrink-0 items-center justify-center gap-1.5",
           MASTER_CARD_CONFIG.bottomBarPadding
         )}
       >
