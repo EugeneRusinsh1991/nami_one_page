@@ -42,7 +42,19 @@ export function CtaBlock({ className }: { className?: string }) {
         </p>
 
         <div className="cta-reveal mt-3 sm:mt-5">
-          <BookingCalendar />
+          <BookingCalendar
+            onBookingSubmitted={async (data) => {
+              const res = await fetch("/api/booking", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+              });
+              if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || "Failed to send");
+              }
+            }}
+          />
         </div>
       </div>
     </div>

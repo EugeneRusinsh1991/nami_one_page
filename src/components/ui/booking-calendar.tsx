@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight, Clock, CheckCircle2, X, AlertCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, CheckCircle2, X, AlertCircle, Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,11 +30,25 @@ export interface BookingCalendarProps {
 const HOURS: readonly number[] = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
 const MAX_SLOTS = 3;
 
-const NEXT_BUTTON_LABELS: Record<string, string> = {
-  ru: "Далее",
-  uk: "Далі",
-  en: "Next",
-  de: "Weiter",
+const GO_TO_CALENDAR_LABELS: Record<string, string> = {
+  ru: "Перейти в календарь",
+  uk: "Перейти до календаря",
+  en: "Go to calendar",
+  de: "Zum Kalender",
+};
+
+const CHANGE_TIME_LABELS: Record<string, string> = {
+  ru: "Изменить время в календаре",
+  uk: "Змінити час у календарі",
+  en: "Change time in calendar",
+  de: "Termin im Kalender ändern",
+};
+
+const CONFIRM_TIME_LABELS: Record<string, string> = {
+  ru: "Готово",
+  uk: "Готово",
+  en: "Done",
+  de: "Fertig",
 };
 
 
@@ -192,7 +206,7 @@ export function BookingCalendar({ className, onBookingSubmitted }: BookingCalend
     e.preventDefault();
     setErrorMessage(null);
 
-    if (!clientName.trim() || clientPhone.trim().length < 6) {
+    if (!clientName.trim() || clientPhone.trim().length < 3) {
       setErrorMessage(cal.validationErrorRequired);
       return;
     }
@@ -218,8 +232,9 @@ export function BookingCalendar({ className, onBookingSubmitted }: BookingCalend
       setClientName("");
       setClientPhone("");
       setStep(1);
-    } catch {
-      setErrorMessage("Ошибка отправки. Попробуйте еще раз.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Ошибка отправки. Попробуйте еще раз.";
+      setErrorMessage(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -227,16 +242,131 @@ export function BookingCalendar({ className, onBookingSubmitted }: BookingCalend
 
   return (
     <div className={cn("mx-auto w-full max-w-[17rem] sm:max-w-md text-brand-text", className)}>
-      <div key={step} className="flex h-[24rem] flex-col gap-3 animate-in fade-in slide-in-from-right-4 duration-300">
+      <div key={step} className="flex h-[24rem] flex-col gap-3 animate-in fade-in duration-300">
         {step === 1 ? (
-          <>
+          <form onSubmit={handleSubmit} className="flex h-full flex-col justify-between">
+            <div className="flex flex-col gap-3">
+              {/* Contact Inputs */}
+              <div className="flex flex-col gap-2.5">
+                <Input
+                  className="h-11 text-base sm:text-sm"
+                  variant="pill"
+                  size="default"
+                  placeholder={cal.nameLabel}
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  autoComplete="name"
+                />
+                <Input
+                  className="h-11 text-base sm:text-sm"
+                  variant="pill"
+                  size="default"
+                  type="text"
+                  placeholder={cal.phoneLabel}
+                  value={clientPhone}
+                  onChange={(e) => setClientPhone(e.target.value)}
+                  autoComplete="tel"
+                />
+              </div>
+
+              {/* Removable chips list if slots are already picked */}
+              {selectedSlots.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-xs font-medium text-brand-text/70">{cal.selectedSlotsTitle}:</span>
+                    <button
+                      type="button"
+                      onClick={handleClearAll}
+                      className="text-xs text-brand-text/60 hover:text-brand-text underline transition-colors cursor-pointer"
+                    >
+                      {cal.clearAll}
+                    </button>
+                  </div>
+                  <div className="flex max-h-[7rem] flex-col gap-1.5 overflow-y-auto pr-0.5">
+                    {selectedSlots.map((s) => (
+                      <span
+                        key={`${s.dateStr}-${s.hour}`}
+                        className="flex h-9 w-full shrink-0 items-center gap-2 rounded-full border border-brand-border/40 bg-white/90 px-3.5 text-xs sm:text-sm font-medium text-brand-text shadow-sm"
+                      >
+                        <Clock className="h-3.5 w-3.5 shrink-0 text-brand-text/60" />
+                        <span className="flex-1 truncate">{s.formattedDate} · {s.formattedTime}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSlot(s.dateStr, s.hour)}
+                          className="ml-0.5 rounded-full p-0.5 text-brand-text/50 hover:bg-brand-text/10 hover:text-brand-text transition-colors cursor-pointer"
+                          aria-label="Remove slot"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Error message */}
+              <div className="flex min-h-4 items-center gap-1.5 px-3 text-xs text-red-600">
+                {errorMessage && (
+                  <>
+                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{errorMessage}</span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Buttons: 1. Submit, 2. Calendar link */}
+            <div className="flex flex-col gap-2 pt-2">
+              <Button
+                type="submit"
+                variant="brand-primary"
+                size="lg"
+                disabled={isSubmitting}
+                className="w-full h-11"
+              >
+                {isSubmitting ? cal.submittingButton : cal.submitButton}
+              </Button>
+
+              <Button
+                type="button"
+                variant="brand-glass"
+                size="lg"
+                className="w-full h-11 flex items-center justify-center gap-2"
+                onClick={() => {
+                  setErrorMessage(null);
+                  setStep(2);
+                }}
+              >
+                <CalendarIcon className="h-4 w-4" />
+                <span>
+                  {selectedSlots.length > 0
+                    ? (CHANGE_TIME_LABELS[locale] ?? "Изменить время в календаре")
+                    : (GO_TO_CALENDAR_LABELS[locale] ?? "Перейти в календарь")}
+                </span>
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <div className="flex h-full flex-col justify-between">
             {/* Monthly Calendar */}
             <div>
-              {/* Calendar Header */}
+              {/* Calendar Header with Back Button */}
               <div className="mb-2 flex items-center justify-between">
-                <h3 className="font-heading text-base font-semibold tracking-tight text-brand-text">
-                  {cal.months[viewDate.getMonth()]} {viewDate.getFullYear()}
-                </h3>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    type="button"
+                    variant="icon-glass"
+                    size="icon-sm"
+                    onClick={() => setStep(1)}
+                    aria-label="Back"
+                    className="h-8 w-8"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <h3 className="font-heading text-base font-semibold tracking-tight text-brand-text">
+                    {cal.months[viewDate.getMonth()]} {viewDate.getFullYear()}
+                  </h3>
+                </div>
                 <div className="flex items-center gap-1">
                   <Button
                     type="button"
@@ -314,9 +444,13 @@ export function BookingCalendar({ className, onBookingSubmitted }: BookingCalend
               </div>
             </div>
 
-            {/* Step 1 Confirm Bar */}
+            {/* Step 2 Confirm Bar */}
             <div className="flex flex-col items-center gap-1.5">
-              <span className="text-xs text-brand-text/50">{cal.noSlotsChosen}</span>
+              <span className="text-xs text-brand-text/50">
+                {selectedSlots.length > 0
+                  ? `${cal.selectedSlotsTitle}: ${selectedSlots.length} ${cal.slotsCount}`
+                  : cal.noSlotsChosen}
+              </span>
               <Button
                 type="button"
                 variant="brand-primary"
@@ -324,109 +458,13 @@ export function BookingCalendar({ className, onBookingSubmitted }: BookingCalend
                 className="w-full h-11 flex items-center justify-center gap-1.5"
                 onClick={() => {
                   setErrorMessage(null);
-                  setStep(2);
+                  setStep(1);
                 }}
               >
-                <span>{NEXT_BUTTON_LABELS[locale] ?? "Далі"}</span>
+                <span>{CONFIRM_TIME_LABELS[locale] ?? "Готово"}</span>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-          </>
-        ) : (
-          <div className="flex flex-col gap-4">
-            {/* Top row */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="icon-glass"
-                  size="icon-sm"
-                  onClick={() => setStep(1)}
-                  aria-label="Back"
-                  className="h-8 w-8"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <h3 className="font-heading text-base font-semibold tracking-tight text-brand-text">
-                  {cal.selectedSlotsTitle}
-                </h3>
-              </div>
-              {selectedSlots.length > 0 && (
-                <button
-                  type="button"
-                  onClick={handleClearAll}
-                  className="text-xs text-brand-text/60 hover:text-brand-text underline transition-colors cursor-pointer"
-                >
-                  {cal.clearAll}
-                </button>
-              )}
-            </div>
-
-            {/* Removable chips list */}
-            <div className="flex h-[8.5rem] shrink-0 flex-col gap-2">
-              {selectedSlots.map((s) => (
-                <span
-                  key={`${s.dateStr}-${s.hour}`}
-                  className="flex h-10 w-full shrink-0 items-center gap-2 rounded-full border border-brand-border/40 bg-white/90 px-4 text-sm font-medium text-brand-text shadow-sm"
-                >
-                  <Clock className="h-3.5 w-3.5 shrink-0 text-brand-text/60" />
-                  <span className="flex-1 truncate">{s.formattedDate} · {s.formattedTime}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveSlot(s.dateStr, s.hour)}
-                    className="ml-0.5 rounded-full p-0.5 text-brand-text/50 hover:bg-brand-text/10 hover:text-brand-text transition-colors cursor-pointer"
-                    aria-label="Remove slot"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
-            </div>
-
-            {/* Contact Inputs & Submit */}
-            <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
-              <div className="flex flex-col gap-2">
-                <Input
-                  className="h-11 text-base sm:text-sm"
-                  variant="pill"
-                  size="default"
-                  placeholder={cal.nameLabel}
-                  value={clientName}
-                  onChange={(e) => setClientName(e.target.value)}
-                  autoComplete="name"
-                />
-                <Input
-                  className="h-11 text-base sm:text-sm"
-                  variant="pill"
-                  size="default"
-                  type="tel"
-                  inputMode="tel"
-                  placeholder={cal.phoneLabel}
-                  value={clientPhone}
-                  onChange={(e) => setClientPhone(e.target.value)}
-                  autoComplete="tel"
-                />
-              </div>
-
-              <div className="flex h-4 items-center gap-1.5 px-3 text-xs text-red-600">
-                {errorMessage && (
-                  <>
-                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                    <span className="truncate">{errorMessage}</span>
-                  </>
-                )}
-              </div>
-
-              <Button
-                type="submit"
-                variant="brand-primary"
-                size="lg"
-                disabled={isSubmitting}
-                className="w-full h-11"
-              >
-                {isSubmitting ? cal.submittingButton : cal.submitButton}
-              </Button>
-            </form>
           </div>
         )}
       </div>

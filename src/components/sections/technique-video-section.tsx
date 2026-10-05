@@ -151,7 +151,7 @@ export function TechniqueVideoSection() {
         canvas,
         trigger: container,
         frameCount: 160,
-        framesPath: "/videos/exploded view/frames",
+        framesPath: "/videos/Banner.2/frames",
         distance: () => (isMobileWidth() ? 1600 : 3000),
         onProgress: applyProgress,
       });
