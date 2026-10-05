@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Eyebrow, Heading, Text } from "@/components/ui/typography";
 import { useLanguage } from "@/components/providers/language-provider";
-import { useBreakpoint } from "@/hooks/use-breakpoint";
+import { isMobileWidth } from "@/hooks/use-breakpoint";
 
 const STEP_COUNT = 4;
 const COLOR_ACTIVE = "#1A1F25";
@@ -36,21 +36,24 @@ export function calculateStepTransformState(
   }
 
   const p = Math.max(0, Math.min(1, progress));
-  const currentStep = Math.min(totalSteps - 1, Math.floor(p * totalSteps));
+  const intervals = totalSteps - 1;
+  const currentStep = Math.min(intervals, Math.max(0, Math.round(p * intervals)));
   const isActive = stepIndex === currentStep;
 
-  const stepSize = 1 / totalSteps;
-  const fade = stepSize * 0.32;
+  const intervalSize = 1 / intervals;
+  const fade = intervalSize * 0.4;
   const halfFade = fade / 2;
 
   const isFirst = stepIndex === 0;
-  const isLast = stepIndex === totalSteps - 1;
+  const isLast = stepIndex === intervals;
 
-  const enterStart = isFirst ? -1 : stepIndex * stepSize - halfFade;
-  const enterEnd = isFirst ? -1 : stepIndex * stepSize + halfFade;
+  const enterMid = (stepIndex - 0.5) / intervals;
+  const enterStart = isFirst ? -1 : enterMid - halfFade;
+  const enterEnd = isFirst ? -1 : enterMid + halfFade;
 
-  const exitStart = isLast ? 2 : (stepIndex + 1) * stepSize - halfFade;
-  const exitEnd = isLast ? 2 : (stepIndex + 1) * stepSize + halfFade;
+  const exitMid = (stepIndex + 0.5) / intervals;
+  const exitStart = isLast ? 2 : exitMid - halfFade;
+  const exitEnd = isLast ? 2 : exitMid + halfFade;
 
   const Y_OFFSET = 20;
 
@@ -88,7 +91,6 @@ export function TechniqueVideoSection() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
-  const { isMobile } = useBreakpoint();
 
   useGSAP(
     () => {
@@ -137,17 +139,17 @@ export function TechniqueVideoSection() {
         trigger: container,
         frameCount: 470,
         framesPath: "/videos/exploded view/frames",
-        distance: () => (isMobile ? 1600 : 3000),
+        distance: () => (isMobileWidth() ? 1600 : 3000),
         onProgress: applyProgress,
       });
 
       return () => handle.destroy();
     },
-    { scope: containerRef, dependencies: [t, isMobile], revertOnUpdate: true }
+    { scope: containerRef, dependencies: [t], revertOnUpdate: true }
   );
 
   return (
-    <section ref={containerRef} id="technique" className="relative h-dvh min-h-dvh w-full overflow-hidden bg-brand-surface">
+    <section ref={containerRef} id="technique" className="relative h-svh min-h-svh w-full overflow-hidden bg-brand-surface">
       <canvas ref={canvasRef} className="tech-video absolute inset-0 h-full w-full" />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-brand-bg/85 via-brand-bg/30 to-transparent" />
 
@@ -160,13 +162,13 @@ export function TechniqueVideoSection() {
             <Card
               key={step.t}
               variant="glass"
-              className={`tech-step tech-step-${i} absolute inset-0 flex flex-col justify-center p-8 ${i > 0 ? "pointer-events-none opacity-0" : ""}`}
+              className={`tech-step tech-step-${i} absolute inset-0 flex flex-col justify-center p-6 sm:p-8 ${i > 0 ? "pointer-events-none opacity-0" : ""}`}
             >
-              <Eyebrow accent className="mb-3">0{i + 1} / 0{STEP_COUNT}</Eyebrow>
-              <Heading as="h2" size="h2" className="mb-3 text-2xl sm:text-3xl">
+              <Eyebrow accent className="mb-2 sm:mb-3">0{i + 1} / 0{STEP_COUNT}</Eyebrow>
+              <Heading as="h2" size="h2" className="mb-2 text-xl sm:mb-3 sm:text-2xl md:text-3xl">
                 {step.t}
               </Heading>
-              <Text>{step.d}</Text>
+              <Text className="text-sm leading-relaxed sm:text-base">{step.d}</Text>
             </Card>
           ))}
         </div>
@@ -180,7 +182,7 @@ export function TechniqueVideoSection() {
           ))}
         </div>
 
-        <div ref={progressRef} className="absolute inset-x-6 bottom-10 mx-auto max-w-6xl">
+        <div ref={progressRef} className="absolute inset-x-6 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] mx-auto max-w-6xl md:bottom-10">
           <Progress value={0} className="h-px bg-brand-elevated [&>div]:bg-brand-text [&>div]:transition-none" />
         </div>
       </div>

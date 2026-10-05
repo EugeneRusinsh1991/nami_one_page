@@ -1,13 +1,10 @@
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { BREAKPOINTS } from "@/hooks/use-breakpoint";
+import { createFrameCache, isLowMemoryDevice } from "./frame-cache";
 
 const LERP = 0.45;
-const KEY_STEP = 16;
-const CONCURRENCY = 4;
 const MAX_DPR = 2;
 const MOBILE_MAX_DPR = 1.5;
-const MAX_CACHED_FRAMES = 36;
-const WINDOW_RADIUS = 16;
 
 export interface FrameScrubOptions {
   canvas: HTMLCanvasElement;
@@ -24,27 +21,6 @@ export interface FrameScrubHandle {
   destroy: () => void;
 }
 
-const frameUrl = (path: string, n: number) => `${encodeURI(path)}/frame_${String(n).padStart(4, "0")}.webp`;
-
-function buildInitialOrder(count: number): number[] {
-  const order: number[] = [];
-  const seen = new Set<number>();
-  const add = (n: number) => {
-    if (n >= 1 && n <= count && !seen.has(n)) {
-      seen.add(n);
-      order.push(n);
-    }
-  };
-
-  // Immediate first frames for instant cover display
-  for (let i = 1; i <= Math.min(count, 10); i++) add(i);
-  // Sparse keyframes across timeline
-  for (let i = KEY_STEP; i <= count; i += KEY_STEP) add(i);
-  add(count);
-
-  return order;
-}
-
 export function createFrameScrub({
   canvas,
   trigger,
@@ -55,191 +31,31 @@ export function createFrameScrub({
   snap,
 }: FrameScrubOptions): FrameScrubHandle {
   const ctx = canvas.getContext("2d", { alpha: false });
-  const frames = new Map<number, HTMLImageElement>();
-  const pendingLoads = new Map<number, Promise<HTMLImageElement | null>>();
-  let queue: number[] = buildInitialOrder(frameCount);
-  let activeWorkers = 0;
-  let destroyed = false;
-
-  const evictFrame = (n: number) => {
-    if (n === 1 || n === frameCount) return;
-    const img = frames.get(n);
-    if (!img) return;
-    img.onload = null;
-    img.onerror = null;
-    img.src = "";
-    frames.delete(n);
-  };
-
-  const pruneCache = (center: number) => {
-    if (frames.size <= MAX_CACHED_FRAMES) return;
-
-    const evictable: { index: number; dist: number }[] = [];
-    for (const key of frames.keys()) {
-      if (key === 1 || key === frameCount) continue;
-      const dist = Math.abs(key - center);
-      if (dist > WINDOW_RADIUS) {
-        evictable.push({ index: key, dist });
-      }
-    }
-
-    evictable.sort((a, b) => b.dist - a.dist);
-
-    for (const item of evictable) {
-      if (frames.size <= MAX_CACHED_FRAMES) break;
-      evictFrame(item.index);
-    }
-  };
-
   let target = 0;
   let smoothed = 0;
   let lastDrawnIndex = -1;
-  let lastPrioritizedCenter = -1;
   let scrollDirection = 1;
   let needsRedraw = true;
+  let destroyed = false;
+  let isTickerActive = false;
+
+  const lowMemory = isLowMemoryDevice();
+  const frameCache = createFrameCache({
+    frameCount,
+    framesPath,
+    getCurrentTarget: () => smoothed * (frameCount - 1) + 1,
+    onFrameLoaded: (n) => {
+      const currentTarget = Math.round(Math.min(frameCount, Math.max(1, smoothed * (frameCount - 1) + 1)));
+      if (Math.abs(n - currentTarget) <= Math.abs(lastDrawnIndex - currentTarget)) {
+        needsRedraw = true;
+      }
+    },
+  });
 
   const configureContext = () => {
     if (!ctx) return;
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
-  };
-
-  const resize = () => {
-    const isMobile = typeof window !== "undefined" && window.innerWidth < BREAKPOINTS.md;
-    const maxDpr = isMobile ? MOBILE_MAX_DPR : MAX_DPR;
-    const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
-    const parent = canvas.parentElement;
-    const displayWidth = parent ? parent.clientWidth : (canvas.clientWidth || (typeof window !== "undefined" ? window.innerWidth : BREAKPOINTS.md));
-    const displayHeight = parent ? parent.clientHeight : (canvas.clientHeight || window.innerHeight);
-    const w = Math.max(1, Math.round(displayWidth * dpr));
-    const h = Math.max(1, Math.round(displayHeight * dpr));
-
-    // Guard against vertical address-bar jitter on mobile touch devices
-    const isHeightOnlyJitter = canvas.width === w && canvas.height > 0 && Math.abs(canvas.height - h) <= 120 * dpr;
-    if (isHeightOnlyJitter) return;
-
-    if (canvas.width !== w || canvas.height !== h) {
-      canvas.width = w;
-      canvas.height = h;
-      configureContext();
-      needsRedraw = true;
-      render(smoothed * (frameCount - 1) + 1);
-    }
-  };
-
-  const load = (n: number): Promise<HTMLImageElement | null> => {
-    if (destroyed) return Promise.resolve(null);
-    const cached = frames.get(n);
-    if (cached) return Promise.resolve(cached);
-    const existing = pendingLoads.get(n);
-    if (existing) return existing;
-
-    const promise = new Promise<HTMLImageElement | null>((resolve) => {
-      const img = new Image();
-      img.decoding = "async";
-      img.src = frameUrl(framesPath, n);
-
-      const onDecoded = () => {
-        if (destroyed) {
-          img.src = "";
-          resolve(null);
-          return;
-        }
-        frames.set(n, img);
-        const currentTarget = Math.round(Math.min(frameCount, Math.max(1, smoothed * (frameCount - 1) + 1)));
-        pruneCache(currentTarget);
-        if (Math.abs(n - currentTarget) <= Math.abs(lastDrawnIndex - currentTarget)) {
-          needsRedraw = true;
-        }
-        resolve(img);
-      };
-
-      if (typeof img.decode === "function") {
-        img
-          .decode()
-          .then(onDecoded)
-          .catch(() => {
-            img.onload = onDecoded;
-            img.onerror = () => resolve(null);
-          });
-      } else {
-        (img as HTMLImageElement).onload = onDecoded;
-        (img as HTMLImageElement).onerror = () => resolve(null);
-      }
-    }).finally(() => {
-      pendingLoads.delete(n);
-    });
-
-    pendingLoads.set(n, promise);
-    return promise;
-  };
-
-  const pumpQueue = () => {
-    while (!destroyed && activeWorkers < CONCURRENCY && queue.length > 0) {
-      const next = queue.shift();
-      if (next === undefined) break;
-      if (frames.has(next) || pendingLoads.has(next)) continue;
-
-      activeWorkers++;
-      load(next).then(() => {
-        activeWorkers--;
-        pumpQueue();
-      });
-    }
-  };
-
-  const prioritizeWindow = (center: number) => {
-    const rounded = Math.round(center);
-    if (Math.abs(rounded - lastPrioritizedCenter) < 2) return;
-    lastPrioritizedCenter = rounded;
-
-    const urgent: number[] = [];
-    for (let offset = 0; offset <= WINDOW_RADIUS; offset++) {
-      const fwd = rounded + offset;
-      if (fwd <= frameCount && !frames.has(fwd) && !pendingLoads.has(fwd)) urgent.push(fwd);
-      if (offset > 0) {
-        const back = rounded - offset;
-        if (back >= 1 && !frames.has(back) && !pendingLoads.has(back)) urgent.push(back);
-      }
-    }
-
-    if (urgent.length > 0) {
-      const urgentSet = new Set(urgent);
-      queue = [
-        ...urgent,
-        ...queue.filter((n) => !urgentSet.has(n) && (n === 1 || n % KEY_STEP === 0 || Math.abs(n - rounded) <= WINDOW_RADIUS * 2)),
-      ];
-      pumpQueue();
-    }
-
-    pruneCache(rounded);
-  };
-
-  const findBestFrame = (targetIndex: number, direction: number = scrollDirection): number => {
-    if (frames.has(targetIndex)) return targetIndex;
-
-    // Direction-aware search to prevent stroboscopic jumps (forward/backward oscillation).
-    // When scrolling forward (direction >= 0), prefer frames <= targetIndex to maintain monotonicity.
-    // When scrolling backward (direction < 0), prefer frames >= targetIndex.
-    if (direction >= 0) {
-      for (let i = targetIndex - 1; i >= 1; i--) {
-        if (frames.has(i)) return i;
-      }
-      for (let i = targetIndex + 1; i <= frameCount; i++) {
-        if (frames.has(i)) return i;
-      }
-    } else {
-      for (let i = targetIndex + 1; i <= frameCount; i++) {
-        if (frames.has(i)) return i;
-      }
-      for (let i = targetIndex - 1; i >= 1; i--) {
-        if (frames.has(i)) return i;
-      }
-    }
-
-    return lastDrawnIndex >= 1 && lastDrawnIndex <= frameCount && frames.has(lastDrawnIndex)
-      ? lastDrawnIndex
-      : 1;
   };
 
   const drawFrameCover = (img: HTMLImageElement) => {
@@ -263,15 +79,38 @@ export function createFrameScrub({
     const clamped = Math.min(frameCount, Math.max(1, floatIndex));
     const targetIndex = Math.round(clamped);
 
-    const frameIndex = frames.has(targetIndex) ? targetIndex : findBestFrame(targetIndex, direction);
+    const frameIndex = frameCache.findBestFrame(targetIndex, direction, lastDrawnIndex);
     if (frameIndex === lastDrawnIndex && !needsRedraw) return;
 
-    const img = frames.get(frameIndex);
+    const img = frameCache.get(frameIndex);
     if (!img) return;
 
     drawFrameCover(img);
     lastDrawnIndex = frameIndex;
     needsRedraw = false;
+  };
+
+  const resize = () => {
+    const isMobile = typeof window !== "undefined" && window.innerWidth < BREAKPOINTS.md;
+    const maxDpr = isMobile || lowMemory ? MOBILE_MAX_DPR : MAX_DPR;
+    const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+    const parent = canvas.parentElement;
+    const displayWidth = parent ? parent.clientWidth : (canvas.clientWidth || (typeof window !== "undefined" ? window.innerWidth : BREAKPOINTS.md));
+    const displayHeight = parent ? parent.clientHeight : (canvas.clientHeight || window.innerHeight);
+    const w = Math.max(1, Math.round(displayWidth * dpr));
+    const h = Math.max(1, Math.round(displayHeight * dpr));
+
+    // Guard against vertical address-bar jitter on mobile touch devices
+    const isHeightOnlyJitter = canvas.width === w && canvas.height > 0 && Math.abs(canvas.height - h) <= 120 * dpr;
+    if (isHeightOnlyJitter) return;
+
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+      configureContext();
+      needsRedraw = true;
+      render(smoothed * (frameCount - 1) + 1);
+    }
   };
 
   const tick = () => {
@@ -299,11 +138,9 @@ export function createFrameScrub({
     }
 
     const currentFloat = smoothed * (frameCount - 1) + 1;
-    prioritizeWindow(currentFloat);
+    frameCache.prioritizeWindow(currentFloat);
     render(currentFloat, scrollDirection);
   };
-
-  let isTickerActive = false;
 
   const startTicker = () => {
     if (destroyed || isTickerActive) return;
@@ -332,8 +169,9 @@ export function createFrameScrub({
             startTicker();
           } else {
             stopTicker();
+            if (lowMemory) frameCache.trimCache();
           }
-        })
+        }, { rootMargin: "100% 0px" })
       : null;
 
   if (intersectionObserver) {
@@ -342,12 +180,12 @@ export function createFrameScrub({
     startTicker();
   }
 
-  load(1).then(() => {
+  frameCache.load(1).then(() => {
     if (!destroyed) {
       needsRedraw = true;
       render(1);
       onProgress?.(smoothed);
-      pumpQueue();
+      frameCache.pumpQueue();
     }
   });
 
@@ -370,7 +208,6 @@ export function createFrameScrub({
     },
   });
 
-  // Align initial progress with trigger position
   target = scrollTrigger.progress;
   smoothed = scrollTrigger.progress;
   onProgress?.(smoothed);
@@ -384,14 +221,9 @@ export function createFrameScrub({
       intersectionObserver?.disconnect();
       window.removeEventListener("resize", resize);
       scrollTrigger.kill();
-      pendingLoads.clear();
-      queue = [];
-      frames.forEach((img) => {
-        img.onload = null;
-        img.onerror = null;
-        img.src = "";
-      });
-      frames.clear();
+      frameCache.destroy();
+      canvas.width = 0;
+      canvas.height = 0;
     },
   };
 }

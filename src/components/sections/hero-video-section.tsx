@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/typography";
 import { MobileHeroNav } from "@/components/layout/navbar";
 import { useLanguage } from "@/components/providers/language-provider";
-import { useBreakpoint } from "@/hooks/use-breakpoint";
+import { isMobileWidth } from "@/hooks/use-breakpoint";
 import { useScrollTo } from "@/hooks/use-scroll-to";
 
 function smoothstep(min: number, max: number, value: number) {
@@ -53,7 +53,6 @@ export function HeroVideoSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { t } = useLanguage();
-  const { isMobile } = useBreakpoint();
   const { scrollToId } = useScrollTo();
   const slides = t.hero.slides || [
     { badge: t.hero.badge, title: t.hero.title, sub: t.hero.sub },
@@ -81,11 +80,11 @@ export function HeroVideoSection() {
         trigger: container,
         frameCount: 240,
         framesPath: "/videos/Banner.1/frames",
-        distance: () => (isMobile ? 1600 : 2600),
+        distance: () => (isMobileWidth() ? 1600 : 2600),
         onProgress: (p) => {
-          const s0 = getSlideTransform(p, -1, -1, 0.14, 0.38);
-          const s1 = getSlideTransform(p, 0.22, 0.42, 0.58, 0.78);
-          const s2 = getSlideTransform(p, 0.62, 0.82, 1.05, 1.05);
+          const s0 = getSlideTransform(p, -1, -1, 0.15, 0.35);
+          const s1 = getSlideTransform(p, 0.15, 0.35, 0.65, 0.85);
+          const s2 = getSlideTransform(p, 0.65, 0.85, 1.05, 1.05);
 
           gsap.set(".hero-slide-0", { opacity: s0.opacity, yPercent: s0.yPercent, pointerEvents: s0.pointerEvents, force3D: true });
           gsap.set(".hero-slide-1", { opacity: s1.opacity, yPercent: s1.yPercent, pointerEvents: s1.pointerEvents, force3D: true });
@@ -96,7 +95,7 @@ export function HeroVideoSection() {
 
       return () => handle.destroy();
     },
-    { scope: containerRef, dependencies: [t, isMobile], revertOnUpdate: true }
+    { scope: containerRef, dependencies: [t], revertOnUpdate: true }
   );
 
   const goTo = (id: string) => {
@@ -104,7 +103,7 @@ export function HeroVideoSection() {
   };
 
   return (
-    <section ref={containerRef} id="hero" className="relative h-dvh min-h-dvh w-full overflow-hidden bg-brand-bg">
+    <section ref={containerRef} id="hero" className="relative h-svh min-h-svh w-full overflow-hidden bg-brand-bg">
       <canvas ref={canvasRef} className="hero-video absolute inset-0 h-full w-full" />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-brand-bg/85 via-brand-bg/40 to-transparent" />
 
@@ -120,7 +119,7 @@ export function HeroVideoSection() {
         <Heading
           as="h1"
           size="display"
-          className="[filter:drop-shadow(0_0_12px_rgba(248,249,251,0.95))_drop-shadow(0_0_32px_rgba(248,249,251,0.85))]"
+          className="[filter:drop-shadow(0_0_10px_rgba(248,249,251,0.9))] md:[filter:drop-shadow(0_0_12px_rgba(248,249,251,0.95))_drop-shadow(0_0_32px_rgba(248,249,251,0.85))]"
         >
           {slides[0].title.split(" ").map((word, i) => (
             <span key={`${word}-${i}`} className="mr-[0.25em] inline-block overflow-hidden align-bottom">
@@ -163,7 +162,7 @@ export function HeroVideoSection() {
           <Heading
             as="h2"
             size="display"
-            className="[filter:drop-shadow(0_0_12px_rgba(248,249,251,0.95))_drop-shadow(0_0_32px_rgba(248,249,251,0.85))]"
+            className="[filter:drop-shadow(0_0_10px_rgba(248,249,251,0.9))] md:[filter:drop-shadow(0_0_12px_rgba(248,249,251,0.95))_drop-shadow(0_0_32px_rgba(248,249,251,0.85))]"
           >
             {slides[1].title}
           </Heading>

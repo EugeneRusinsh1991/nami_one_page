@@ -36,29 +36,29 @@ export function FaqSection() {
     <section
       ref={containerRef}
       id="faq"
-      className="relative flex h-dvh min-h-dvh w-full items-start justify-center sm:items-center overflow-hidden bg-brand-bg px-6 pt-[calc(2rem+env(safe-area-inset-top,0px))] pb-[calc(2rem+env(safe-area-inset-bottom,0px))] sm:py-12 md:py-16"
+      className="relative flex h-svh min-h-svh max-h-svh w-full items-center justify-center overflow-hidden bg-brand-bg px-4 sm:px-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:py-12 md:py-16"
     >
-      <div className="mx-auto grid w-full max-w-6xl items-center gap-6 sm:gap-8 md:grid-cols-[1fr_1.4fr] md:gap-12">
+      <div className="mx-auto flex h-full max-h-full w-full max-w-6xl flex-col justify-center gap-4 sm:gap-8 md:grid md:grid-cols-[1fr_1.4fr] md:gap-12 md:items-center">
         <SectionHeader
           align="right"
           badge={t.faq.label}
           title={t.faq.title}
-          className="faq-head md:justify-self-end md:ml-auto max-w-md"
+          className="faq-head shrink-0 md:justify-self-end md:ml-auto max-w-md"
         />
 
         <Accordion
           type="single"
           collapsible
           defaultValue="item-0"
-          className="faq-list w-full"
+          className="faq-list w-full max-h-[58svh] overflow-y-auto sm:max-h-none sm:overflow-visible pr-1 sm:pr-0 overscroll-contain"
         >
           {t.faq.items.map((item, i) => (
             <AccordionItem key={item.t} value={`item-${i}`} className="faq-item border-brand-border/30">
-              <AccordionTrigger className="py-4 md:py-5 text-left font-heading text-base md:text-lg font-semibold text-brand-text hover:no-underline">
+              <AccordionTrigger className="py-2.5 sm:py-3.5 md:py-5 text-left font-heading text-sm sm:text-base md:text-lg font-semibold text-brand-text hover:no-underline">
                 {item.t}
               </AccordionTrigger>
-              <AccordionContent>
-                <Text variant="subtle" className="text-sm md:text-base">
+              <AccordionContent className="pb-2.5 pt-0 sm:pb-4">
+                <Text variant="subtle" className="text-xs sm:text-sm md:text-base leading-relaxed">
                   {item.d}
                 </Text>
               </AccordionContent>

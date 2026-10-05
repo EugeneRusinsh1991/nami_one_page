@@ -27,7 +27,7 @@ export function MetricBadge({
       <div className={cn("font-heading text-base font-bold text-brand-text sm:text-lg lg:text-xl", valueClassName)}>
         {value}
       </div>
-      <div className={cn("font-mono text-[8px] uppercase tracking-widest text-brand-text/60 sm:text-[9px] lg:text-[10px]", labelClassName)}>
+      <div className={cn("font-mono text-[10px] uppercase tracking-wider text-brand-text/60 sm:text-[11px] lg:text-xs", labelClassName)}>
         {label}
       </div>
     </div>
