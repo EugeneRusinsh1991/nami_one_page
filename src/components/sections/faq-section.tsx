@@ -32,7 +32,7 @@ export function FaqSection() {
       id="faq"
       className="section-screen flex items-center justify-center bg-brand-bg px-4 sm:px-6 pt-[calc(1.5rem+var(--app-safe-top,0px))] pb-[calc(1.5rem+var(--app-safe-bottom,0px))] sm:py-12 md:py-16"
     >
-      <div className="mx-auto flex h-full max-h-full w-full max-w-6xl flex-col justify-center gap-4 sm:gap-8 md:grid md:grid-cols-[1fr_1.4fr] md:gap-12 md:items-center">
+      <div className="mx-auto flex h-full max-h-full w-full max-w-6xl flex-col justify-center gap-4 sm:gap-8 md:grid md:grid-cols-[1fr_1.4fr] md:gap-12 md:items-center min-h-0 flex-1">
         <SectionHeader
           align="right"
           badge={t.faq.label}
@@ -40,7 +40,7 @@ export function FaqSection() {
           className="faq-head shrink-0 md:justify-self-end md:ml-auto max-w-md"
         />
 
-        <div className="w-full flex flex-col items-start">
+        <div className="w-full flex flex-col items-start min-h-0 flex-1 justify-center md:flex-initial">
           <Accordion
             type="single"
             collapsible
@@ -61,7 +61,7 @@ export function FaqSection() {
             ))}
           </Accordion>
 
-          <div className="w-full mt-7 sm:mt-9 md:mt-10">
+          <div className="w-full mt-4 sm:mt-6 md:mt-10 shrink-0">
             <Button
               asChild
               variant="brand-primary"

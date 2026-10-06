@@ -33,7 +33,7 @@ export function CtaBlock({ className }: { className?: string }) {
   const { t } = useLanguage();
 
   return (
-    <div className={cn("flex flex-1 min-h-0 items-center justify-center px-4 sm:px-6 py-4 sm:py-10", className)}>
+    <div className={cn("flex flex-1 min-h-0 items-center justify-center px-4 sm:px-6 pt-[calc(1.25rem+var(--app-safe-top,0px))] pb-2 sm:py-10", className)}>
       <div className="cta-panel mx-auto w-full max-w-4xl">
         <Heading as="h2" size="h2" className="cta-reveal mx-auto min-h-[2.4em] text-center text-balance md:max-w-[16ch]">
           {t.cta.title}
@@ -56,7 +56,7 @@ export function CtaBlock({ className }: { className?: string }) {
 
 export function Footer({ className }: { className?: string }) {
   return (
-    <footer className={cn("cta-footer shrink-0 border-t border-brand-border/20 bg-brand-bg px-4 sm:px-6 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pt-3 sm:pb-[calc(1rem+env(safe-area-inset-bottom,0px))]", className)}>
+    <footer className={cn("cta-footer shrink-0 border-t border-brand-border/20 bg-brand-bg px-4 sm:px-6 pt-2 pb-[calc(0.75rem+var(--app-safe-bottom,0px))] sm:pt-3 sm:pb-[calc(1rem+var(--app-safe-bottom,0px))]", className)}>
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-center text-center">
         <div className="footer-reveal">
           {/* eslint-disable-next-line @next/next/no-img-element */}

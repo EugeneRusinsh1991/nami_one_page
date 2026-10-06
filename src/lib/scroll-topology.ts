@@ -83,12 +83,18 @@ export function initViewportObserver(): void {
 
   if (window.visualViewport) {
     let lastVvWidth = window.visualViewport.width;
+    let lastVvHeight = window.visualViewport.height;
     window.visualViewport.addEventListener(
       "resize",
       () => {
         const currentVvWidth = window.visualViewport?.width ?? 0;
-        if (Math.abs(currentVvWidth - lastVvWidth) > 1) {
+        const currentVvHeight = window.visualViewport?.height ?? 0;
+        if (
+          Math.abs(currentVvWidth - lastVvWidth) > 1 ||
+          Math.abs(currentVvHeight - lastVvHeight) > 60
+        ) {
           lastVvWidth = currentVvWidth;
+          lastVvHeight = currentVvHeight;
           handleViewportChange(true);
         }
       },
