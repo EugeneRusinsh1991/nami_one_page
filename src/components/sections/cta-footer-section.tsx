@@ -6,7 +6,8 @@ import { revealOnScroll, useGSAP } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 import { Heading } from "@/components/ui/typography";
 import { useLanguage } from "@/components/providers/language-provider";
-import { BookingCalendar } from "@/components/ui/booking-calendar";
+import { BookingCalendar } from "@/components/sections/booking/booking-calendar";
+import { sendBookingRequest } from "@/lib/config/booking";
 
 function TikTokIcon({ className }: { className?: string }) {
   return (
@@ -44,15 +45,7 @@ export function CtaBlock({ className }: { className?: string }) {
         <div className="cta-reveal mt-3 sm:mt-5">
           <BookingCalendar
             onBookingSubmitted={async (data) => {
-              const res = await fetch("/api/booking", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
-              });
-              if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.error || "Failed to send");
-              }
+              await sendBookingRequest(data);
             }}
           />
         </div>

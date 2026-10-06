@@ -3,7 +3,8 @@
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, MASTER_CARD_CONFIG } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { MASTER_CARD_CONFIG } from "@/components/sections/showcase/media-badge-card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Heading, Text } from "@/components/ui/typography";
 import { gsap, useGSAP, revealOnScroll, prefersReducedMotion } from "@/lib/gsap";

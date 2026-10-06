@@ -1,17 +1,6 @@
 import { NextResponse } from "next/server";
 
-interface BookingSlot {
-  dateStr: string;
-  hour: number;
-  formattedDate: string;
-  formattedTime: string;
-}
-
-interface BookingRequestBody {
-  name: string;
-  phone: string;
-  slots: BookingSlot[];
-}
+import { BookingRequestBody, BOOKING_CONFIG } from "@/lib/config/booking";
 
 function parseContact(contact: string): { label: string; icon: string; value: string; link?: string } {
   const trimmed = contact.trim();
@@ -73,7 +62,7 @@ export async function POST(request: Request) {
     const body: BookingRequestBody = await request.json();
     const { name, phone: rawContact, slots } = body;
 
-    if (!name || !rawContact) {
+    if (!name || name.trim().length < BOOKING_CONFIG.MIN_NAME_LENGTH || !rawContact || rawContact.trim().length < BOOKING_CONFIG.MIN_CONTACT_LENGTH) {
       return NextResponse.json(
         { error: "Пожалуйста, укажите имя и контакт для связи" },
         { status: 400 }
