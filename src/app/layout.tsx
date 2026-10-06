@@ -6,7 +6,7 @@ import { SmoothScrollProvider } from "@/components/providers/smooth-scroll-provi
 import { LanguageProvider } from "@/components/providers/language-provider";
 import { ViewportInitializer } from "@/hooks/use-viewport-geometry";
 import { getDeviceDetectionInlineScript } from "@/lib/device-detection";
-import { DebugLoggerHud } from "../../.local-tools/debug-logger-hud";
+import { DebugLoggerHud } from "../../.local-tools/debug-logger-hud/index";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

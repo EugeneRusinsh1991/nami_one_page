@@ -13,8 +13,7 @@ export function getActiveScreenHeight(): number {
   if (typeof window === "undefined" || typeof document === "undefined") return 800;
   const rootH = parseFloat(document.documentElement.style.getPropertyValue("--app-screen-h"));
   if (Number.isFinite(rootH) && rootH > 0) return rootH;
-  const isTouch = window.matchMedia("(pointer: coarse)").matches || /iPhone|iPad|Android/i.test(navigator.userAgent);
-  return (isTouch && window.screen?.height) ? window.screen.height : window.innerHeight;
+  return window.innerHeight;
 }
 
 let cachedZones: ScrollZone[] | null = null;

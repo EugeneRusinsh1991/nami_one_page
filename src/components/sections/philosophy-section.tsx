@@ -86,7 +86,7 @@ export function PhilosophySection() {
         </span>
       </div>
 
-      <div className="mx-auto flex h-[100svh] max-h-[100svh] md:h-full md:max-h-full w-full max-w-6xl flex-col justify-between px-4 sm:px-6 pt-[calc(1.25rem+var(--app-safe-top,0px))] pb-[calc(2.5rem+var(--app-safe-bottom,0px))] sm:pt-[calc(2rem+var(--app-safe-top,0px))] sm:pb-12 md:pt-20 md:pb-16 lg:pt-24 lg:pb-20">
+      <div className="mx-auto flex h-[100lvh] max-h-[100lvh] md:h-full md:max-h-full w-full max-w-6xl flex-col justify-between px-4 sm:px-6 pt-[calc(1.25rem+var(--app-safe-top,0px))] pb-[calc(2.5rem+var(--app-safe-bottom,0px))] sm:pt-[calc(2rem+var(--app-safe-top,0px))] sm:pb-12 md:pt-20 md:pb-16 lg:pt-24 lg:pb-20">
         <SectionHeader
           badge={t.philo.label}
           title={t.philo.title}

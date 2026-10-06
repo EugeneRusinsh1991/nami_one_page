@@ -109,7 +109,7 @@ export function ShowcaseSection({
       </div>
 
       <div
-        className="relative z-10 mx-auto flex h-[100svh] max-h-[100svh] md:h-full md:max-h-full w-full max-w-6xl flex-1 min-h-0 flex-col justify-between px-4 sm:px-6 pt-[calc(1rem+var(--app-safe-top,0px))] pb-[calc(1rem+var(--app-safe-bottom,0px))] sm:py-10 md:pt-36 md:pb-16 md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center"
+        className="relative z-10 mx-auto flex h-[100lvh] max-h-[100lvh] md:h-full md:max-h-full w-full max-w-6xl flex-1 min-h-0 flex-col justify-between px-4 sm:px-6 pt-[calc(1rem+var(--app-safe-top,0px))] pb-[calc(1rem+var(--app-safe-bottom,0px))] sm:py-10 md:pt-36 md:pb-16 md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center"
       >
         <div
           className={cn(

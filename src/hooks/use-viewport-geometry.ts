@@ -21,9 +21,25 @@ const SSR_VIEWPORT_GEOMETRY: ViewportGeometry = {
 let lastAppliedHeight = -1;
 let lastAppliedWidth = -1;
 
+export function measureLvhHeight(): number {
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    return 800;
+  }
+  if (window.CSS && CSS.supports && CSS.supports("height", "100lvh")) {
+    const probe = document.createElement("div");
+    probe.style.cssText =
+      "position:fixed;top:0;left:0;height:100lvh;pointer-events:none;visibility:hidden;z-index:-1;";
+    document.documentElement.appendChild(probe);
+    const height = probe.getBoundingClientRect().height;
+    probe.remove();
+    if (height > 0) return Math.round(height);
+  }
+  return window.innerHeight;
+}
+
 /**
  * Pure synchronization helper writing custom properties to documentElement.
- * Locks `--app-screen-h` strictly to physical screen height on mobile.
+ * Locks `--app-screen-h` strictly to Large Viewport Height (100lvh) on mobile.
  */
 export function syncViewportCustomProperties(force = false): void {
   if (typeof window === "undefined" || typeof document === "undefined") {
@@ -32,13 +48,7 @@ export function syncViewportCustomProperties(force = false): void {
 
   const root = document.documentElement;
   const currentWidth = window.innerWidth;
-  const isTouch = window.matchMedia("(pointer: coarse)").matches || /iPhone|iPad|Android/i.test(navigator.userAgent);
-
-  // On touch/mobile devices, lock strictly to physical screen height to prevent URL-bar jitter
-  const rawHeight = isTouch && window.screen?.height
-    ? window.screen.height
-    : window.innerHeight;
-  const heightPx = Math.round(rawHeight);
+  const heightPx = measureLvhHeight();
 
   // Only update height if never applied, forced, or width changed (orientation change)
   if (force || lastAppliedHeight === -1 || Math.abs(currentWidth - lastAppliedWidth) >= 4) {
@@ -66,7 +76,7 @@ function readCurrentGeometry(): ViewportGeometry {
     return SSR_VIEWPORT_GEOMETRY;
   }
 
-  const screenHeight = window.screen?.height ?? window.innerHeight;
+  const screenHeight = measureLvhHeight();
   const windowHeight = window.innerHeight;
   const visualViewportHeight = window.visualViewport?.height ?? window.innerHeight;
 
