@@ -53,7 +53,9 @@ export function TechniqueVideoSection() {
         <rect width="100%" height="100%" filter="url(#tech-grain)" />
       </svg>
 
-      <div className="relative z-10 mx-auto flex h-full w-full max-w-6xl items-center justify-center px-6 py-[calc(1.5rem+var(--app-safe-top,0px))]">
+      <div
+        className="relative z-10 mx-auto flex h-[100svh] max-h-[100svh] md:h-full md:max-h-full w-full max-w-6xl items-center justify-center px-6 pt-[calc(1.5rem+var(--app-safe-top,0px))] pb-[calc(1.5rem+var(--app-safe-bottom,0px))]"
+      >
         <div className="relative h-80 sm:h-96 md:h-[26rem] lg:h-[28rem] w-full max-w-md sm:max-w-lg lg:max-w-xl">
           <Badge variant="brand-outline" className="absolute -top-12 left-0 sm:-top-14">
             {t.tech.label}
@@ -82,14 +84,14 @@ export function TechniqueVideoSection() {
           ))}
         </div>
 
-        <div ref={progressRef} className="absolute inset-x-6 bottom-[calc(var(--app-safe-bottom,0px)+1.5rem)] mx-auto max-w-6xl md:bottom-10">
+        <div className="tech-scroll pointer-events-none absolute inset-x-0 bottom-[calc(var(--app-safe-bottom,0px)+3rem)] z-10 flex flex-col items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.3em] text-brand-text [text-shadow:0_1px_6px_rgba(255,255,255,0.9)] md:bottom-24 isolate">
+          <span className="select-none [text-shadow:0_1px_8px_rgba(255,255,255,0.9)]">{t.hero.scroll}</span>
+          <span className="tech-scroll-line h-10 w-0.5 rounded-full bg-brand-text shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
+        </div>
+
+        <div ref={progressRef} className="absolute inset-x-6 bottom-[calc(var(--app-safe-bottom,0px)+1.25rem)] mx-auto max-w-6xl md:bottom-10">
           <Progress value={0} className="h-px bg-brand-elevated [&>div]:bg-brand-text [&>div]:transition-none" />
         </div>
-      </div>
-
-      <div className="tech-scroll pointer-events-none absolute inset-x-0 bottom-[calc(var(--app-safe-bottom,0px)+5.5rem)] z-10 flex flex-col items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.3em] text-brand-text [text-shadow:0_1px_6px_rgba(255,255,255,0.9)] md:bottom-28 isolate">
-        <span className="select-none [text-shadow:0_1px_8px_rgba(255,255,255,0.9)]">{t.hero.scroll}</span>
-        <span className="tech-scroll-line h-10 w-0.5 rounded-full bg-brand-text shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
       </div>
     </section>
   );

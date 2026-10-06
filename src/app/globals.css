@@ -47,6 +47,7 @@
     --touch-target-min: 44px;
   }
 
+
   /* 2. Планшеты (iPad & Android Tablet) */
   [data-device="ipad"],
   [data-device="android-tablet"] {
@@ -174,13 +175,43 @@
     position: relative;
     z-index: 10;
     width: 100%;
-    height: 100%;
+    height: 100svh;
+    max-height: 100svh;
     display: flex;
     flex-direction: column;
     padding-top: calc(var(--app-safe-top, 0px) + var(--header-safe-gap, 1.25rem));
     padding-bottom: calc(var(--app-safe-bottom, 0px) + 1.5rem);
     padding-left: 1.5rem;
     padding-right: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .section-content-safe {
+      height: 100%;
+      max-height: 100%;
+    }
+  }
+
+  /* Inner content holder locked to small viewport height on mobile */
+  .section-content-svh {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    height: 100svh;
+    max-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    padding-top: calc(var(--app-safe-top, 0px) + var(--header-safe-gap, 1rem));
+    padding-bottom: calc(var(--app-safe-bottom, 0px) + 1rem);
+  }
+
+  @media (min-width: 768px) {
+    .section-content-svh {
+      height: 100%;
+      max-height: 100%;
+      padding-top: 5rem;
+      padding-bottom: 2rem;
+    }
   }
 
   .touch-target {

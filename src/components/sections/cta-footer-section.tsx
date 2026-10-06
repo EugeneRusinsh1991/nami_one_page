@@ -107,8 +107,12 @@ export function CtaFooterSection() {
       id="booking"
       className="section-screen flex flex-col justify-between bg-brand-surface"
     >
-      <CtaBlock />
-      <Footer />
+      <div
+        className="flex h-[100svh] max-h-[100svh] md:h-full md:max-h-full w-full flex-1 min-h-0 flex-col justify-between"
+      >
+        <CtaBlock />
+        <Footer />
+      </div>
     </section>
   );
 }

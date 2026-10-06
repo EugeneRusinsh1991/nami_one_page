@@ -31,7 +31,7 @@ export function HeroSlide({
   return (
     <div
       className={cn(
-        "hero-slide absolute inset-0 z-10 mx-auto flex max-w-5xl flex-col items-center justify-center px-6 text-center will-change-transform transform-gpu",
+        "hero-slide absolute inset-x-0 top-0 z-10 mx-auto flex h-[100svh] max-h-[100svh] md:h-full md:max-h-full max-w-5xl flex-col items-center justify-center px-6 text-center will-change-transform transform-gpu",
         `hero-slide-${index}`,
         !isSlide0 && "pointer-events-none opacity-0",
         className

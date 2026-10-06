@@ -21,6 +21,8 @@ export interface LogEntry {
     totalScreens?: number;
     cssAppScreenH?: number;
     diffScreenWin?: number;
+    diffTop?: number;
+    diffBottom?: number;
     diffCssWin?: number;
     svh?: number;
     lvh?: number;

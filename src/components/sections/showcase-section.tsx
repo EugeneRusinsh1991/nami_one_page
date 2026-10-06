@@ -108,7 +108,9 @@ export function ShowcaseSection({
         </span>
       </div>
 
-      <div className="relative z-10 mx-auto flex h-full max-h-full w-full max-w-6xl flex-1 min-h-0 flex-col justify-between px-4 sm:px-6 pt-[calc(1rem+var(--app-safe-top,0px))] pb-[calc(1rem+var(--app-safe-bottom,0px))] sm:py-10 md:py-16 md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center">
+      <div
+        className="relative z-10 mx-auto flex h-[100svh] max-h-[100svh] md:h-full md:max-h-full w-full max-w-6xl flex-1 min-h-0 flex-col justify-between px-4 sm:px-6 pt-[calc(1rem+var(--app-safe-top,0px))] pb-[calc(1rem+var(--app-safe-bottom,0px))] sm:py-10 md:py-16 md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center"
+      >
         <div
           className={cn(
             "showcase-copy shrink-0 w-full max-w-md",

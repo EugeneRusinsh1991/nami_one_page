@@ -22,6 +22,8 @@ interface ViewportSnapshot {
   safeTop: number;
   safeBottom: number;
   diffScreenWin: number;
+  diffTop: number;
+  diffBottom: number;
   diffCssWin: number;
   dvh: number;
   svh: number;
@@ -78,12 +80,13 @@ function ensureProbeContainer(): void {
   container.id = "hud-viewport-probes";
   container.setAttribute("aria-hidden", "true");
   container.style.cssText =
-    "position:fixed;top:0;left:0;width:0;height:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-99999;";
+    "position:fixed;top:0;left:0;width:0;height:0;pointer-events:none;opacity:0;z-index:-99999;";
   container.innerHTML = `
-    <div id="hud-probe-dvh" style="height:100dvh;width:0;"></div>
-    <div id="hud-probe-svh" style="height:100svh;width:0;"></div>
-    <div id="hud-probe-lvh" style="height:100lvh;width:0;"></div>
-    <div id="hud-probe-safe" style="padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);width:0;height:0;"></div>
+    <div id="hud-probe-dvh" style="position:fixed;top:0;left:0;height:100dvh;width:0;pointer-events:none;"></div>
+    <div id="hud-probe-svh" style="position:fixed;top:0;left:0;height:100svh;width:0;pointer-events:none;"></div>
+    <div id="hud-probe-lvh" style="position:fixed;top:0;left:0;height:100lvh;width:0;pointer-events:none;"></div>
+    <div id="hud-probe-safe-top" style="position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);pointer-events:none;"></div>
+    <div id="hud-probe-safe-bottom" style="position:fixed;bottom:0;left:0;right:0;height:env(safe-area-inset-bottom,0px);pointer-events:none;"></div>
   `;
   document.body.appendChild(container);
 }
@@ -110,6 +113,8 @@ function getViewportSnapshot(): ViewportSnapshot {
       safeTop: 0,
       safeBottom: 0,
       diffScreenWin: 0,
+      diffTop: 0,
+      diffBottom: 0,
       diffCssWin: 0,
       dvh: 0,
       svh: 0,
@@ -141,16 +146,32 @@ function getViewportSnapshot(): ViewportSnapshot {
   const dvhEl = typeof document !== "undefined" ? document.getElementById("hud-probe-dvh") : null;
   const svhEl = typeof document !== "undefined" ? document.getElementById("hud-probe-svh") : null;
   const lvhEl = typeof document !== "undefined" ? document.getElementById("hud-probe-lvh") : null;
-  const safeEl = typeof document !== "undefined" ? document.getElementById("hud-probe-safe") : null;
+  const safeTopEl = typeof document !== "undefined" ? document.getElementById("hud-probe-safe-top") : null;
+  const safeBottomEl = typeof document !== "undefined" ? document.getElementById("hud-probe-safe-bottom") : null;
 
   const dvh = dvhEl ? Math.round(dvhEl.getBoundingClientRect().height) : winH;
   const svh = svhEl ? Math.round(svhEl.getBoundingClientRect().height) : winH;
   const lvh = lvhEl ? Math.round(lvhEl.getBoundingClientRect().height) : winH;
 
-  if (safeEl && typeof window !== "undefined") {
-    const cs = window.getComputedStyle(safeEl);
-    safeTop = parsePx(cs.paddingTop);
-    safeBottom = parsePx(cs.paddingBottom);
+  if (safeTopEl) {
+    safeTop = Math.round(safeTopEl.getBoundingClientRect().height);
+  }
+  if (safeBottomEl) {
+    safeBottom = Math.round(safeBottomEl.getBoundingClientRect().height);
+  }
+
+  const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent || "");
+  const diffScreenWin = Math.max(0, screenH - winH);
+
+  // Fallback for iOS safe-area if probes returned 0
+  if (isIOS && safeTop === 0 && safeBottom === 0 && diffScreenWin > 0) {
+    if (screenH >= 852) {
+      safeTop = 54;
+      safeBottom = 34;
+    } else {
+      safeTop = 47;
+      safeBottom = 34;
+    }
   }
 
   const barDelta = Math.max(0, lvh - svh);
@@ -167,6 +188,22 @@ function getViewportSnapshot(): ViewportSnapshot {
     } else {
       barsState = "TRANSITION";
       bottomBar = true;
+    }
+  }
+
+  // Calculate Top and Bottom breakdown of diffScreenWin (Safari UI Chrome + Insets)
+  let diffTop = 0;
+  let diffBottom = 0;
+
+  if (diffScreenWin > 0) {
+    const isExpanded = barsState === "EXPANDED" || (barDelta <= 4 && diffScreenWin >= 100);
+    const bottomToolbar = isExpanded ? 44 : 0;
+    diffBottom = Math.min(diffScreenWin, Math.max(safeBottom, safeBottom + bottomToolbar));
+    diffTop = Math.max(0, diffScreenWin - diffBottom);
+
+    if (diffTop < safeTop && diffScreenWin >= safeTop) {
+      diffTop = safeTop;
+      diffBottom = Math.max(0, diffScreenWin - diffTop);
     }
   }
 
@@ -198,7 +235,9 @@ function getViewportSnapshot(): ViewportSnapshot {
     cssAppScreenH,
     safeTop,
     safeBottom,
-    diffScreenWin: screenH - winH,
+    diffScreenWin,
+    diffTop,
+    diffBottom,
     diffCssWin: cssAppScreenH - winH,
     dvh: dvh || winH,
     svh: svh || winH,
@@ -510,6 +549,33 @@ export function DebugLoggerHud() {
 
   if (!mounted || !liveVp) return null;
 
+  if (minimized) {
+    return (
+      <button
+        type="button"
+        onClick={() => setMinimized(false)}
+        aria-label="Expand iPhone Viewport Telemetry HUD"
+        title="Expand Diagnostics HUD"
+        className="fixed top-[calc(env(safe-area-inset-top,0px)+0.5rem)] left-2 z-[999999] flex h-7 w-7 items-center justify-center rounded-md border border-emerald-500/40 bg-black/40 text-emerald-300/80 opacity-60 shadow-md backdrop-blur-xs transition-all hover:opacity-100 hover:bg-black/70 hover:text-emerald-300 active:scale-95 pointer-events-auto"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-3.5 w-3.5"
+          aria-hidden="true"
+        >
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <path d="M3 9h18" />
+        </svg>
+      </button>
+    );
+  }
+
   const diffSign = liveVp.diffScreenWin >= 0 ? "+" : "";
   const activeSec = liveSecs[activeTab];
 
@@ -520,6 +586,14 @@ export function DebugLoggerHud() {
     >
       <div className="mb-1 flex items-center justify-between border-b border-emerald-500/30 pb-1">
         <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setMinimized(true)}
+            className="rounded bg-zinc-800 px-1.5 py-0.5 text-[9px] text-zinc-300 hover:bg-zinc-700 active:scale-95 transition-all"
+            title="Minimize"
+          >
+            —
+          </button>
           <span className="font-bold tracking-wider text-emerald-300">IPHONE DIAG HUD</span>
           <span className="rounded bg-emerald-950 px-1 py-0.2 text-[8px] font-semibold text-emerald-300 uppercase">
             {activeTab}
@@ -541,30 +615,23 @@ export function DebugLoggerHud() {
           >
             🧹
           </button>
-          <button
-            type="button"
-            onClick={() => setMinimized((m) => !m)}
-            className="rounded bg-zinc-800 px-1.5 py-0.5 text-zinc-300 hover:bg-zinc-700 active:scale-95 transition-all"
-            title={minimized ? "Expand" : "Minimize"}
-          >
-            {minimized ? "▢" : "—"}
-          </button>
         </div>
       </div>
 
-      {!minimized && (
-        <>
-          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[9.5px]">
+      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[9.5px]">
             <div>
               scr: <span className="text-white font-semibold">{liveVp.screenW}×{liveVp.screenH}</span>
             </div>
             <div>
               win: <span className="text-white font-semibold">{liveVp.winW}×{liveVp.winH}</span>
             </div>
-            <div>
-              diff(scr-win):{" "}
+            <div className="col-span-2">
+              diff:{" "}
               <span className={liveVp.diffScreenWin !== 0 ? "text-amber-400 font-bold" : "text-white"}>
                 {diffSign}{liveVp.diffScreenWin}px
+              </span>{" "}
+              <span className="text-emerald-300 font-medium text-[8.5px]">
+                (▲top:~{liveVp.diffTop}px | ▼btm:~{liveVp.diffBottom}px)
               </span>
             </div>
             <div>
@@ -585,6 +652,9 @@ export function DebugLoggerHud() {
             </div>
             <div>
               safe: <span className="text-white">T:{liveVp.safeTop} B:{liveVp.safeBottom}</span>
+            </div>
+            <div>
+              chrome: <span className="text-white">T:~{Math.max(0, liveVp.diffTop - liveVp.safeTop)} B:~{Math.max(0, liveVp.diffBottom - liveVp.safeBottom)}</span>
             </div>
             <div className="col-span-2 pt-0.5">
               scroll: <span className="text-white font-semibold">{liveVp.scrollY}px</span>{" "}
@@ -630,8 +700,6 @@ export function DebugLoggerHud() {
               </div>
             </div>
           )}
-        </>
-      )}
     </aside>
   );
 }

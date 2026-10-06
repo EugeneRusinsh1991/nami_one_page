@@ -75,16 +75,16 @@ export function PhilosophySection() {
     <section
       ref={containerRef}
       id="philosophy"
-      className="section-screen z-20 flex flex-col justify-center rounded-t-[2rem] bg-brand-bg shadow-[0_-20px_60px_rgba(26,31,37,0.06)] md:rounded-t-[2.5rem]"
+      className="section-screen z-20 flex flex-col justify-start md:justify-center rounded-t-[2rem] bg-brand-bg shadow-[0_-20px_60px_rgba(26,31,37,0.06)] md:rounded-t-[2.5rem]"
     >
-      <div className="mx-auto flex h-full w-full max-w-6xl flex-col justify-center px-4 pt-[calc(1rem+var(--app-safe-top,0px))] pb-[calc(1rem+var(--app-safe-bottom,0px))] sm:px-5 sm:pt-[calc(1.5rem+var(--app-safe-top,0px))] sm:pb-[calc(1.5rem+var(--app-safe-bottom,0px))] md:px-6 md:pt-20 md:pb-8 lg:pt-24 lg:pb-10">
+      <div className="mx-auto flex h-[100svh] max-h-[100svh] md:h-full md:max-h-full w-full max-w-6xl flex-col justify-center px-4 pt-[calc(0.75rem+var(--app-safe-top,0px))] pb-[calc(0.75rem+var(--app-safe-bottom,0px))] sm:px-5 sm:pt-[calc(1.5rem+var(--app-safe-top,0px))] sm:pb-[calc(1.5rem+var(--app-safe-bottom,0px))] md:px-6 md:pt-20 md:pb-8 lg:pt-24 lg:pb-10">
         <SectionHeader
           badge={t.philo.label}
           title={t.philo.title}
           className="philo-head mb-2 shrink-0 max-w-2xl sm:mb-4 md:mb-8 lg:mb-10 isolate"
         />
 
-        <div className="philo-grid isolate relative grid w-full flex-1 grid-cols-2 grid-rows-3 gap-2 sm:gap-3 md:grid-cols-4 md:grid-rows-2 md:auto-rows-[minmax(0,1fr)] md:gap-4">
+        <div className="philo-grid isolate relative grid w-full min-h-0 flex-1 grid-cols-2 grid-rows-3 gap-2 sm:gap-3 md:grid-cols-4 md:grid-rows-2 md:auto-rows-[minmax(0,1fr)] md:gap-4">
           {t.philo.cards.map((card, i) => {
             const Icon = ICONS[i];
             const media = CARD_MEDIA[i];
@@ -93,7 +93,7 @@ export function PhilosophySection() {
                 key={i}
                 variant="surface"
                 className={cn(
-                  "philo-card will-change-transform transform-gpu isolate group relative flex flex-col justify-between p-2.5 sm:p-4 md:p-6 lg:p-7 transition-shadow duration-500 hover:shadow-xl",
+                  "philo-card will-change-transform transform-gpu isolate group relative flex flex-col justify-between p-2 sm:p-4 md:p-6 lg:p-7 transition-shadow duration-500 hover:shadow-xl",
                   SPANS[i]
                 )}
               >

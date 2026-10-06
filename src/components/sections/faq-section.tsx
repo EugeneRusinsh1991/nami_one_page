@@ -30,9 +30,9 @@ export function FaqSection() {
     <section
       ref={containerRef}
       id="faq"
-      className="section-screen flex items-center justify-center bg-brand-bg"
+      className="section-screen flex flex-col justify-start md:justify-center items-center bg-brand-bg"
     >
-      <div className="mx-auto flex h-full max-h-full w-full max-w-6xl flex-col justify-center gap-4 sm:gap-8 md:grid md:grid-cols-[1fr_1.4fr] md:gap-12 md:items-center min-h-0 flex-1 px-4 sm:px-6 pt-[calc(1.5rem+var(--app-safe-top,0px))] pb-[calc(1.5rem+var(--app-safe-bottom,0px))] sm:py-12 md:py-16">
+      <div className="mx-auto flex h-[100svh] max-h-[100svh] md:h-full md:max-h-full w-full max-w-6xl flex-col justify-center gap-4 sm:gap-8 md:grid md:grid-cols-[1fr_1.4fr] md:gap-12 md:items-center min-h-0 flex-1 px-4 sm:px-6 pt-[calc(1.25rem+var(--app-safe-top,0px))] pb-[calc(1.25rem+var(--app-safe-bottom,0px))] sm:py-12 md:py-16">
         <SectionHeader
           align="right"
           badge={t.faq.label}

@@ -81,7 +81,7 @@ export function ClientGuideHero({ className }: ClientGuideHeroProps) {
       </div>
 
       <div className={cn(
-        "relative mx-auto flex flex-1 min-h-0 h-full max-h-full w-full max-w-6xl flex-col justify-between px-4 sm:px-6 md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center",
+        "relative mx-auto flex flex-1 min-h-0 h-[100svh] max-h-[100svh] md:h-full md:max-h-full w-full max-w-6xl flex-col justify-between px-4 sm:px-6 md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center",
         MASTER_CARD_CONFIG.sectionPadding
       )}>
         <div
