@@ -49,7 +49,7 @@ export function handleViewportChange(force = false): void {
 
   const currentWidth = window.innerWidth;
   const currentHeight = window.innerHeight;
-  if (!force && currentWidth === lastWindowWidth && currentHeight === lastWindowHeight && lastWindowWidth !== 0) {
+  if (!force && currentWidth === lastWindowWidth && Math.abs(currentHeight - lastWindowHeight) <= 60 && lastWindowWidth !== 0) {
     return;
   }
   lastWindowWidth = currentWidth;
@@ -89,10 +89,9 @@ export function initViewportObserver(): void {
       () => {
         const currentVvWidth = window.visualViewport?.width ?? 0;
         const currentVvHeight = window.visualViewport?.height ?? 0;
-        if (
-          Math.abs(currentVvWidth - lastVvWidth) > 1 ||
-          Math.abs(currentVvHeight - lastVvHeight) > 60
-        ) {
+        const widthDelta = Math.abs(currentVvWidth - lastVvWidth);
+        const heightDelta = Math.abs(currentVvHeight - lastVvHeight);
+        if (widthDelta > 1 || heightDelta > 60) {
           lastVvWidth = currentVvWidth;
           lastVvHeight = currentVvHeight;
           handleViewportChange(true);

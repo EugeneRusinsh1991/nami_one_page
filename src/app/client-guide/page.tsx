@@ -28,7 +28,7 @@ export default function ClientGuidePage() {
       <ClientGuideHero />
       <ClientGuideFaq />
 
-      <footer className="border-t border-brand-border/20 bg-brand-surface/60 py-8 px-4 text-center sm:py-10">
+      <footer className="border-t border-brand-border/20 bg-brand-surface/60 py-8 px-4 text-center sm:py-10 pb-[calc(2rem+var(--app-safe-bottom,0px))]">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row text-xs text-brand-text/60">
           <p>© {new Date().getFullYear()} NAMI PMU STUDIO. Всі права захищені.</p>
           <Button asChild variant="ghost" size="sm" className="h-auto p-0 text-xs text-brand-text/70 hover:text-brand-text">

@@ -34,20 +34,23 @@ export function syncViewportCustomProperties(): void {
 
   // Determine physical/large viewport height to avoid dynamic address bar jitter
   // 100lvh is preferred in modern browsers; we set CSS property to 100lvh if supported,
-  // while synchronizing integer px values or 100lvh fallback.
-  const heightPx = Math.round(
-    window.visualViewport?.height && Math.abs(window.visualViewport.height - window.innerHeight) > 100
-      ? window.innerHeight
-      : window.innerHeight
-  );
+  // while synchronizing integer px values as fallback.
+  const is100LvhSupported = typeof CSS !== "undefined" && typeof CSS.supports === "function" && CSS.supports("height", "100lvh");
 
-  // Prevent micro sub-pixel thrashing (only update if height change > 1px)
-  if (Math.abs(heightPx - lastAppliedHeight) >= 2) {
-    lastAppliedHeight = heightPx;
-    // CSS fallback chain: modern browsers use 100lvh, with exact px fallback
-    if (CSS.supports && CSS.supports("height", "100lvh")) {
+  if (is100LvhSupported) {
+    if (root.style.getPropertyValue("--app-screen-h") !== "100lvh") {
       root.style.setProperty("--app-screen-h", "100lvh");
-    } else {
+    }
+  } else {
+    const rawHeight =
+      window.visualViewport?.height && Math.abs(window.visualViewport.height - window.innerHeight) > 100
+        ? window.innerHeight
+        : window.innerHeight;
+    const heightPx = Math.round(rawHeight);
+
+    // Prevent micro sub-pixel thrashing (only update if height change >= 2px)
+    if (Math.abs(heightPx - lastAppliedHeight) >= 2) {
+      lastAppliedHeight = heightPx;
       root.style.setProperty("--app-screen-h", `${heightPx}px`);
     }
   }

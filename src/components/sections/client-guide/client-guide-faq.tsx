@@ -38,7 +38,7 @@ export function ClientGuideFaq({ className }: ClientGuideFaqProps) {
       ref={containerRef}
       id="guide-faq"
       className={cn(
-        "relative w-full bg-brand-bg px-4 sm:px-6 py-16 sm:py-24",
+        "relative w-full bg-brand-bg px-4 sm:px-6 py-16 sm:py-24 pb-[calc(4rem+var(--app-safe-bottom,0px))]",
         className
       )}
     >

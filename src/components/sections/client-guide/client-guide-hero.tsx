@@ -67,7 +67,7 @@ export function ClientGuideHero({ className }: ClientGuideHeroProps) {
       ref={containerRef}
       id="client-guide-hero"
       className={cn(
-        "client-guide-hero relative flex min-h-[100dvh] w-full flex-col justify-between overflow-hidden bg-brand-surface px-4 sm:px-6 isolate",
+        "client-guide-hero section-screen relative flex w-full flex-col justify-between overflow-hidden bg-brand-surface px-4 sm:px-6 isolate",
         MASTER_CARD_CONFIG.sectionPadding,
         className
       )}

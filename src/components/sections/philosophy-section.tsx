@@ -84,7 +84,7 @@ export function PhilosophySection() {
           className="philo-head mb-2 shrink-0 max-w-2xl sm:mb-4 md:mb-8 lg:mb-10 isolate"
         />
 
-        <div className="philo-grid isolate relative grid w-full h-[48svh] max-h-[400px] min-h-[260px] grid-cols-2 grid-rows-3 gap-2 sm:h-[52svh] sm:max-h-[440px] sm:min-h-[320px] sm:gap-3 md:h-[56svh] md:max-h-[500px] md:grid-cols-4 md:grid-rows-2 md:auto-rows-[minmax(0,1fr)] md:gap-4 lg:h-[58svh] lg:max-h-[540px]">
+        <div className="philo-grid isolate relative grid w-full flex-1 max-h-[420px] min-h-[260px] grid-cols-2 grid-rows-3 gap-2 sm:max-h-[480px] sm:min-h-[320px] sm:gap-3 md:max-h-[540px] md:grid-cols-4 md:grid-rows-2 md:auto-rows-[minmax(0,1fr)] md:gap-4 lg:max-h-[580px]">
           {t.philo.cards.map((card, i) => {
             const Icon = ICONS[i];
             const media = CARD_MEDIA[i];

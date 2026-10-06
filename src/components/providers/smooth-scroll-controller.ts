@@ -97,7 +97,7 @@ export function getDynamicStepThresholds(): StepThresholdConfig {
   if (typeof window === "undefined") {
     return DEFAULT_STEP_THRESHOLDS;
   }
-  const vh = window.visualViewport?.height ?? window.innerHeight;
+  const vh = window.innerHeight || window.visualViewport?.height || 800;
   return {
     touchLargeDistanceThreshold: Math.max(520, Math.round(vh * 0.65)),
     touchFastVelocityThreshold: 3.8,
