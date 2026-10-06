@@ -5,6 +5,7 @@ import "./globals.css";
 import { SmoothScrollProvider } from "@/components/providers/smooth-scroll-provider";
 import { LanguageProvider } from "@/components/providers/language-provider";
 import { ViewportInitializer } from "@/hooks/use-viewport-geometry";
+import { DebugLoggerHud } from "@/components/debug/debug-logger-hud";
 import { getDeviceDetectionInlineScript } from "@/lib/device-detection";
 
 const geistSans = Geist({
@@ -196,6 +197,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} ${cormorant.variable} font-sans antialiased bg-[#F8F9FB] text-[#1A1F25] isolate relative`}
         suppressHydrationWarning
       >
+        <DebugLoggerHud />
         <LanguageProvider>
           <SmoothScrollProvider>
             <ViewportInitializer />
