@@ -19,23 +19,31 @@ const SSR_VIEWPORT_GEOMETRY: ViewportGeometry = {
 };
 
 let lastAppliedHeight = -1;
+let lastAppliedWidth = -1;
 
 /**
  * Pure synchronization helper writing custom properties to documentElement.
- * Writes `--app-screen-h`, `--app-safe-top`, and `--app-safe-bottom`.
- * Default height uses `100lvh` with fallback to physical height / innerHeight.
+ * Locks `--app-screen-h` strictly to physical screen height on mobile.
  */
-export function syncViewportCustomProperties(): void {
+export function syncViewportCustomProperties(force = false): void {
   if (typeof window === "undefined" || typeof document === "undefined") {
     return;
   }
 
   const root = document.documentElement;
-  const rawHeight = window.innerHeight;
+  const currentWidth = window.innerWidth;
+  const isTouch = window.matchMedia("(pointer: coarse)").matches || /iPhone|iPad|Android/i.test(navigator.userAgent);
+
+  // On touch/mobile devices, lock strictly to physical screen height to prevent URL-bar jitter
+  const rawHeight = isTouch && window.screen?.height
+    ? window.screen.height
+    : window.innerHeight;
   const heightPx = Math.round(rawHeight);
 
-  if (Math.abs(heightPx - lastAppliedHeight) >= 2) {
+  // Only update height if never applied, forced, or width changed (orientation change)
+  if (force || lastAppliedHeight === -1 || Math.abs(currentWidth - lastAppliedWidth) >= 4) {
     lastAppliedHeight = heightPx;
+    lastAppliedWidth = currentWidth;
     root.style.setProperty("--app-screen-h", `${heightPx}px`);
   }
 
@@ -89,35 +97,34 @@ export function useViewportGeometry(): ViewportGeometry {
   useEffect(() => {
     let rafId: number | null = null;
 
-    const update = () => {
-      syncViewportCustomProperties();
+    const update = (force = false) => {
+      syncViewportCustomProperties(force);
       setGeometry(readCurrentGeometry());
     };
 
     update();
 
-    const handleResize = () => {
+    const handleOrientationChange = () => {
       if (rafId !== null) return;
       rafId = window.requestAnimationFrame(() => {
         rafId = null;
-        update();
+        update(true);
       });
     };
 
-    window.addEventListener("resize", handleResize, { passive: true });
-    window.addEventListener("orientationchange", handleResize, { passive: true });
+    const handleResize = () => {
+      // Ignore vertical browser bar collapse/expand; only update when width changes
+      if (Math.abs(window.innerWidth - lastAppliedWidth) >= 4) {
+        handleOrientationChange();
+      }
+    };
 
-    const visualViewport = window.visualViewport;
-    if (visualViewport) {
-      visualViewport.addEventListener("resize", handleResize, { passive: true });
-    }
+    window.addEventListener("resize", handleResize, { passive: true });
+    window.addEventListener("orientationchange", handleOrientationChange, { passive: true });
 
     return () => {
       window.removeEventListener("resize", handleResize);
-      window.removeEventListener("orientationchange", handleResize);
-      if (visualViewport) {
-        visualViewport.removeEventListener("resize", handleResize);
-      }
+      window.removeEventListener("orientationchange", handleOrientationChange);
       if (rafId !== null) {
         window.cancelAnimationFrame(rafId);
       }
