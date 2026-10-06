@@ -1,4 +1,4 @@
-import { calculateStepCount } from "./smooth-scroll-utils";
+import { calculateStepCount, STEP_TAIL_MS } from "./smooth-scroll-controller";
 
 export const INTENT_LOCK_THRESHOLD = 12;
 export const INTENT_RATIO = 1.25;
@@ -137,4 +137,134 @@ export function createTouchGestureState(): TouchTrackerState {
     maxDisplacement: 0,
     resetTimer: null,
   };
+}
+
+export function attachTouchGestureTracker(
+  gesture: TouchTrackerState,
+  gate: ScrollGateState
+): { cleanup: () => void; scheduleReset: () => void } {
+  const resetGesture = () => {
+    gesture.isTouch = false;
+    gesture.touchActive = false;
+    gesture.stepsCommitted = 0;
+    gesture.lockedDirection = null;
+    gesture.lockedVerticalDirection = null;
+    gesture.accumX = 0;
+    gesture.accumY = 0;
+    gesture.peakVelocity = 0;
+    gesture.maxDisplacement = 0;
+    if (performance.now() >= gate.gateUntil) {
+      gate.activeDirection = null;
+      gate.gateUntil = 0;
+    }
+  };
+
+  const scheduleReset = () => {
+    if (gesture.resetTimer) clearTimeout(gesture.resetTimer);
+    gesture.resetTimer = setTimeout(() => {
+      if (!gesture.touchActive) resetGesture();
+    }, GESTURE_RESET_TIMEOUT_MS);
+  };
+
+  const onTouchStart = (e: TouchEvent) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    const now = performance.now();
+    gesture.isTouch = true;
+    gesture.touchActive = true;
+    gesture.stepsCommitted = 0;
+    gesture.lockedDirection = null;
+    gesture.lockedVerticalDirection = null;
+    gesture.accumX = 0;
+    gesture.accumY = 0;
+    gesture.startX = touch.clientX;
+    gesture.startY = touch.clientY;
+    gesture.startTime = now;
+    gesture.lastY = touch.clientY;
+    gesture.lastTime = now;
+    gesture.peakVelocity = 0;
+    gesture.maxDisplacement = 0;
+    if (now >= gate.gateUntil - STEP_TAIL_MS) {
+      gate.activeDirection = null;
+      gate.gateUntil = 0;
+    }
+  };
+
+  const onTouchMove = (e: TouchEvent) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    gesture.isTouch = true;
+    gesture.touchActive = true;
+
+    const now = performance.now();
+    const dt = now - gesture.lastTime;
+    const totalDist = Math.abs(touch.clientY - gesture.startY);
+    if (totalDist > gesture.maxDisplacement) {
+      gesture.maxDisplacement = totalDist;
+    }
+
+    if (gesture.lockedDirection === null) {
+      const dx = Math.abs(touch.clientX - gesture.startX);
+      const dy = Math.abs(touch.clientY - gesture.startY);
+      if (Math.hypot(dx, dy) >= INTENT_LOCK_THRESHOLD) {
+        gesture.lockedDirection = dx >= dy * INTENT_RATIO ? "horizontal" : "vertical";
+      }
+    }
+
+    if (gesture.lockedVerticalDirection === null) {
+      const dy = touch.clientY - gesture.startY;
+      if (Math.abs(dy) >= INTENT_LOCK_THRESHOLD) {
+        // Swipe up (touch.clientY < startY) moves page down
+        gesture.lockedVerticalDirection = dy < 0 ? "down" : "up";
+      }
+    }
+
+    if (dt > 12) {
+      const instantV = Math.abs(touch.clientY - gesture.lastY) / dt;
+      if (instantV > gesture.peakVelocity) {
+        gesture.peakVelocity = instantV;
+      }
+      gesture.lastY = touch.clientY;
+      gesture.lastTime = now;
+    }
+  };
+
+  const onTouchEnd = (e: TouchEvent) => {
+    if (e.touches.length === 0) {
+      gesture.touchActive = false;
+    }
+    const touch = e.changedTouches[0];
+    if (touch) {
+      const totalDist = Math.abs(touch.clientY - gesture.startY);
+      if (totalDist > gesture.maxDisplacement) {
+        gesture.maxDisplacement = totalDist;
+      }
+      const totalDt = performance.now() - gesture.startTime;
+      if (totalDt > 12) {
+        const overallV = totalDist / totalDt;
+        if (overallV > gesture.peakVelocity) {
+          gesture.peakVelocity = overallV;
+        }
+      }
+    }
+    if (gate.gateUntil > 0) {
+      gate.gateUntil = Math.max(gate.gateUntil, performance.now() + 60);
+    }
+    scheduleReset();
+  };
+
+  window.addEventListener("touchstart", onTouchStart, { passive: true });
+  window.addEventListener("touchmove", onTouchMove, { passive: true });
+  window.addEventListener("touchend", onTouchEnd, { passive: true });
+  window.addEventListener("touchcancel", resetGesture, { passive: true });
+
+  const cleanup = () => {
+    window.removeEventListener("touchstart", onTouchStart);
+    window.removeEventListener("touchmove", onTouchMove);
+    window.removeEventListener("touchend", onTouchEnd);
+    window.removeEventListener("touchcancel", resetGesture);
+    if (gesture.resetTimer) clearTimeout(gesture.resetTimer);
+  };
+
+  return { cleanup, scheduleReset };
 }

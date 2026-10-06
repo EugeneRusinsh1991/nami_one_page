@@ -5,16 +5,18 @@ import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { useLanguage } from "@/components/providers/language-provider";
-import { invalidateScrollZonesCache } from "@/lib/scroll-breakpoints";
-import { detectDeviceScrollMode } from "./smooth-scroll-utils";
-import { createTouchGestureState, ScrollGateState } from "./smooth-scroll-gestures";
+import { invalidateScrollZonesCache } from "@/lib/scroll-topology";
 import {
+  createTouchGestureState,
+  ScrollGateState,
   attachTouchGestureTracker,
+} from "./smooth-scroll-gestures";
+import {
+  detectDeviceScrollMode,
   createVirtualScrollHandler,
   attachDiscreteScroll,
 } from "./smooth-scroll-controller";
 
-export * from "./smooth-scroll-utils";
 export * from "./smooth-scroll-gestures";
 export * from "./smooth-scroll-controller";
 

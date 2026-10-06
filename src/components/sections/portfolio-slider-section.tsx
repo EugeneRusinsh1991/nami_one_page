@@ -9,16 +9,18 @@ import { Heading, Text } from "@/components/ui/typography";
 import { gsap, useGSAP, revealOnScroll, prefersReducedMotion } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/language-provider";
-import {
-  IMAGES,
-  computeSliderMetrics,
-  type SliderCardMetric,
-  type SliderTrackMetrics,
-} from "./portfolio-slider-utils";
 import { usePortfolioSlider } from "./use-portfolio-slider";
 
-export type { SliderCardMetric, SliderTrackMetrics };
-export { computeSliderMetrics, IMAGES };
+const IMAGES = [
+  "/images/image (2).png",
+  "/images/image (3).png",
+  "/images/image (2).png",
+  "/images/image (4).png",
+  "/images/image (3).png",
+  "/images/image (4).png",
+  "/images/image (2).png",
+  "/images/image (3).png",
+];
 
 export function PortfolioSliderSection() {
   const containerRef = useRef<HTMLDivElement>(null);

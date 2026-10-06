@@ -1,150 +1,176 @@
 import Lenis from "lenis";
-import { getScrollZones, resolveScrollTarget, resolveActiveSection } from "@/lib/scroll-breakpoints";
 import {
-  STEP_TAIL_MS,
-  shouldBypassDiscreteScroll,
-  calculateRawScrollTarget,
-  getSectionStepTiming,
-  isWithinQuietPeriod,
-} from "./smooth-scroll-utils";
+  type ScrollSectionId,
+  getScrollZones,
+  resolveScrollTarget,
+  resolveActiveSection,
+} from "@/lib/scroll-topology";
 import {
   INTENT_LOCK_THRESHOLD,
   INTENT_RATIO,
-  GESTURE_RESET_TIMEOUT_MS,
   TouchTrackerState,
   ScrollGateState,
   shouldAllowScrollEvent,
   resolveGestureStepCount,
+  attachTouchGestureTracker,
 } from "./smooth-scroll-gestures";
 
-export function attachTouchGestureTracker(
-  gesture: TouchTrackerState,
-  gate: ScrollGateState
-): { cleanup: () => void; scheduleReset: () => void } {
-  const resetGesture = () => {
-    gesture.isTouch = false;
-    gesture.touchActive = false;
-    gesture.stepsCommitted = 0;
-    gesture.lockedDirection = null;
-    gesture.lockedVerticalDirection = null;
-    gesture.accumX = 0;
-    gesture.accumY = 0;
-    gesture.peakVelocity = 0;
-    gesture.maxDisplacement = 0;
-    if (performance.now() >= gate.gateUntil) {
-      gate.activeDirection = null;
-      gate.gateUntil = 0;
-    }
+export { attachTouchGestureTracker };
+
+export interface SectionScrollTiming {
+  step1Ms: number;
+  step2Ms: number;
+  step3Ms: number;
+  easing: (t: number) => number;
+}
+
+export const SINE_EASING = (t: number) => 0.5 * (1 - Math.cos(Math.PI * t));
+export const CUBIC_OUT_EASING = (t: number) => 1 - Math.pow(1 - t, 3);
+
+export const SECTION_TIMINGS: Record<ScrollSectionId, SectionScrollTiming> = {
+  hero: {
+    step1Ms: 670,
+    step2Ms: 1000,
+    step3Ms: 1270,
+    easing: SINE_EASING,
+  },
+  technique: {
+    step1Ms: 600, // 20% slower than base 500ms (500 * 1.20)
+    step2Ms: 900,
+    step3Ms: 1140,
+    easing: SINE_EASING,
+  },
+  default: {
+    step1Ms: 500,
+    step2Ms: 750,
+    step3Ms: 950,
+    easing: CUBIC_OUT_EASING,
+  },
+};
+
+export const STEP_TAIL_MS = 70;
+export const GESTURE_QUIET_MS = 70;
+
+export interface DeviceScrollMode {
+  isTouchDevice: boolean;
+  enableDiscreteScroll: boolean;
+  allowNativeMomentum?: boolean;
+  enableDiscreteWheel?: boolean;
+}
+
+export function detectDeviceScrollMode(): DeviceScrollMode {
+  if (typeof window === "undefined") {
+    return {
+      isTouchDevice: false,
+      enableDiscreteScroll: true,
+      allowNativeMomentum: false,
+      enableDiscreteWheel: true,
+    };
+  }
+  const isTouchDevice =
+    "ontouchstart" in window ||
+    navigator.maxTouchPoints > 0 ||
+    window.matchMedia("(pointer: coarse)").matches;
+
+  return {
+    isTouchDevice,
+    enableDiscreteScroll: true,
+    allowNativeMomentum: false,
+    enableDiscreteWheel: true,
   };
+}
 
-  const scheduleReset = () => {
-    if (gesture.resetTimer) clearTimeout(gesture.resetTimer);
-    gesture.resetTimer = setTimeout(() => {
-      if (!gesture.touchActive) resetGesture();
-    }, GESTURE_RESET_TIMEOUT_MS);
+export interface StepThresholdConfig {
+  touchLargeDistanceThreshold: number; // large swipe across screen (px)
+  touchFastVelocityThreshold: number;  // fast vigorous flick (px/ms)
+  touchFastMinDistance: number;        // minimum displacement required for flick upgrade (px)
+  wheelLargeDeltaThreshold: number;    // vigorous wheel spin or trackpad fling (px)
+}
+
+export const DEFAULT_STEP_THRESHOLDS: StepThresholdConfig = {
+  touchLargeDistanceThreshold: 520,
+  touchFastVelocityThreshold: 3.5,
+  touchFastMinDistance: 440,
+  wheelLargeDeltaThreshold: 850,
+};
+
+export function getDynamicStepThresholds(): StepThresholdConfig {
+  if (typeof window === "undefined") {
+    return DEFAULT_STEP_THRESHOLDS;
+  }
+  const vh = window.innerHeight;
+  return {
+    touchLargeDistanceThreshold: Math.max(520, Math.round(vh * 0.55)),
+    touchFastVelocityThreshold: 3.5,
+    touchFastMinDistance: Math.max(440, Math.round(vh * 0.45)),
+    wheelLargeDeltaThreshold: Math.max(850, Math.round(vh * 0.75)),
   };
+}
 
-  const onTouchStart = (e: TouchEvent) => {
-    const touch = e.touches[0];
-    if (!touch) return;
-    const now = performance.now();
-    gesture.isTouch = true;
-    gesture.touchActive = true;
-    gesture.stepsCommitted = 0;
-    gesture.lockedDirection = null;
-    gesture.lockedVerticalDirection = null;
-    gesture.accumX = 0;
-    gesture.accumY = 0;
-    gesture.startX = touch.clientX;
-    gesture.startY = touch.clientY;
-    gesture.startTime = now;
-    gesture.lastY = touch.clientY;
-    gesture.lastTime = now;
-    gesture.peakVelocity = 0;
-    gesture.maxDisplacement = 0;
-    if (now >= gate.gateUntil - STEP_TAIL_MS) {
-      gate.activeDirection = null;
-      gate.gateUntil = 0;
-    }
-  };
+export function calculateStepCount(
+  distance: number,
+  velocity = 0,
+  isTouch = false,
+  config?: StepThresholdConfig
+): number {
+  const activeConfig =
+    config ??
+    (typeof window !== "undefined"
+      ? getDynamicStepThresholds()
+      : DEFAULT_STEP_THRESHOLDS);
 
-  const onTouchMove = (e: TouchEvent) => {
-    const touch = e.touches[0];
-    if (!touch) return;
-    gesture.isTouch = true;
-    gesture.touchActive = true;
+  if (isTouch) {
+    const isLargeSwipe = distance >= activeConfig.touchLargeDistanceThreshold;
+    const isStrongFlick =
+      velocity >= activeConfig.touchFastVelocityThreshold &&
+      distance >= activeConfig.touchFastMinDistance;
+    return isLargeSwipe || isStrongFlick ? 2 : 1;
+  }
+  return distance >= activeConfig.wheelLargeDeltaThreshold ? 2 : 1;
+}
 
-    const now = performance.now();
-    const dt = now - gesture.lastTime;
-    const totalDist = Math.abs(touch.clientY - gesture.startY);
-    if (totalDist > gesture.maxDisplacement) {
-      gesture.maxDisplacement = totalDist;
-    }
+export function shouldBypassDiscreteScroll(
+  target: unknown,
+  opts: { programmatic?: boolean } | undefined,
+  enableDiscreteScroll: boolean
+): boolean {
+  if (typeof target !== "number") return true;
+  if (opts?.programmatic !== false) return true;
+  return !enableDiscreteScroll;
+}
 
-    if (gesture.lockedDirection === null) {
-      const dx = Math.abs(touch.clientX - gesture.startX);
-      const dy = Math.abs(touch.clientY - gesture.startY);
-      if (Math.hypot(dx, dy) >= INTENT_LOCK_THRESHOLD) {
-        gesture.lockedDirection = dx >= dy * INTENT_RATIO ? "horizontal" : "vertical";
-      }
-    }
+export function calculateRawScrollTarget(
+  target: number,
+  current: number,
+  isTouch: boolean,
+  accumY: number,
+  lockedDirection?: "down" | "up" | null
+): number {
+  if (!isTouch) {
+    return target;
+  }
+  const dirFromLock = lockedDirection === "down" ? 1 : lockedDirection === "up" ? -1 : 0;
+  const touchDir = dirFromLock || Math.sign(target - current) || Math.sign(accumY);
+  return current + touchDir * Math.max(Math.abs(target - current), 100);
+}
 
-    if (gesture.lockedVerticalDirection === null) {
-      const dy = touch.clientY - gesture.startY;
-      if (Math.abs(dy) >= INTENT_LOCK_THRESHOLD) {
-        // Swipe up (touch.clientY < startY) moves page down
-        gesture.lockedVerticalDirection = dy < 0 ? "down" : "up";
-      }
-    }
+export function getSectionStepTiming(
+  section: ScrollSectionId,
+  steps: number
+): { durationMs: number; easing: (t: number) => number } {
+  const profile = SECTION_TIMINGS[section] || SECTION_TIMINGS.default;
+  let durationMs = profile.step1Ms;
+  if (steps >= 3) durationMs = profile.step3Ms;
+  else if (steps === 2) durationMs = profile.step2Ms;
+  return { durationMs, easing: profile.easing };
+}
 
-    if (dt > 12) {
-      const instantV = Math.abs(touch.clientY - gesture.lastY) / dt;
-      if (instantV > gesture.peakVelocity) {
-        gesture.peakVelocity = instantV;
-      }
-      gesture.lastY = touch.clientY;
-      gesture.lastTime = now;
-    }
-  };
-
-  const onTouchEnd = (e: TouchEvent) => {
-    if (e.touches.length === 0) {
-      gesture.touchActive = false;
-    }
-    const touch = e.changedTouches[0];
-    if (touch) {
-      const totalDist = Math.abs(touch.clientY - gesture.startY);
-      if (totalDist > gesture.maxDisplacement) {
-        gesture.maxDisplacement = totalDist;
-      }
-      const totalDt = performance.now() - gesture.startTime;
-      if (totalDt > 12) {
-        const overallV = totalDist / totalDt;
-        if (overallV > gesture.peakVelocity) {
-          gesture.peakVelocity = overallV;
-        }
-      }
-    }
-    if (gate.gateUntil > 0) {
-      gate.gateUntil = Math.max(gate.gateUntil, performance.now() + 60);
-    }
-    scheduleReset();
-  };
-
-  window.addEventListener("touchstart", onTouchStart, { passive: true });
-  window.addEventListener("touchmove", onTouchMove, { passive: true });
-  window.addEventListener("touchend", onTouchEnd, { passive: true });
-  window.addEventListener("touchcancel", resetGesture, { passive: true });
-
-  const cleanup = () => {
-    window.removeEventListener("touchstart", onTouchStart);
-    window.removeEventListener("touchmove", onTouchMove);
-    window.removeEventListener("touchend", onTouchEnd);
-    window.removeEventListener("touchcancel", resetGesture);
-    if (gesture.resetTimer) clearTimeout(gesture.resetTimer);
-  };
-
-  return { cleanup, scheduleReset };
+export function isWithinQuietPeriod(
+  now: number,
+  lastStepTime: number,
+  isGated: boolean
+): boolean {
+  return !isGated && lastStepTime > 0 && now - lastStepTime < GESTURE_QUIET_MS;
 }
 
 export function createVirtualScrollHandler(

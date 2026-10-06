@@ -1,18 +1,108 @@
 import { ScrollTrigger } from "@/lib/gsap";
+import { dedupe, MERGE_DISTANCE, TOLERANCE, type ResolvedTarget, resolveTargetFromPoints } from "./scroll-quantization";
+
+export type ScrollSectionId = "hero" | "technique" | "default";
 
 export interface ScrollZone {
   points: number[];
 }
 
-export interface ResolvedTarget {
-  target: number;
-  discrete: boolean;
+export const TECHNIQUE_STEP_POINTS = [0, 1 / 3, 2 / 3, 1] as const;
+
+let cachedZones: ScrollZone[] | null = null;
+let cachedAllPoints: number[] | null = null;
+const sectionTopCache = new Map<string, number>();
+
+export function invalidateScrollZonesCache(): void {
+  cachedZones = null;
+  cachedAllPoints = null;
+  sectionTopCache.clear();
 }
 
-const TOLERANCE = 25;
-const MERGE_DISTANCE = 40;
+type InvalidationCallback = () => void;
+const invalidationListeners = new Set<InvalidationCallback>();
 
-export function resolveActiveSection(current: number, target: number): "hero" | "technique" | "default" {
+export function addInvalidationListener(cb: InvalidationCallback): () => void {
+  invalidationListeners.add(cb);
+  return () => {
+    invalidationListeners.delete(cb);
+  };
+}
+
+export function notifyInvalidation(): void {
+  invalidationListeners.forEach((cb) => {
+    try {
+      cb();
+    } catch {
+      // Ignore listener error to protect execution loop
+    }
+  });
+}
+
+let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+let orientationTimer: ReturnType<typeof setTimeout> | null = null;
+let lastWindowWidth = typeof window !== "undefined" ? window.innerWidth : 0;
+let lastWindowHeight = typeof window !== "undefined" ? window.innerHeight : 0;
+
+export function handleViewportChange(force = false): void {
+  if (typeof window === "undefined") return;
+
+  const currentWidth = window.innerWidth;
+  const currentHeight = window.innerHeight;
+  if (!force && currentWidth === lastWindowWidth && currentHeight === lastWindowHeight && lastWindowWidth !== 0) {
+    return;
+  }
+  lastWindowWidth = currentWidth;
+  lastWindowHeight = currentHeight;
+
+  notifyInvalidation();
+
+  if (resizeTimer) clearTimeout(resizeTimer);
+  if (orientationTimer) clearTimeout(orientationTimer);
+
+  resizeTimer = setTimeout(() => {
+    notifyInvalidation();
+    ScrollTrigger.refresh();
+  }, 150);
+
+  orientationTimer = setTimeout(() => {
+    notifyInvalidation();
+    ScrollTrigger.refresh();
+  }, 350);
+}
+
+let isObserverInitialized = false;
+
+export function initViewportObserver(): void {
+  if (isObserverInitialized || typeof window === "undefined") return;
+  isObserverInitialized = true;
+
+  ScrollTrigger.addEventListener("refresh", notifyInvalidation);
+  window.addEventListener("resize", () => handleViewportChange(false), { passive: true });
+  window.addEventListener("orientationchange", () => handleViewportChange(true), { passive: true });
+
+  if (window.visualViewport) {
+    let lastVvWidth = window.visualViewport.width;
+    window.visualViewport.addEventListener(
+      "resize",
+      () => {
+        const currentVvWidth = window.visualViewport?.width ?? 0;
+        if (Math.abs(currentVvWidth - lastVvWidth) > 1) {
+          lastVvWidth = currentVvWidth;
+          handleViewportChange(true);
+        }
+      },
+      { passive: true }
+    );
+  }
+}
+
+if (typeof window !== "undefined") {
+  addInvalidationListener(invalidateScrollZonesCache);
+  initViewportObserver();
+}
+
+export function resolveActiveSection(current: number, target: number): ScrollSectionId {
   if (typeof window === "undefined") return "default";
   const triggers = ScrollTrigger.getAll();
   for (const st of triggers) {
@@ -38,77 +128,6 @@ export function resolveActiveSection(current: number, target: number): "hero" | 
 
 export function isHeroTransition(current: number, target: number): boolean {
   return resolveActiveSection(current, target) === "hero";
-}
-
-function dedupe(points: number[]): number[] {
-  const sorted = points.filter(Number.isFinite).sort((a, b) => a - b);
-  const merged: number[] = [];
-  sorted.forEach((p) => {
-    if (merged.length === 0 || p - merged[merged.length - 1] > MERGE_DISTANCE) merged.push(p);
-  });
-  return merged;
-}
-
-let cachedZones: ScrollZone[] | null = null;
-let cachedAllPoints: number[] | null = null;
-const sectionTopCache = new Map<string, number>();
-
-export function invalidateScrollZonesCache(): void {
-  cachedZones = null;
-  cachedAllPoints = null;
-  sectionTopCache.clear();
-}
-
-let resizeTimer: ReturnType<typeof setTimeout> | null = null;
-let orientationTimer: ReturnType<typeof setTimeout> | null = null;
-let lastWindowWidth = typeof window !== "undefined" ? window.innerWidth : 0;
-let lastWindowHeight = typeof window !== "undefined" ? window.innerHeight : 0;
-
-export function handleViewportChange(force = false): void {
-  if (typeof window === "undefined") return;
-
-  const currentWidth = window.innerWidth;
-  const currentHeight = window.innerHeight;
-  if (!force && currentWidth === lastWindowWidth && currentHeight === lastWindowHeight && lastWindowWidth !== 0) {
-    return;
-  }
-  lastWindowWidth = currentWidth;
-  lastWindowHeight = currentHeight;
-
-  invalidateScrollZonesCache();
-
-  if (resizeTimer) clearTimeout(resizeTimer);
-  if (orientationTimer) clearTimeout(orientationTimer);
-
-  resizeTimer = setTimeout(() => {
-    invalidateScrollZonesCache();
-    ScrollTrigger.refresh();
-  }, 150);
-
-  orientationTimer = setTimeout(() => {
-    invalidateScrollZonesCache();
-    ScrollTrigger.refresh();
-  }, 350);
-}
-
-if (typeof window !== "undefined") {
-  ScrollTrigger.addEventListener("refresh", invalidateScrollZonesCache);
-  window.addEventListener("resize", () => handleViewportChange(false), { passive: true });
-  window.addEventListener("orientationchange", () => handleViewportChange(true), { passive: true });
-  if (window.visualViewport) {
-    let lastVvWidth = window.visualViewport.width;
-    window.visualViewport.addEventListener(
-      "resize",
-      () => {
-        const currentVvWidth = window.visualViewport?.width ?? 0;
-        if (Math.abs(currentVvWidth - lastVvWidth) > 1) {
-          lastVvWidth = currentVvWidth;
-          handleViewportChange(true);
-        }
-      },
-      { passive: true }
-    );
-  }
 }
 
 export function getSectionTop(id: string, forceRefresh = false): number | null {
@@ -151,7 +170,7 @@ export function getSectionTop(id: string, forceRefresh = false): number | null {
   return top;
 }
 
-function getPhilosophyEntry(): number | null {
+export function getPhilosophyEntry(): number | null {
   return getSectionTop("philosophy");
 }
 
@@ -175,7 +194,7 @@ export function getBottomSectionPoints(): number[] {
   return points;
 }
 
-function getHandoffZones(pins: Record<string, { start: number; end: number }>): ScrollZone[] {
+export function getHandoffZones(pins: Record<string, { start: number; end: number }>): ScrollZone[] {
   const heroEnd =
     pins.hero?.end ??
     (getSectionTop("hero") ??
@@ -207,8 +226,6 @@ function getHandoffZones(pins: Record<string, { start: number; end: number }>): 
 
   return zones;
 }
-
-export const TECHNIQUE_STEP_POINTS = [0, 1 / 3, 2 / 3, 1] as const;
 
 export function getScrollZones(forceRefresh = false): ScrollZone[] {
   if (forceRefresh) {
@@ -272,52 +289,15 @@ export function getAllScrollPoints(zones?: ScrollZone[]): number[] {
   return points;
 }
 
-function resolveDown(current: number, target: number, allPoints: number[], stepCount = 1): ResolvedTarget {
-  const allForwardPoints = allPoints.filter((p) => p > current + TOLERANCE);
-  if (allForwardPoints.length > 0) {
-    const normalizedStep = Math.max(1, stepCount);
-    const targetIdx = Math.min(normalizedStep - 1, allForwardPoints.length - 1);
-    const chosen = allForwardPoints[targetIdx];
-    return { target: chosen, discrete: true };
-  }
-  return { target, discrete: false };
-}
-
-function resolveUp(current: number, target: number, allPoints: number[], stepCount = 1): ResolvedTarget {
-  const allBackwardPoints = allPoints.filter((p) => p < current - TOLERANCE).sort((a, b) => b - a);
-  if (allBackwardPoints.length > 0) {
-    const normalizedStep = Math.max(1, stepCount);
-    const targetIdx = Math.min(normalizedStep - 1, allBackwardPoints.length - 1);
-    const chosen = allBackwardPoints[targetIdx];
-    return { target: chosen, discrete: true };
-  }
-  return { target, discrete: false };
-}
-
 export function resolveScrollTarget(
   current: number,
   target: number,
-  zones: ScrollZone[],
+  zones?: ScrollZone[],
   lockedDirection?: "down" | "up" | null,
   stepCount = 1
 ): ResolvedTarget {
-  const delta = target - current;
-  if (Math.abs(delta) < 20) {
-    return { target: current, discrete: false };
-  }
-
-  // Suppress contrary deltas during an active directional gesture
-  if (lockedDirection === "down" && delta < 0) {
-    return { target: current, discrete: false };
-  }
-  if (lockedDirection === "up" && delta > 0) {
-    return { target: current, discrete: false };
-  }
-
   const allPoints = getAllScrollPoints(zones);
-
-  if (delta > 0) return resolveDown(current, target, allPoints, stepCount);
-  if (delta < 0) return resolveUp(current, target, allPoints, stepCount);
-  return { target, discrete: false };
+  return resolveTargetFromPoints(current, target, allPoints, lockedDirection, stepCount);
 }
 
+export type { ResolvedTarget };
