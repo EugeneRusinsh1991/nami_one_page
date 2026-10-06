@@ -16,17 +16,30 @@ export interface LogEntry {
     screenW: number;
     dpr: number;
     scrollY: number;
+    scrollRatioStr?: string;
+    screenIndex?: number;
+    totalScreens?: number;
     cssAppScreenH?: number;
     diffScreenWin?: number;
     diffCssWin?: number;
+    svh?: number;
+    lvh?: number;
+    dvh?: number;
+    barDelta?: number;
+    safeTop?: number;
+    safeBottom?: number;
   };
   sections?: Record<
     string,
     {
       top: number;
       bottom: number;
+      left?: number;
+      right?: number;
       height: number;
       width: number;
+      centerX?: number;
+      centerY?: number;
       diffFromWinH?: number;
     }
   >;
@@ -59,11 +72,11 @@ export async function GET(request: Request) {
         const timeStr = entry.time || new Date(entry.t).toISOString().slice(11, 23);
         const tabStr = entry.activeTab ? `TAB:${entry.activeTab.toUpperCase()}` : "";
         const vp = entry.viewport
-          ? `win=${entry.viewport.winW}x${entry.viewport.winH} scr=${entry.viewport.screenW}x${entry.viewport.screenH} diff=${(entry.viewport.diffScreenWin ?? 0) >= 0 ? "+" : ""}${entry.viewport.diffScreenWin ?? 0}px vv=${entry.viewport.vvW}x${entry.viewport.vvH} cssH=${entry.viewport.cssAppScreenH ?? "n/a"} y=${entry.viewport.scrollY}`
+          ? `win=${entry.viewport.winW}x${entry.viewport.winH} scr=${entry.viewport.screenW}x${entry.viewport.screenH} diff=${(entry.viewport.diffScreenWin ?? 0) >= 0 ? "+" : ""}${entry.viewport.diffScreenWin ?? 0}px vv=${entry.viewport.vvW}x${entry.viewport.vvH} svh/lvh/dvh=${entry.viewport.svh ?? "?"}/${entry.viewport.lvh ?? "?"}/${entry.viewport.dvh ?? "?"} y=${entry.viewport.scrollY}(${entry.viewport.scrollRatioStr ?? ""})`
           : "";
         const sec = entry.sections
           ? Object.entries(entry.sections)
-              .map(([name, s]) => `${name}[H:${s.height}|T:${s.top}${s.diffFromWinH !== undefined ? `|Δ:${s.diffFromWinH >= 0 ? "+" : ""}${s.diffFromWinH}` : ""}]`)
+              .map(([name, s]) => `${name}[H:${s.height}|cY:${s.centerY ?? "?"}|T:${s.top}${s.diffFromWinH !== undefined ? `|Δ:${s.diffFromWinH >= 0 ? "+" : ""}${s.diffFromWinH}` : ""}]`)
               .join(" ")
           : "";
         const details = entry.details ? JSON.stringify(entry.details) : "";

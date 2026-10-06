@@ -13,19 +13,35 @@ interface ViewportSnapshot {
   screenW: number;
   dpr: number;
   scrollY: number;
+  docH: number;
+  scrollMax: number;
+  scrollRatioStr: string;
+  screenIndex: number;
+  totalScreens: number;
   cssAppScreenH: number;
   safeTop: number;
   safeBottom: number;
   diffScreenWin: number;
   diffCssWin: number;
+  dvh: number;
+  svh: number;
+  lvh: number;
+  barDelta: number;
+  barsState: "EXPANDED" | "COLLAPSED" | "TRANSITION" | "STATIC";
+  bottomBar: boolean;
 }
 
 interface SectionRect {
   top: number;
   bottom: number;
+  left: number;
+  right: number;
   height: number;
   width: number;
+  centerX: number;
+  centerY: number;
   diffFromWinH: number;
+  parentHeight: number;
 }
 
 interface TelemetryEntry {
@@ -47,11 +63,29 @@ const TARGET_SECTIONS: Record<string, string> = {
   studio: "#studio",
   academy: "#academy",
   faq: "#faq",
+  book: "#booking",
 };
 
 function parsePx(val: string): number {
   const num = parseFloat(val);
   return Number.isFinite(num) ? Math.round(num) : 0;
+}
+
+function ensureProbeContainer(): void {
+  if (typeof document === "undefined") return;
+  if (document.getElementById("hud-viewport-probes")) return;
+  const container = document.createElement("div");
+  container.id = "hud-viewport-probes";
+  container.setAttribute("aria-hidden", "true");
+  container.style.cssText =
+    "position:fixed;top:0;left:0;width:0;height:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-99999;";
+  container.innerHTML = `
+    <div id="hud-probe-dvh" style="height:100dvh;width:0;"></div>
+    <div id="hud-probe-svh" style="height:100svh;width:0;"></div>
+    <div id="hud-probe-lvh" style="height:100lvh;width:0;"></div>
+    <div id="hud-probe-safe" style="padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);width:0;height:0;"></div>
+  `;
+  document.body.appendChild(container);
 }
 
 function getViewportSnapshot(): ViewportSnapshot {
@@ -67,19 +101,33 @@ function getViewportSnapshot(): ViewportSnapshot {
       screenW: 0,
       dpr: 1,
       scrollY: 0,
+      docH: 0,
+      scrollMax: 0,
+      scrollRatioStr: "0×0",
+      screenIndex: 1,
+      totalScreens: 1,
       cssAppScreenH: 0,
       safeTop: 0,
       safeBottom: 0,
       diffScreenWin: 0,
       diffCssWin: 0,
+      dvh: 0,
+      svh: 0,
+      lvh: 0,
+      barDelta: 0,
+      barsState: "STATIC",
+      bottomBar: false,
     };
   }
+
+  ensureProbeContainer();
 
   const vv = window.visualViewport;
   const winW = window.innerWidth;
   const winH = window.innerHeight;
   const screenW = window.screen?.width || 0;
   const screenH = window.screen?.height || 0;
+  const scrollY = Math.round(window.scrollY || window.pageYOffset || 0);
 
   let cssAppScreenH = 0;
   let safeTop = 0;
@@ -88,9 +136,48 @@ function getViewportSnapshot(): ViewportSnapshot {
   if (typeof document !== "undefined") {
     const style = window.getComputedStyle(document.documentElement);
     cssAppScreenH = parsePx(style.getPropertyValue("--app-screen-h"));
-    safeTop = parsePx(style.getPropertyValue("--app-safe-top"));
-    safeBottom = parsePx(style.getPropertyValue("--app-safe-bottom"));
   }
+
+  const dvhEl = typeof document !== "undefined" ? document.getElementById("hud-probe-dvh") : null;
+  const svhEl = typeof document !== "undefined" ? document.getElementById("hud-probe-svh") : null;
+  const lvhEl = typeof document !== "undefined" ? document.getElementById("hud-probe-lvh") : null;
+  const safeEl = typeof document !== "undefined" ? document.getElementById("hud-probe-safe") : null;
+
+  const dvh = dvhEl ? Math.round(dvhEl.getBoundingClientRect().height) : winH;
+  const svh = svhEl ? Math.round(svhEl.getBoundingClientRect().height) : winH;
+  const lvh = lvhEl ? Math.round(lvhEl.getBoundingClientRect().height) : winH;
+
+  if (safeEl && typeof window !== "undefined") {
+    const cs = window.getComputedStyle(safeEl);
+    safeTop = parsePx(cs.paddingTop);
+    safeBottom = parsePx(cs.paddingBottom);
+  }
+
+  const barDelta = Math.max(0, lvh - svh);
+  let barsState: "EXPANDED" | "COLLAPSED" | "TRANSITION" | "STATIC" = "STATIC";
+  let bottomBar = false;
+
+  if (barDelta > 4) {
+    if (Math.abs(winH - svh) <= 4 || Math.abs(dvh - svh) <= 4) {
+      barsState = "EXPANDED";
+      bottomBar = true;
+    } else if (Math.abs(winH - lvh) <= 4 || Math.abs(dvh - lvh) <= 4) {
+      barsState = "COLLAPSED";
+      bottomBar = false;
+    } else {
+      barsState = "TRANSITION";
+      bottomBar = true;
+    }
+  }
+
+  const docH = typeof document !== "undefined" ? Math.round(document.documentElement.scrollHeight || document.body.scrollHeight) : winH;
+  const scrollMax = Math.max(0, docH - winH);
+  const ratio = winH > 0 ? scrollY / winH : 0;
+  const isNearInt = Math.abs(ratio - Math.round(ratio)) < 0.03;
+  const ratioStr = isNearInt ? `${Math.round(ratio)}×` : `${ratio.toFixed(2)}×`;
+  const scrollRatioStr = `${ratioStr}${winH}`;
+  const screenIndex = Math.floor(ratio) + 1;
+  const totalScreens = Math.max(1, Math.ceil(docH / (winH || 1)));
 
   return {
     winW,
@@ -102,12 +189,23 @@ function getViewportSnapshot(): ViewportSnapshot {
     screenH,
     screenW,
     dpr: Number((window.devicePixelRatio || 1).toFixed(2)),
-    scrollY: Math.round(window.scrollY || window.pageYOffset || 0),
+    scrollY,
+    docH,
+    scrollMax,
+    scrollRatioStr,
+    screenIndex,
+    totalScreens,
     cssAppScreenH,
     safeTop,
     safeBottom,
     diffScreenWin: screenH - winH,
     diffCssWin: cssAppScreenH - winH,
+    dvh: dvh || winH,
+    svh: svh || winH,
+    lvh: lvh || winH,
+    barDelta,
+    barsState,
+    bottomBar,
   };
 }
 
@@ -120,12 +218,26 @@ function getSectionsSnapshot(winH: number): Record<string, SectionRect> {
     if (el) {
       const rect = el.getBoundingClientRect();
       const height = Math.round(rect.height);
+      const width = Math.round(rect.width);
+      const top = Math.round(rect.top);
+      const bottom = Math.round(rect.bottom);
+      const left = Math.round(rect.left);
+      const right = Math.round(rect.right);
+      const centerX = Math.round(left + width / 2);
+      const centerY = Math.round(top + height / 2);
+      const parentEl = el.parentElement;
+      const parentHeight = parentEl ? Math.round(parentEl.getBoundingClientRect().height) : 0;
       result[key] = {
-        top: Math.round(rect.top),
-        bottom: Math.round(rect.bottom),
+        top,
+        bottom,
+        left,
+        right,
         height,
-        width: Math.round(rect.width),
+        width,
+        centerX,
+        centerY,
         diffFromWinH: height - winH,
+        parentHeight,
       };
     }
   }
@@ -158,6 +270,7 @@ export function DebugLoggerHud() {
 
   const activeTabRef = useRef<string>("hero");
   const queueRef = useRef<TelemetryEntry[]>([]);
+  const historyRef = useRef<TelemetryEntry[]>([]);
   const flushTimerRef = useRef<NodeJS.Timeout | null>(null);
   const prevDimensionsRef = useRef<{ winH: number; vvH: number }>({ winH: 0, vvH: 0 });
 
@@ -192,11 +305,12 @@ export function DebugLoggerHud() {
     const activeSec = secs[currentTab];
     const activeSecH = activeSec ? activeSec.height : 0;
     const activeSecDiff = activeSec ? activeSec.diffFromWinH : 0;
+    const activeSecCY = activeSec ? activeSec.centerY : 0;
 
     // Structured log for the Playwright Logger Window and DevTools
     const diffSign = vp.diffScreenWin >= 0 ? "+" : "";
     const secDiffSign = activeSecDiff >= 0 ? "+" : "";
-    const consoleMsg = `[NAMI] [${type.toUpperCase()}] Tab:${currentTab.toUpperCase()} | scr:${vp.screenW}x${vp.screenH} win:${vp.winW}x${vp.winH} (diff:${diffSign}${vp.diffScreenWin}px) vv:${vp.vvW}x${vp.vvH} | css--app-h:${vp.cssAppScreenH}px | Sec[${currentTab}]:${activeSecH}px(Δ:${secDiffSign}${activeSecDiff}px) y:${vp.scrollY}`;
+    const consoleMsg = `[NAMI] [${type.toUpperCase()}] Tab:${currentTab.toUpperCase()} | scr:${vp.screenW}x${vp.screenH} win:${vp.winW}x${vp.winH} (diff:${diffSign}${vp.diffScreenWin}px) vv:${vp.vvW}x${vp.vvH} | svh:${vp.svh} lvh:${vp.lvh} dvh:${vp.dvh} | css--app-h:${vp.cssAppScreenH}px | Sec[${currentTab}]:${activeSecH}px(Δ:${secDiffSign}${activeSecDiff}px, cY:${activeSecCY}) y:${vp.scrollY}(${vp.scrollRatioStr})`;
 
     console.info(consoleMsg);
 
@@ -211,13 +325,17 @@ export function DebugLoggerHud() {
     };
 
     queueRef.current.push(entry);
+    historyRef.current.push(entry);
+    if (historyRef.current.length > 150) {
+      historyRef.current.shift();
+    }
     scheduleFlush();
 
     setLiveVp(vp);
     setLiveSecs(secs);
     setActiveTab(currentTab);
 
-    const eventLine = `${timeStr} [${type}] Tab:${currentTab} winH:${vp.winH} scrH:${vp.screenH} diff:${diffSign}${vp.diffScreenWin}px H[${currentTab}]:${activeSecH}`;
+    const eventLine = `${timeStr} [${type}] Tab:${currentTab} winH:${vp.winH} y:${vp.scrollY}(${vp.scrollRatioStr}) cY:${activeSecCY}`;
     setRecentEvents((prev) => [eventLine, ...prev.slice(0, 4)]);
   };
 
@@ -315,33 +433,75 @@ export function DebugLoggerHud() {
     if (!liveVp) return;
     const diffSign = liveVp.diffScreenWin >= 0 ? "+" : "";
     const activeSec = liveSecs[activeTab];
+
+    const historyLines = historyRef.current.slice(-50).map((h) => {
+      const hSec = h.sections[h.activeTab];
+      const hDiff = h.viewport.diffScreenWin >= 0 ? "+" : "";
+      const hDetails = h.details ? ` ${JSON.stringify(h.details)}` : "";
+      return `[${h.time}] [${h.type.padEnd(10)}] Tab:${h.activeTab.padEnd(5)} | win:${h.viewport.winW}x${h.viewport.winH} scr:${h.viewport.screenW}x${h.viewport.screenH} diff:${hDiff}${h.viewport.diffScreenWin}px vv:${h.viewport.vvW}x${h.viewport.vvH} | svh/lvh/dvh=${h.viewport.svh}/${h.viewport.lvh}/${h.viewport.dvh} | y=${h.viewport.scrollY}(${h.viewport.scrollRatioStr}) cY=${hSec?.centerY ?? "?"} H=${hSec?.height ?? "?"}${hDetails}`;
+    });
+
     const text = [
       `=== NAMI IPHONE VIEWPORT DIAGNOSTIC ===`,
-      `Active Tab: ${activeTab.toUpperCase()}`,
+      `Time: ${new Date().toISOString()}`,
+      `Active Tab: ${activeTab.toUpperCase()} | Center: (X:${activeSec?.centerX ?? 0}, Y:${activeSec?.centerY ?? 0})`,
       `Screen (physical): ${liveVp.screenW} x ${liveVp.screenH}`,
       `Window (innerHeight): ${liveVp.winW} x ${liveVp.winH}`,
       `Difference (Screen - Win): ${diffSign}${liveVp.diffScreenWin}px [Safari toolbars / browser chrome]`,
       `VisualViewport: ${liveVp.vvW} x ${liveVp.vvH} (top: ${liveVp.vvTop}, scale: ${liveVp.vvScale})`,
+      `CSS Units: SVH=${liveVp.svh}px | LVH=${liveVp.lvh}px | DVH=${liveVp.dvh}px | barDelta=${liveVp.barDelta}px (${liveVp.barsState})`,
       `CSS --app-screen-h: ${liveVp.cssAppScreenH}px (Δ vs Win: ${liveVp.diffCssWin >= 0 ? "+" : ""}${liveVp.diffCssWin}px)`,
-      `Safe Areas: top=${liveVp.safeTop}px, bottom=${liveVp.safeBottom}px, DPR=${liveVp.dpr}, scrollY=${liveVp.scrollY}`,
-      `Current Section H: ${activeSec ? `${activeSec.height}px (Δ: ${activeSec.diffFromWinH}px)` : "n/a"}`,
-      `Sections:`,
+      `Safe Areas: top=${liveVp.safeTop}px, bottom=${liveVp.safeBottom}px, DPR=${liveVp.dpr}`,
+      `Scroll: ${liveVp.scrollY}px (${liveVp.scrollRatioStr}, screen #${liveVp.screenIndex}/${liveVp.totalScreens}, max:${liveVp.scrollMax}px, docH:${liveVp.docH}px)`,
+      `Active Section H: ${activeSec ? `${activeSec.height}px (Δ: ${activeSec.diffFromWinH}px, top=${activeSec.top}px, bottom=${activeSec.bottom}px)` : "n/a"}`,
+      ``,
+      `--- ALL SECTIONS SNAPSHOT ---`,
       ...Object.entries(liveSecs).map(
-        ([key, s]) => `  ${key.padEnd(8)}: H=${s.height}px | T=${s.top}px | B=${s.bottom}px | ΔvsWin=${s.diffFromWinH >= 0 ? "+" : ""}${s.diffFromWinH}px`
+        ([key, s]) => `  ${key.padEnd(8)}: H=${s.height}px | Center=(X:${s.centerX}, Y:${s.centerY}) | T=${s.top}px | B=${s.bottom}px | ΔvsWin=${s.diffFromWinH >= 0 ? "+" : ""}${s.diffFromWinH}px`
       ),
+      ``,
+      `--- EVENT HISTORY TRACE (last ${historyLines.length} events) ---`,
+      ...historyLines,
     ].join("\n");
 
     try {
-      await navigator.clipboard.writeText(text);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // fallback
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand("copy");
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch {}
+      document.body.removeChild(textArea);
     }
   };
 
   const handleClearServerLogs = async () => {
     try {
+      historyRef.current = [];
       await fetch("/api/debug-log?clear=1");
       setRecentEvents([]);
       recordEvent("cleared");
@@ -417,7 +577,19 @@ export function DebugLoggerHud() {
               </span>
             </div>
             <div>
-              scrollY: <span className="text-white">{liveVp.scrollY}</span>
+              svh/lvh: <span className="text-white">{liveVp.svh}/{liveVp.lvh}px</span>
+            </div>
+            <div>
+              dvh: <span className="text-white">{liveVp.dvh}px</span>{" "}
+              <span className="text-[8px] text-emerald-400/70">(Δ:{liveVp.barDelta}px)</span>
+            </div>
+            <div>
+              safe: <span className="text-white">T:{liveVp.safeTop} B:{liveVp.safeBottom}</span>
+            </div>
+            <div className="col-span-2 pt-0.5">
+              scroll: <span className="text-white font-semibold">{liveVp.scrollY}px</span>{" "}
+              <span className="text-emerald-300 font-bold">({liveVp.scrollRatioStr})</span>{" "}
+              <span className="text-emerald-400/80">[#{liveVp.screenIndex}/{liveVp.totalScreens}]</span>
             </div>
           </div>
 
@@ -428,19 +600,13 @@ export function DebugLoggerHud() {
                 H: {activeSec ? activeSec.height : 0}px (Δ: {activeSec ? (activeSec.diffFromWinH >= 0 ? "+" : "") + activeSec.diffFromWinH : 0}px)
               </span>
             </div>
-            <div className="mt-0.5 grid grid-cols-3 gap-1 text-[8.5px]">
-              {["philo", "tech", "works"].map((key) => {
-                const s = liveSecs[key];
-                const isActive = activeTab === key;
-                return (
-                  <div
-                    key={key}
-                    className={`rounded px-1 py-0.5 ${isActive ? "bg-emerald-900/60 font-bold text-white border border-emerald-400/50" : "bg-black/40 text-emerald-300/80"}`}
-                  >
-                    {key}: {s ? `${s.height}px` : "—"}
-                  </div>
-                );
-              })}
+            <div className="mt-0.5 grid grid-cols-2 gap-1 rounded bg-black/50 border border-emerald-500/20 px-1.5 py-1 text-[8.5px]">
+              <div>
+                center: <span className="text-white font-semibold">X:{activeSec?.centerX ?? 0} Y:{activeSec?.centerY ?? 0}</span>
+              </div>
+              <div>
+                rect: <span className="text-white">T:{activeSec?.top ?? 0} B:{activeSec?.bottom ?? 0}</span>
+              </div>
             </div>
           </div>
 
