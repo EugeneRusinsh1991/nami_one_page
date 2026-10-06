@@ -71,7 +71,7 @@ export function PortfolioSliderSection() {
       ref={containerRef}
       id="works"
       className={cn(
-        "relative flex h-svh flex-col justify-between overflow-hidden bg-brand-bg isolate",
+        "section-screen flex flex-col justify-between bg-brand-bg",
         MASTER_CARD_CONFIG.sectionPadding
       )}
     >

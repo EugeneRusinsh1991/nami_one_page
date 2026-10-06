@@ -39,32 +39,20 @@
     --touch-target-min: 40px;
   }
 
-  /* 1. iPhone */
-  [data-device="iphone"] {
+  /* 1. Мобильные телефоны (iPhone & Android) */
+  [data-device="iphone"],
+  [data-device="android-phone"] {
     --font-scale-heading: 0.92;
     --header-safe-gap: calc(env(safe-area-inset-top, 0px) + 1rem);
     --touch-target-min: 44px;
   }
 
-  /* 2. iPad */
-  [data-device="ipad"] {
+  /* 2. Планшеты (iPad & Android Tablet) */
+  [data-device="ipad"],
+  [data-device="android-tablet"] {
     --font-scale-heading: 1.1;
     --header-safe-gap: 2rem;
     --touch-target-min: 44px;
-  }
-
-  /* 3. Android Телефон */
-  [data-device="android-phone"] {
-    --font-scale-heading: 0.95;
-    --header-safe-gap: 1.25rem;
-    --touch-target-min: 48px;
-  }
-
-  /* 4. Android Планшет */
-  [data-device="android-tablet"] {
-    --font-scale-heading: 1.15;
-    --header-safe-gap: 2rem;
-    --touch-target-min: 48px;
   }
 
   /* 5. ПК */
@@ -166,6 +154,7 @@
     max-height: var(--app-screen-h, 100lvh);
     overflow: hidden;
     isolation: isolate;
+    contain: paint layout;
   }
 
   /* Full-bleed absolute background layer for canvas/video */
