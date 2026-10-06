@@ -149,9 +149,11 @@
   .section-screen {
     position: relative;
     width: 100%;
-    height: var(--app-screen-h, 100lvh);
-    min-height: var(--app-screen-h, 100lvh);
-    max-height: var(--app-screen-h, 100lvh);
+    height: 100lvh;
+    min-height: 100lvh;
+    max-height: 100lvh;
+    padding: 0 !important;
+    margin: 0 !important;
     overflow: hidden;
     isolation: isolate;
     contain: paint layout;
@@ -191,8 +193,8 @@
   }
 
   .h-app {
-    height: var(--app-screen-h, 100lvh);
-    min-height: var(--app-screen-h, 100lvh);
-    max-height: var(--app-screen-h, 100lvh);
+    height: 100lvh;
+    min-height: 100lvh;
+    max-height: 100lvh;
   }
 }

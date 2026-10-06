@@ -53,8 +53,8 @@ export function TechniqueVideoSection() {
         <rect width="100%" height="100%" filter="url(#tech-grain)" />
       </svg>
 
-      <div className="relative z-10 mx-auto flex h-full w-full max-w-6xl items-center justify-center px-6">
-        <div className="relative h-80 sm:h-96 w-full max-w-md sm:max-w-lg lg:max-w-xl">
+      <div className="relative z-10 mx-auto flex h-full w-full max-w-6xl items-center justify-center px-6 py-[calc(1.5rem+var(--app-safe-top,0px))]">
+        <div className="relative h-80 sm:h-96 md:h-[26rem] lg:h-[28rem] w-full max-w-md sm:max-w-lg lg:max-w-xl">
           <Badge variant="brand-outline" className="absolute -top-12 left-0 sm:-top-14">
             {t.tech.label}
           </Badge>

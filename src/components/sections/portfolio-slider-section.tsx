@@ -70,9 +70,9 @@ export function PortfolioSliderSection() {
     <section
       ref={containerRef}
       id="works"
-      className="section-screen flex flex-col justify-between bg-brand-bg pt-[calc(1.25rem+var(--app-safe-top,0px))] sm:pt-[calc(2rem+var(--app-safe-top,0px))] md:pt-20 lg:pt-24 pb-[calc(1rem+var(--app-safe-bottom,0px))] sm:pb-4 md:pb-6"
+      className="section-screen flex flex-col justify-between bg-brand-bg"
     >
-      <div className={cn("port-head mx-auto flex w-full max-w-6xl shrink-0 items-end justify-between gap-3 px-6 isolate", MASTER_CARD_CONFIG.headerMargin)}>
+      <div className={cn("port-head mx-auto flex w-full max-w-6xl shrink-0 items-end justify-between gap-3 px-6 pt-[calc(1.25rem+var(--app-safe-top,0px))] sm:pt-[calc(2rem+var(--app-safe-top,0px))] md:pt-20 lg:pt-24 isolate", MASTER_CARD_CONFIG.headerMargin)}>
         <SectionHeader
           badge={t.port.label}
           title={t.port.title}
@@ -166,7 +166,7 @@ export function PortfolioSliderSection() {
 
       <div
         className={cn(
-          "port-dots mx-auto flex w-full max-w-6xl shrink-0 items-center justify-center gap-1.5 isolate",
+          "port-dots mx-auto flex w-full max-w-6xl shrink-0 items-center justify-center gap-1.5 pb-[calc(1rem+var(--app-safe-bottom,0px))] sm:pb-4 md:pb-6 isolate",
           MASTER_CARD_CONFIG.bottomBarPadding
         )}
       >

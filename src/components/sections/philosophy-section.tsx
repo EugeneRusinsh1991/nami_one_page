@@ -75,16 +75,16 @@ export function PhilosophySection() {
     <section
       ref={containerRef}
       id="philosophy"
-      className="section-screen z-20 flex flex-col justify-center rounded-t-[2rem] bg-brand-bg px-4 pt-[calc(1rem+var(--app-safe-top,0px))] pb-[calc(1rem+var(--app-safe-bottom,0px))] shadow-[0_-20px_60px_rgba(26,31,37,0.06)] sm:px-5 sm:pt-[calc(1.5rem+var(--app-safe-top,0px))] sm:pb-[calc(1.5rem+var(--app-safe-bottom,0px))] md:rounded-t-[2.5rem] md:px-6 md:pt-20 md:pb-8 lg:pt-24 lg:pb-10"
+      className="section-screen z-20 flex flex-col justify-center rounded-t-[2rem] bg-brand-bg shadow-[0_-20px_60px_rgba(26,31,37,0.06)] md:rounded-t-[2.5rem]"
     >
-      <div className="mx-auto flex h-full w-full max-w-6xl flex-col justify-center">
+      <div className="mx-auto flex h-full w-full max-w-6xl flex-col justify-center px-4 pt-[calc(1rem+var(--app-safe-top,0px))] pb-[calc(1rem+var(--app-safe-bottom,0px))] sm:px-5 sm:pt-[calc(1.5rem+var(--app-safe-top,0px))] sm:pb-[calc(1.5rem+var(--app-safe-bottom,0px))] md:px-6 md:pt-20 md:pb-8 lg:pt-24 lg:pb-10">
         <SectionHeader
           badge={t.philo.label}
           title={t.philo.title}
           className="philo-head mb-2 shrink-0 max-w-2xl sm:mb-4 md:mb-8 lg:mb-10 isolate"
         />
 
-        <div className="philo-grid isolate relative grid w-full flex-1 max-h-[420px] min-h-[260px] grid-cols-2 grid-rows-3 gap-2 sm:max-h-[480px] sm:min-h-[320px] sm:gap-3 md:max-h-[540px] md:grid-cols-4 md:grid-rows-2 md:auto-rows-[minmax(0,1fr)] md:gap-4 lg:max-h-[580px]">
+        <div className="philo-grid isolate relative grid w-full flex-1 grid-cols-2 grid-rows-3 gap-2 sm:gap-3 md:grid-cols-4 md:grid-rows-2 md:auto-rows-[minmax(0,1fr)] md:gap-4">
           {t.philo.cards.map((card, i) => {
             const Icon = ICONS[i];
             const media = CARD_MEDIA[i];

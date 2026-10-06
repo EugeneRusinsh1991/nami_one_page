@@ -38,11 +38,11 @@ export function ClientGuideFaq({ className }: ClientGuideFaqProps) {
       ref={containerRef}
       id="guide-faq"
       className={cn(
-        "relative w-full bg-brand-bg px-4 sm:px-6 py-16 sm:py-24 pb-[calc(4rem+var(--app-safe-bottom,0px))]",
+        "section-screen relative w-full bg-brand-bg",
         className
       )}
     >
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 md:grid md:grid-cols-[1fr_1.4fr] md:gap-12 lg:gap-16 md:items-start">
+      <div className="mx-auto flex h-full max-h-full w-full max-w-5xl flex-1 min-h-0 flex-col gap-10 overflow-y-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20 pb-[calc(3rem+var(--app-safe-bottom,0px))] md:grid md:grid-cols-[1fr_1.4fr] md:gap-12 lg:gap-16 md:items-start">
         <div className="faq-head w-full max-w-md md:sticky md:top-24">
           <SectionHeader
             align="left"

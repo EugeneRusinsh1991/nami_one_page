@@ -67,8 +67,7 @@ export function ClientGuideHero({ className }: ClientGuideHeroProps) {
       ref={containerRef}
       id="client-guide-hero"
       className={cn(
-        "client-guide-hero section-screen relative flex w-full flex-col justify-between overflow-hidden bg-brand-surface px-4 sm:px-6 isolate",
-        MASTER_CARD_CONFIG.sectionPadding,
+        "client-guide-hero section-screen relative flex w-full flex-col justify-between overflow-hidden bg-brand-surface isolate",
         className
       )}
     >
@@ -81,7 +80,10 @@ export function ClientGuideHero({ className }: ClientGuideHeroProps) {
         </span>
       </div>
 
-      <div className="relative mx-auto flex flex-1 h-full max-h-full w-full max-w-6xl flex-col justify-between md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center">
+      <div className={cn(
+        "relative mx-auto flex flex-1 min-h-0 h-full max-h-full w-full max-w-6xl flex-col justify-between px-4 sm:px-6 md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center",
+        MASTER_CARD_CONFIG.sectionPadding
+      )}>
         <div
           className={cn(
             "guide-copy shrink-0 w-full max-w-md",
