@@ -13,9 +13,9 @@ export interface SlideTransformState {
 }
 
 export const HERO_SLIDE_RANGES: readonly SlideRange[] = [
-  { enterStart: -1, enterEnd: -1, exitStart: 0.10, exitEnd: 0.45 },
-  { enterStart: 0.10, enterEnd: 0.45, exitStart: 0.60, exitEnd: 0.95 },
-  { enterStart: 0.60, enterEnd: 0.95, exitStart: 1.05, exitEnd: 1.05 },
+  { enterStart: -1, enterEnd: -1, exitStart: 0.15, exitEnd: 0.45 },
+  { enterStart: 0.35, enterEnd: 0.50, exitStart: 0.55, exitEnd: 0.85 },
+  { enterStart: 0.75, enterEnd: 0.95, exitStart: 1.05, exitEnd: 1.05 },
 ] as const;
 
 export const ACCENT_CLASS =

@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { gsap, useGSAP, prefersReducedMotion } from "@/lib/gsap";
 import { createFrameScrub } from "@/lib/frame-scrub";
-import { isMobileWidth } from "@/hooks/use-breakpoint";
+import { getActiveScreenHeight } from "@/lib/scroll-topology";
 import { useScrollTo } from "@/hooks/use-scroll-to";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,7 @@ export function HeroVideoSection(): React.JSX.Element {
         trigger: container,
         frameCount: 120,
         framesPath: "/videos/Banner.1/frames",
-        distance: () => (isMobileWidth() ? 1600 : 2600),
+        distance: () => 2 * getActiveScreenHeight(),
         onProgress: (p) => {
           HERO_SLIDE_RANGES.forEach((range, i) => {
             const state = calculateSlideTransform(p, range);

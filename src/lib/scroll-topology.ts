@@ -9,6 +9,14 @@ export interface ScrollZone {
 
 export const TECHNIQUE_STEP_POINTS = [0, 1 / 3, 2 / 3, 1] as const;
 
+export function getActiveScreenHeight(): number {
+  if (typeof window === "undefined" || typeof document === "undefined") return 800;
+  const rootH = parseFloat(document.documentElement.style.getPropertyValue("--app-screen-h"));
+  if (Number.isFinite(rootH) && rootH > 0) return rootH;
+  const isTouch = window.matchMedia("(pointer: coarse)").matches || /iPhone|iPad|Android/i.test(navigator.userAgent);
+  return (isTouch && window.screen?.height) ? window.screen.height : window.innerHeight;
+}
+
 let cachedZones: ScrollZone[] | null = null;
 let cachedAllPoints: number[] | null = null;
 const sectionTopCache = new Map<string, number>();
@@ -249,11 +257,11 @@ export function getScrollZones(forceRefresh = false): ScrollZone[] {
     const start = Math.round(st.start);
     const end = Math.round(st.end);
     pins[id] = { start, end };
+    const H = getActiveScreenHeight();
     if (id === "hero") {
-      zones.push({ points: dedupe([0, start, Math.round((start + end) / 2), end]) });
+      zones.push({ points: dedupe([0, start, start + H, start + 2 * H]) });
     } else if (id === "technique") {
-      const points = TECHNIQUE_STEP_POINTS.map((ratio) => Math.round(start + (end - start) * ratio));
-      zones.push({ points: dedupe(points) });
+      zones.push({ points: dedupe([start, start + H, start + 2 * H, start + 3 * H]) });
     }
   });
 

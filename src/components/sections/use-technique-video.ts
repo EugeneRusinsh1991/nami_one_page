@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { gsap, useGSAP, prefersReducedMotion } from "@/lib/gsap";
 import { createFrameScrub } from "@/lib/frame-scrub";
-import { isMobileWidth } from "@/hooks/use-breakpoint";
+import { getActiveScreenHeight } from "@/lib/scroll-topology";
 import {
   STEP_COUNT,
   COLOR_ACTIVE,
@@ -84,7 +84,7 @@ export function useTechniqueVideo(): UseTechniqueVideoReturn {
         trigger: container,
         frameCount: 160,
         framesPath: "/videos/Banner.2/frames",
-        distance: () => (isMobileWidth() ? 1600 : 3000),
+        distance: () => 3 * getActiveScreenHeight(),
         onProgress: applyProgress,
       });
 
