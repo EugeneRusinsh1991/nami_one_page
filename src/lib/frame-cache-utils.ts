@@ -1,9 +1,9 @@
-export const KEY_STEP = 16;
-export const CONCURRENCY = 4;
-export const MAX_CACHED_FRAMES = 96;
-export const WINDOW_RADIUS = 36;
-export const TOUCH_MAX_CACHED_FRAMES = 64;
-export const TOUCH_WINDOW_RADIUS = 24;
+export const KEY_STEP = 8;
+export const CONCURRENCY = 16;
+export const MAX_CACHED_FRAMES = 240;
+export const WINDOW_RADIUS = 72;
+export const TOUCH_MAX_CACHED_FRAMES = 200;
+export const TOUCH_WINDOW_RADIUS = 54;
 
 export const isLowMemoryDevice = (): boolean => {
   if (typeof window === "undefined" || typeof navigator === "undefined") return false;
@@ -17,17 +17,10 @@ export const frameUrl = (path: string, n: number): string =>
   `${encodeURI(path)}/frame_${String(n).padStart(4, "0")}.webp`;
 
 export function buildInitialOrder(count: number): number[] {
-  const order: number[] = [];
-  const seen = new Set<number>();
-  const add = (n: number) => {
-    if (n >= 1 && n <= count && !seen.has(n)) {
-      seen.add(n);
-      order.push(n);
-    }
-  };
-  for (let i = 1; i <= Math.min(count, 10); i++) add(i);
-  for (let i = KEY_STEP; i <= count; i += KEY_STEP) add(i);
-  add(count);
+  const order: number[] = new Array(count);
+  for (let i = 0; i < count; i++) {
+    order[i] = i + 1;
+  }
   return order;
 }
 
@@ -48,6 +41,7 @@ export interface FrameCache {
   findBestFrame(targetIndex: number, direction: number, lastDrawnIndex: number): number;
   trimCache(): void;
   destroy(): void;
+  updateCallbacks?(callbacks: { getCurrentTarget?: () => number; onFrameLoaded?: (index: number) => void }): void;
 }
 
 export function pruneCache(
@@ -95,7 +89,32 @@ export function findBestFrame(
 ): number {
   if (frames.has(targetIndex)) return targetIndex;
 
-  const searchLimit = Math.max(windowRadius, 16);
+  const isTeleport =
+    lastDrawnIndex > 0 &&
+    Math.abs(targetIndex - lastDrawnIndex) > Math.max(windowRadius, 32);
+
+  // When moving continuously, preserve strict monotonicity in the direction of motion
+  // to eliminate jitter and flickering from out-of-order frame arrivals
+  if (!isTeleport && lastDrawnIndex >= 1 && lastDrawnIndex <= frameCount) {
+    if (direction >= 0) {
+      if (targetIndex >= lastDrawnIndex) {
+        for (let f = targetIndex; f >= lastDrawnIndex; f--) {
+          if (frames.has(f)) return f;
+        }
+        if (frames.has(lastDrawnIndex)) return lastDrawnIndex;
+      }
+    } else {
+      if (targetIndex <= lastDrawnIndex) {
+        for (let f = targetIndex; f <= lastDrawnIndex; f++) {
+          if (frames.has(f)) return f;
+        }
+        if (frames.has(lastDrawnIndex)) return lastDrawnIndex;
+      }
+    }
+  }
+
+  // Fallback for initial render, teleport, or rapid directional change
+  const searchLimit = Math.max(windowRadius, 24);
   for (let offset = 1; offset <= searchLimit; offset++) {
     const primary = direction >= 0 ? targetIndex - offset : targetIndex + offset;
     if (primary >= 1 && primary <= frameCount && frames.has(primary)) return primary;
@@ -104,12 +123,7 @@ export function findBestFrame(
     if (secondary >= 1 && secondary <= frameCount && frames.has(secondary)) return secondary;
   }
 
-  if (
-    lastDrawnIndex >= 1 &&
-    lastDrawnIndex <= frameCount &&
-    frames.has(lastDrawnIndex) &&
-    Math.abs(lastDrawnIndex - targetIndex) <= searchLimit * 2
-  ) {
+  if (lastDrawnIndex >= 1 && lastDrawnIndex <= frameCount && frames.has(lastDrawnIndex)) {
     return lastDrawnIndex;
   }
 
@@ -156,13 +170,7 @@ const appendUrgentWindow = (
   }
 };
 
-const isRetainedFrame = (n: number, center: number, radius: number, frameCount: number): boolean =>
-  n === 1 || n === frameCount || n % KEY_STEP === 0 || Math.abs(n - center) <= radius * 2;
-
 const appendRemainingQueue = (
-  center: number,
-  radius: number,
-  frameCount: number,
   inUrgent: Uint8Array,
   queue: number[],
   head: number,
@@ -172,7 +180,7 @@ const appendRemainingQueue = (
   for (let i = head; i < queue.length; i++) {
     const n = queue[i];
     if (inUrgent[n] || isAvailable(n)) continue;
-    if (isRetainedFrame(n, center, radius, frameCount)) nextQueue.push(n);
+    nextQueue.push(n);
   }
 };
 
@@ -191,6 +199,6 @@ export function populateUrgentQueue(
 
   nextQueue.length = 0;
   appendUrgentWindow(rounded, windowRadius, frameCount, inUrgent, nextQueue);
-  appendRemainingQueue(rounded, windowRadius, frameCount, inUrgent, queue, queueHead, nextQueue, isAvailable);
+  appendRemainingQueue(inUrgent, queue, queueHead, nextQueue, isAvailable);
   return true;
 }

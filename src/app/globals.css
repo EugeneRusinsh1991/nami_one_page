@@ -170,6 +170,43 @@
     z-index: 0;
   }
 
+  /* Sticky stage container for physical-track story sections (Hero, Technique) */
+  .section-story {
+    position: relative;
+    width: 100%;
+    height: calc(var(--app-screen-h, 100vh) * var(--story-slots, 1));
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: clip;
+    isolation: isolate;
+  }
+
+  .story-stage {
+    position: sticky;
+    top: 0;
+    z-index: 0;
+    width: 100%;
+    height: var(--app-screen-h, 100vh);
+    overflow: hidden;
+  }
+
+  .story-track {
+    position: relative;
+    z-index: 10;
+    margin-top: calc(-1 * var(--app-screen-h, 100vh));
+    pointer-events: none;
+  }
+
+  .story-slot {
+    position: relative;
+    width: 100%;
+    height: var(--app-screen-h, 100vh);
+  }
+
+  .story-slot > * {
+    pointer-events: auto;
+  }
+
   /* Safe content wrapper: strictly avoids Dynamic Island and home bar */
   .section-content-safe {
     position: relative;

@@ -16,12 +16,20 @@ import {
   type FrameCacheOptions,
 } from "./frame-cache-utils";
 
+const cacheRegistry = new Map<string, FrameCache>();
+
 export function createFrameCache({
   frameCount,
   framesPath,
   getCurrentTarget,
   onFrameLoaded,
 }: FrameCacheOptions): FrameCache {
+  const existing = cacheRegistry.get(framesPath);
+  if (existing) {
+    existing.updateCallbacks?.({ getCurrentTarget, onFrameLoaded });
+    return existing;
+  }
+
   const frames = new Map<number, HTMLImageElement>();
   const pendingLoads = new Map<number, Promise<HTMLImageElement | null>>();
   let queue: number[] = buildInitialOrder(frameCount);
@@ -31,10 +39,14 @@ export function createFrameCache({
   let destroyed = false;
   let lastPrioritizedCenter = -1;
 
+  let currentTargetGetter = getCurrentTarget;
+  let frameLoadedCallback = onFrameLoaded;
+
   const inUrgent = new Uint8Array(Math.max(1, frameCount + 1));
   const evictableKeys: number[] = [];
 
   const lowMemory = isLowMemoryDevice();
+  const concurrency = lowMemory ? 8 : CONCURRENCY;
   const maxCachedFrames = lowMemory ? TOUCH_MAX_CACHED_FRAMES : MAX_CACHED_FRAMES;
   const windowRadius = lowMemory ? TOUCH_WINDOW_RADIUS : WINDOW_RADIUS;
 
@@ -48,16 +60,13 @@ export function createFrameCache({
     frames.delete(n);
   };
 
-  const trimCache = () => {
-    for (const key of frames.keys()) evictFrame(key);
-    queue.length = 0;
-    nextQueue.length = 0;
-    queueHead = 0;
-    lastPrioritizedCenter = -1;
-  };
-
   const prune = (center: number) => {
     pruneCache(frames, center, frameCount, maxCachedFrames, windowRadius, evictableKeys, evictFrame);
+  };
+
+  const trimCache = () => {
+    const currentTarget = Math.round(Math.min(frameCount, Math.max(1, currentTargetGetter())));
+    prune(currentTarget);
   };
 
   const load = (n: number): Promise<HTMLImageElement | null> => {
@@ -78,7 +87,7 @@ export function createFrameCache({
 
       const timeoutId = setTimeout(() => {
         done(null);
-      }, 5000);
+      }, 8000);
 
       const img = new Image();
       img.decoding = "async";
@@ -91,9 +100,9 @@ export function createFrameCache({
           return;
         }
         frames.set(n, img);
-        const currentTarget = Math.round(Math.min(frameCount, Math.max(1, getCurrentTarget())));
+        const currentTarget = Math.round(Math.min(frameCount, Math.max(1, currentTargetGetter())));
         prune(currentTarget);
-        onFrameLoaded?.(n);
+        frameLoadedCallback?.(n);
         done(img);
       };
 
@@ -102,12 +111,16 @@ export function createFrameCache({
           .decode()
           .then(onDecoded)
           .catch(() => {
-            img.onload = onDecoded;
-            img.onerror = () => done(null);
+            if (img.complete && img.naturalWidth > 0) {
+              onDecoded();
+            } else {
+              img.onload = onDecoded;
+              img.onerror = () => done(null);
+            }
           });
       } else {
-        (img as HTMLImageElement).onload = onDecoded;
-        (img as HTMLImageElement).onerror = () => done(null);
+        img.onload = onDecoded;
+        img.onerror = () => done(null);
       }
     }).finally(() => {
       pendingLoads.delete(n);
@@ -118,7 +131,7 @@ export function createFrameCache({
   };
 
   const pumpQueue = () => {
-    while (!destroyed && activeWorkers < CONCURRENCY && queueHead < queue.length) {
+    while (!destroyed && activeWorkers < concurrency && queueHead < queue.length) {
       const next = queue[queueHead++];
       if (frames.has(next) || pendingLoads.has(next)) continue;
 
@@ -132,6 +145,16 @@ export function createFrameCache({
     if (queueHead >= queue.length) {
       queue.length = 0;
       queueHead = 0;
+      if (frames.size < frameCount && !destroyed) {
+        for (let i = 1; i <= frameCount; i++) {
+          if (!frames.has(i) && !pendingLoads.has(i)) {
+            queue.push(i);
+          }
+        }
+        if (queue.length > 0 && activeWorkers < concurrency) {
+          pumpQueue();
+        }
+      }
     }
   };
 
@@ -164,21 +187,19 @@ export function createFrameCache({
     prune(rounded);
   };
 
-  const destroy = () => {
-    destroyed = true;
-    pendingLoads.clear();
-    queue.length = 0;
-    nextQueue.length = 0;
-    queueHead = 0;
-    frames.forEach((img) => {
-      img.onload = null;
-      img.onerror = null;
-      img.src = "";
-    });
-    frames.clear();
+  const updateCallbacks = (callbacks: {
+    getCurrentTarget?: () => number;
+    onFrameLoaded?: (index: number) => void;
+  }) => {
+    if (callbacks.getCurrentTarget) currentTargetGetter = callbacks.getCurrentTarget;
+    if (callbacks.onFrameLoaded !== undefined) frameLoadedCallback = callbacks.onFrameLoaded;
   };
 
-  return {
+  const destroy = () => {
+    frameLoadedCallback = undefined;
+  };
+
+  const cacheInstance: FrameCache = {
     isLowMemory: lowMemory,
     get: (n) => frames.get(n),
     has: (n) => frames.has(n),
@@ -189,5 +210,28 @@ export function createFrameCache({
       findBestFrameUtil(frames, frameCount, windowRadius, targetIndex, direction, lastDrawnIndex),
     trimCache,
     destroy,
+    updateCallbacks,
   };
+
+  cacheRegistry.set(framesPath, cacheInstance);
+  return cacheInstance;
+}
+
+export function preloadFrameSequence(framesPath: string, frameCount: number, priorityIndices?: number[]): void {
+  if (typeof window === "undefined") return;
+  const cache = createFrameCache({
+    frameCount,
+    framesPath,
+    getCurrentTarget: () => 1,
+  });
+
+  if (priorityIndices && priorityIndices.length > 0) {
+    for (const n of priorityIndices) {
+      if (!cache.has(n)) {
+        cache.load(n);
+      }
+    }
+  }
+
+  cache.pumpQueue();
 }

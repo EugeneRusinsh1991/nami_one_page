@@ -5,8 +5,8 @@ import "./globals.css";
 import { SmoothScrollProvider } from "@/components/providers/smooth-scroll-provider";
 import { LanguageProvider } from "@/components/providers/language-provider";
 import { ViewportInitializer } from "@/hooks/use-viewport-geometry";
-import { DebugLoggerHud } from "@/components/debug/debug-logger-hud";
 import { getDeviceDetectionInlineScript } from "@/lib/device-detection";
+import { DebugLoggerHud } from "../../.local-tools/debug-logger-hud";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -183,6 +183,25 @@ export default function RootLayout({
   return (
     <html lang="uk" suppressHydrationWarning>
       <head>
+        <link
+          rel="preload"
+          as="image"
+          type="image/webp"
+          href="/videos/Banner.1/frames/frame_0001.webp"
+          fetchPriority="high"
+        />
+        <link
+          rel="preload"
+          as="image"
+          type="image/webp"
+          href="/videos/Banner.1/frames/frame_0002.webp"
+        />
+        <link
+          rel="preload"
+          as="image"
+          type="image/webp"
+          href="/videos/Banner.1/frames/frame_0003.webp"
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: getDeviceDetectionInlineScript(),

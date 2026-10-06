@@ -115,14 +115,30 @@ if (typeof window !== "undefined") {
   initViewportObserver();
 }
 
+const STORY_SECTION_IDS = new Set<string>(["hero", "technique"]);
+
+function getStoryTriggerId(st: ScrollTrigger): "hero" | "technique" | null {
+  if (st.vars?.id && st.vars.id !== "story-frame-scrub") {
+    return null;
+  }
+  if (st.vars?.start && st.vars.start !== "top top") {
+    return null;
+  }
+  const triggerEl = st.trigger as HTMLElement | null;
+  const pinEl = st.pin as HTMLElement | null;
+  const id = triggerEl?.id || pinEl?.id;
+  if (id && STORY_SECTION_IDS.has(id) && st.end > st.start) {
+    return id as "hero" | "technique";
+  }
+  return null;
+}
+
 export function resolveActiveSection(current: number, target: number): ScrollSectionId {
   if (typeof window === "undefined") return "default";
   const triggers = ScrollTrigger.getAll();
   for (const st of triggers) {
-    const triggerEl = st.trigger as HTMLElement | null;
-    const pinEl = st.pin as HTMLElement | null;
-    const id = triggerEl?.id || pinEl?.id;
-    if (!st.pin || !id || st.end <= st.start) continue;
+    const id = getStoryTriggerId(st);
+    if (!id) continue;
 
     const start = Math.round(st.start);
     const end = Math.round(st.end);
@@ -132,8 +148,7 @@ export function resolveActiveSection(current: number, target: number): ScrollSec
       target >= start - TOLERANCE &&
       target <= end + TOLERANCE
     ) {
-      if (id === "hero") return "hero";
-      if (id === "technique") return "technique";
+      return id;
     }
   }
   return "default";
@@ -156,9 +171,11 @@ export function getSectionTop(id: string, forceRefresh = false): number | null {
   if (!el) return null;
 
   const triggers = ScrollTrigger.getAll();
-  const st = triggers.find((s) => s.trigger === el || s.pin === el);
+  const st = triggers.find(
+    (s) => (s.trigger === el || s.pin === el) && Boolean(s.pin || getStoryTriggerId(s) !== null)
+  );
 
-  if (st && st.pin && typeof st.start === "number" && Number.isFinite(st.start) && st.end > st.start) {
+  if (st && typeof st.start === "number" && Number.isFinite(st.start) && st.end > st.start) {
     const top = Math.round(st.start);
     sectionTopCache.set(id, top);
     return top;
@@ -250,10 +267,8 @@ export function getScrollZones(forceRefresh = false): ScrollZone[] {
   const zones: ScrollZone[] = [];
   const pins: Record<string, { start: number; end: number }> = {};
   ScrollTrigger.getAll().forEach((st) => {
-    const triggerEl = st.trigger as HTMLElement | null;
-    const pinEl = st.pin as HTMLElement | null;
-    const id = triggerEl?.id || pinEl?.id;
-    if (!st.pin || !id || st.end <= st.start) return;
+    const id = getStoryTriggerId(st);
+    if (!id) return;
     const start = Math.round(st.start);
     const end = Math.round(st.end);
     pins[id] = { start, end };

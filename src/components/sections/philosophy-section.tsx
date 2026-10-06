@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/typography";
+import { MASTER_CARD_CONFIG } from "@/components/sections/showcase/media-badge-card";
 import { useLanguage } from "@/components/providers/language-provider";
 
 const ICONS = [Ruler, Droplets, Fingerprint, Sparkles];
@@ -55,9 +56,11 @@ export function PhilosophySection() {
     () => {
       revealOnScroll(".philo-head", ".philo-head", { y: 30 });
       revealOnScroll(".philo-card", ".philo-grid", {
-        y: 40,
-        scale: 0.97,
-        stagger: 0.08,
+        y: 20,
+        scale: 0.98,
+        duration: 0.45,
+        stagger: 0.04,
+        start: "top 95%",
       });
       if (!prefersReducedMotion()) {
         gsap.to(".philo-img", {
@@ -77,11 +80,17 @@ export function PhilosophySection() {
       id="philosophy"
       className="section-screen z-20 flex flex-col justify-start md:justify-center rounded-t-[2rem] bg-brand-bg shadow-[0_-20px_60px_rgba(26,31,37,0.06)] md:rounded-t-[2.5rem]"
     >
-      <div className="mx-auto flex h-[100svh] max-h-[100svh] md:h-full md:max-h-full w-full max-w-6xl flex-col justify-center px-4 pt-[calc(0.75rem+var(--app-safe-top,0px))] pb-[calc(0.75rem+var(--app-safe-bottom,0px))] sm:px-5 sm:pt-[calc(1.5rem+var(--app-safe-top,0px))] sm:pb-[calc(1.5rem+var(--app-safe-bottom,0px))] md:px-6 md:pt-20 md:pb-8 lg:pt-24 lg:pb-10">
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <span className="absolute bottom-2 left-3 sm:left-10 hidden select-none whitespace-nowrap text-[8rem] font-bold uppercase leading-none tracking-tighter text-brand-accent/20 sm:block lg:text-[12rem]">
+          {t.philo.label}
+        </span>
+      </div>
+
+      <div className="mx-auto flex h-[100svh] max-h-[100svh] md:h-full md:max-h-full w-full max-w-6xl flex-col justify-between px-4 sm:px-6 pt-[calc(1.25rem+var(--app-safe-top,0px))] pb-[calc(2.5rem+var(--app-safe-bottom,0px))] sm:pt-[calc(2rem+var(--app-safe-top,0px))] sm:pb-12 md:pt-20 md:pb-16 lg:pt-24 lg:pb-20">
         <SectionHeader
           badge={t.philo.label}
           title={t.philo.title}
-          className="philo-head mb-2 shrink-0 max-w-2xl sm:mb-4 md:mb-8 lg:mb-10 isolate"
+          className={cn("philo-head shrink-0 max-w-2xl isolate", MASTER_CARD_CONFIG.headerMargin)}
         />
 
         <div className="philo-grid isolate relative grid w-full min-h-0 flex-1 grid-cols-2 grid-rows-3 gap-2 sm:gap-3 md:grid-cols-4 md:grid-rows-2 md:auto-rows-[minmax(0,1fr)] md:gap-4">
@@ -91,9 +100,9 @@ export function PhilosophySection() {
             return (
               <Card
                 key={i}
-                variant="surface"
+                variant="glass"
                 className={cn(
-                  "philo-card will-change-transform transform-gpu isolate group relative flex flex-col justify-between p-2 sm:p-4 md:p-6 lg:p-7 transition-shadow duration-500 hover:shadow-xl",
+                  "philo-card will-change-transform transform-gpu isolate group relative flex flex-col justify-between !border-0 border-none bg-white/35 backdrop-blur shadow-xl transition-all duration-500 hover:bg-white/50 hover:shadow-2xl p-2 sm:p-4 md:p-6 lg:p-7",
                   SPANS[i]
                 )}
               >

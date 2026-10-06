@@ -72,7 +72,13 @@ export function PortfolioSliderSection() {
       id="works"
       className="section-screen flex flex-col justify-start md:justify-center bg-brand-bg"
     >
-      <div className="mx-auto flex h-[100svh] max-h-[100svh] md:h-full md:max-h-full w-full flex-col justify-between">
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <span className="absolute bottom-2 left-3 sm:left-10 hidden select-none whitespace-nowrap text-[8rem] font-bold uppercase leading-none tracking-tighter text-brand-accent/20 sm:block lg:text-[12rem]">
+          {t.port.label}
+        </span>
+      </div>
+
+      <div className="relative z-10 mx-auto flex h-[100svh] max-h-[100svh] md:h-full md:max-h-full w-full flex-col justify-between">
         <div className={cn("port-head mx-auto flex w-full max-w-6xl shrink-0 items-end justify-between gap-3 px-6 pt-[calc(1.25rem+var(--app-safe-top,0px))] sm:pt-[calc(2rem+var(--app-safe-top,0px))] md:pt-20 lg:pt-24 isolate", MASTER_CARD_CONFIG.headerMargin)}>
         <SectionHeader
           badge={t.port.label}
@@ -166,10 +172,7 @@ export function PortfolioSliderSection() {
       </div>
 
       <div
-        className={cn(
-          "port-dots mx-auto flex w-full max-w-6xl shrink-0 items-center justify-center gap-1.5 pb-[calc(1rem+var(--app-safe-bottom,0px))] sm:pb-4 md:pb-6 isolate",
-          MASTER_CARD_CONFIG.bottomBarPadding
-        )}
+        className="port-dots mx-auto flex w-full max-w-6xl shrink-0 items-center justify-center gap-1.5 pt-2 pb-[calc(2rem+var(--app-safe-bottom,0px))] sm:pb-10 md:pb-14 isolate"
       >
         {cases.map((_, i) => (
           <button

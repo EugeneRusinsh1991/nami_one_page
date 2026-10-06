@@ -1,0 +1,1 @@
+﻿import { getScrollZones, getSectionTop, getActiveScreenHeight } from "./scroll-topology"; console.log("H:", getActiveScreenHeight()); console.log("philo:", getSectionTop("philosophy")); console.log("zones:", JSON.stringify(getScrollZones()));

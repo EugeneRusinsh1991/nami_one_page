@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/providers/language-provider";
 import { useScrollTo } from "@/hooks/use-scroll-to";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { cardVariants } from "@/components/ui/card";
 
 export { LanguageSwitcher };
 
@@ -79,6 +80,7 @@ export function Navbar() {
           const el = document.getElementById(id);
           if (el) {
             ScrollTrigger.create({
+              id: `nav-${id}`,
               trigger: el,
               start: "top 50%",
               end: "bottom 50%",
@@ -116,8 +118,9 @@ export function Navbar() {
     >
       <header
         className={cn(
-          "nav-pill pointer-events-auto flex w-full max-w-6xl items-center justify-between gap-4 md:gap-6 rounded-full border border-white/60 bg-white/70 px-5 py-2.5 shadow-[0_8px_32px_rgba(26,31,37,0.08)] backdrop-blur-md transform-gpu will-change-transform transition-colors duration-300",
-          isMounted && isScrolled && "border-white/80 bg-white/90 shadow-[0_12px_40px_rgba(26,31,37,0.12)]"
+          cardVariants({ variant: "glass" }),
+          "nav-pill pointer-events-auto flex w-full max-w-6xl items-center justify-between gap-4 md:gap-6 rounded-full px-5 py-2.5 transform-gpu will-change-transform",
+          isMounted && isScrolled && "shadow-2xl"
         )}
       >
         <button type="button" onClick={handleLogoClick} aria-label="NAMI STUDIO">

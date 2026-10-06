@@ -7,15 +7,15 @@ import { MetricBadge } from "@/components/ui/metric-badge";
 import { cn } from "@/lib/utils";
 
 export const MASTER_CARD_CONFIG = {
-  width: "w-[58vw] sm:w-[38vw] md:w-[28vw] lg:w-[22vw] max-w-[320px]",
-  height: "h-[calc(100%-3.25rem)] sm:h-full",
-  container: "h-[calc(100%-3.25rem)] sm:h-full w-[58vw] sm:w-[38vw] md:w-[28vw] lg:w-[22vw] max-w-[320px] shrink-0",
+  width: "w-[68vw] sm:w-[46vw] md:w-[28vw] lg:w-[22vw] max-w-[340px] md:max-w-[320px] lg:max-w-[340px]",
+  height: "h-[calc(100%-4.25rem)] sm:h-[calc(100%-2.5rem)]",
+  container: "h-[calc(100%-4.25rem)] sm:h-[calc(100%-2.5rem)] w-[68vw] sm:w-[46vw] md:w-[28vw] lg:w-[22vw] max-w-[340px] md:max-w-[320px] lg:max-w-[340px] shrink-0",
   shadow: "shadow-2xl",
   radius: "rounded-2xl md:rounded-3xl",
-  sectionPadding: "pt-[calc(1.25rem+env(safe-area-inset-top,0px))] sm:pt-[calc(2rem+env(safe-area-inset-top,0px))] md:pt-20 lg:pt-24 pb-0 md:pb-6",
+  sectionPadding: "pt-[calc(1.25rem+env(safe-area-inset-top,0px))] sm:pt-[calc(2rem+env(safe-area-inset-top,0px))] md:pt-36 pb-0 md:pb-16",
   headerMargin: "mb-2 sm:mb-3 md:mb-4",
-  mediaPadding: "py-2.5 sm:py-2",
-  bottomBarPadding: "pt-1 pb-1 sm:pt-3 md:pb-0",
+  mediaPadding: "py-2 sm:py-2.5",
+  bottomBarPadding: "pt-1 pb-3 sm:pt-2 sm:pb-6 md:pb-8",
 } as const;
 
 export const BADGE_PLACEMENTS = [
@@ -141,7 +141,8 @@ export function MediaBadgeCard({
       className={cn(
         "media-portrait relative transform-gpu",
         hasLink ? "aspect-[9/16]" : "aspect-[1/2]",
-        "h-auto max-h-full w-[68vw] sm:w-[46vw] md:w-[34vw] lg:w-[28vw] max-w-[340px] md:max-w-[380px] lg:max-w-[400px]",
+        "h-auto max-h-full",
+        MASTER_CARD_CONFIG.width,
         className
       )}
     >

@@ -109,7 +109,7 @@ export function ClientGuideHero({ className }: ClientGuideHeroProps) {
           />
 
           {linkData && (
-            <div className="mt-3 sm:mt-3.5 w-[68vw] sm:w-[46vw] md:w-[34vw] lg:w-[28vw] max-w-[340px] md:max-w-[380px] lg:max-w-[400px] shrink-0 z-20">
+            <div className={cn("mt-3 sm:mt-3.5 shrink-0 z-20", MASTER_CARD_CONFIG.width)}>
               <Button asChild variant="brand-primary" size="default" className="w-full shadow-md hover:-translate-y-0.5 transition-transform">
                 <Link
                   href={linkData.href}

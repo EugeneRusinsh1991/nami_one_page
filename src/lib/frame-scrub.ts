@@ -1,8 +1,7 @@
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { BREAKPOINTS } from "@/hooks/use-breakpoint";
-import { createFrameCache, isLowMemoryDevice } from "./frame-cache";
+import { createFrameCache, isLowMemoryDevice, preloadFrameSequence } from "./frame-cache";
 
-const LERP = 0.28;
 const MAX_DPR = 2;
 const MOBILE_MAX_DPR = 1.5;
 
@@ -12,8 +11,13 @@ export interface FrameScrubOptions {
   distance: number | (() => number);
   frameCount: number;
   framesPath: string;
+  verticalAlign?: "top" | "center";
+  topOffset?: number | (() => number);
   onProgress?: (progress: number) => void;
+  onScrollProgress?: (progress: number) => void;
+  onFirstFrame?: () => void;
   snap?: ScrollTrigger.Vars["snap"];
+  pin?: boolean;
 }
 
 export interface FrameScrubHandle {
@@ -27,8 +31,13 @@ export function createFrameScrub({
   distance,
   frameCount,
   framesPath,
+  verticalAlign = "center",
+  topOffset,
   onProgress,
+  onScrollProgress,
+  onFirstFrame,
   snap,
+  pin,
 }: FrameScrubOptions): FrameScrubHandle {
   const ctx = canvas.getContext("2d", { alpha: false });
   let target = 0;
@@ -38,6 +47,20 @@ export function createFrameScrub({
   let needsRedraw = true;
   let destroyed = false;
   let isTickerActive = false;
+  let currentDpr = 1;
+
+  const startTicker = () => {
+    if (destroyed || isTickerActive) return;
+    gsap.ticker.add(tick);
+    isTickerActive = true;
+    needsRedraw = true;
+  };
+
+  const stopTicker = () => {
+    if (!isTickerActive) return;
+    gsap.ticker.remove(tick);
+    isTickerActive = false;
+  };
 
   const lowMemory = isLowMemoryDevice();
   const frameCache = createFrameCache({
@@ -46,8 +69,15 @@ export function createFrameScrub({
     getCurrentTarget: () => smoothed * (frameCount - 1) + 1,
     onFrameLoaded: (n) => {
       const currentTarget = Math.round(Math.min(frameCount, Math.max(1, smoothed * (frameCount - 1) + 1)));
-      if (Math.abs(n - currentTarget) <= Math.abs(lastDrawnIndex - currentTarget)) {
+      const isCloser = Math.abs(n - currentTarget) <= Math.abs(lastDrawnIndex - currentTarget);
+      const isConsistentWithDirection =
+        lastDrawnIndex === -1 ||
+        (scrollDirection >= 0 ? n >= lastDrawnIndex : n <= lastDrawnIndex);
+      if (isCloser && isConsistentWithDirection) {
         needsRedraw = true;
+        if (!isTickerActive && !destroyed) {
+          startTicker();
+        }
       }
     },
   });
@@ -55,7 +85,7 @@ export function createFrameScrub({
   const configureContext = () => {
     if (!ctx) return;
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
+    ctx.imageSmoothingQuality = "medium";
   };
 
   const drawFrameCover = (img: HTMLImageElement) => {
@@ -65,7 +95,10 @@ export function createFrameScrub({
       const w = Math.ceil(img.naturalWidth * scale);
       const h = Math.ceil(img.naturalHeight * scale);
       const x = Math.round((canvas.width - w) * 0.5);
-      const y = Math.round((canvas.height - h) * 0.5);
+
+      const y = verticalAlign === "top"
+        ? 0
+        : Math.round((canvas.height - h) * 0.5);
 
       ctx.drawImage(img, x, y, w, h);
     } catch {
@@ -94,6 +127,7 @@ export function createFrameScrub({
     const isMobile = typeof window !== "undefined" && window.innerWidth < BREAKPOINTS.md;
     const maxDpr = isMobile || lowMemory ? MOBILE_MAX_DPR : MAX_DPR;
     const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+    currentDpr = dpr;
     const parent = canvas.parentElement;
     const displayWidth = canvas.clientWidth || (parent ? parent.clientWidth : window.innerWidth);
     const displayHeight = canvas.clientHeight || (parent ? parent.clientHeight : window.innerHeight);
@@ -114,45 +148,14 @@ export function createFrameScrub({
   };
 
   const tick = () => {
-    const delta = target - smoothed;
-    const absDelta = Math.abs(delta);
-    const isMoving = absDelta >= 0.0001;
-
-    if (delta > 0.0001) scrollDirection = 1;
-    else if (delta < -0.0001) scrollDirection = -1;
-
-    if (isMoving) {
-      smoothed += delta * LERP;
-      if (Math.abs(target - smoothed) < 0.0001) {
-        smoothed = target;
-      }
-      onProgress?.(smoothed);
-    } else if (smoothed !== target) {
-      smoothed = target;
-      onProgress?.(smoothed);
-    }
-
-    // Suppress GPU draw calls and priority queue reordering when canvas is idle and clean
-    if (!isMoving && !needsRedraw) {
+    if (!needsRedraw) {
+      stopTicker();
       return;
     }
 
     const currentFloat = smoothed * (frameCount - 1) + 1;
     frameCache.prioritizeWindow(currentFloat);
     render(currentFloat, scrollDirection);
-  };
-
-  const startTicker = () => {
-    if (destroyed || isTickerActive) return;
-    gsap.ticker.add(tick);
-    isTickerActive = true;
-    needsRedraw = true;
-  };
-
-  const stopTicker = () => {
-    if (!isTickerActive) return;
-    gsap.ticker.remove(tick);
-    isTickerActive = false;
   };
 
   resize();
@@ -169,7 +172,6 @@ export function createFrameScrub({
             startTicker();
           } else {
             stopTicker();
-            if (lowMemory) frameCache.trimCache();
           }
         }, { rootMargin: "100% 0px" })
       : null;
@@ -180,28 +182,49 @@ export function createFrameScrub({
     startTicker();
   }
 
+  frameCache.pumpQueue();
+
   frameCache.load(1).then(() => {
     if (!destroyed) {
       needsRedraw = true;
-      render(1);
+      const initialFloat = smoothed * (frameCount - 1) + 1;
+      render(initialFloat);
       onProgress?.(smoothed);
-      frameCache.pumpQueue();
+      onFirstFrame?.();
+      if (framesPath.includes("Banner.1")) {
+        preloadFrameSequence("/videos/Banner.2/frames", 160, [1, 2, 3, 4, 5, 8, 12, 16, 20, 24, 30, 40]);
+      }
     }
   });
 
   const scrollTrigger = ScrollTrigger.create({
+    id: "story-frame-scrub",
     trigger,
     start: "top top",
     end: () => `+=${typeof distance === "function" ? distance() : distance}`,
-    pin: true,
+    pin: pin ?? true,
     anticipatePin: 0,
     invalidateOnRefresh: true,
     snap,
     onUpdate: (self) => {
       target = self.progress;
+      smoothed = self.progress;
       if (self.direction !== 0) {
         scrollDirection = self.direction >= 0 ? 1 : -1;
       }
+      onScrollProgress?.(self.progress);
+      onProgress?.(self.progress);
+
+      const currentFloat = self.progress * (frameCount - 1) + 1;
+      frameCache.prioritizeWindow(currentFloat);
+      render(currentFloat, scrollDirection);
+
+      if (framesPath.includes("Banner.1") && self.progress >= 0.65) {
+        preloadFrameSequence("/videos/Banner.2/frames", 160, [1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 35, 40]);
+      } else if (framesPath.includes("Banner.2") && self.progress <= 0.35) {
+        preloadFrameSequence("/videos/Banner.1/frames", 120, [120, 115, 110, 105, 100, 95, 90, 85, 80]);
+      }
+
       if (!isTickerActive && !destroyed) {
         startTicker();
       }
@@ -211,6 +234,7 @@ export function createFrameScrub({
   target = scrollTrigger.progress;
   smoothed = scrollTrigger.progress;
   onProgress?.(smoothed);
+  onScrollProgress?.(scrollTrigger.progress);
 
   return {
     trigger: scrollTrigger,

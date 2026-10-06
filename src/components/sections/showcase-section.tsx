@@ -109,7 +109,7 @@ export function ShowcaseSection({
       </div>
 
       <div
-        className="relative z-10 mx-auto flex h-[100svh] max-h-[100svh] md:h-full md:max-h-full w-full max-w-6xl flex-1 min-h-0 flex-col justify-between px-4 sm:px-6 pt-[calc(1rem+var(--app-safe-top,0px))] pb-[calc(1rem+var(--app-safe-bottom,0px))] sm:py-10 md:py-16 md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center"
+        className="relative z-10 mx-auto flex h-[100svh] max-h-[100svh] md:h-full md:max-h-full w-full max-w-6xl flex-1 min-h-0 flex-col justify-between px-4 sm:px-6 pt-[calc(1rem+var(--app-safe-top,0px))] pb-[calc(1rem+var(--app-safe-bottom,0px))] sm:py-10 md:pt-36 md:pb-16 md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center"
       >
         <div
           className={cn(
@@ -134,7 +134,7 @@ export function ShowcaseSection({
 
         <div
           className={cn(
-            "showcase-media relative flex flex-1 min-h-0 w-full flex-col items-center justify-center my-auto py-1 sm:py-2 md:py-0",
+            "showcase-media relative flex flex-1 min-h-0 w-full flex-col items-center justify-center my-auto py-1 sm:py-2 md:py-0 md:h-full md:max-h-full",
             mirrored ? "order-2 md:order-1" : "order-2 md:order-2"
           )}
         >
@@ -147,7 +147,7 @@ export function ShowcaseSection({
           />
 
           {data.link && (
-            <div className="mt-2.5 sm:mt-3.5 w-[68vw] sm:w-[46vw] md:w-[34vw] lg:w-[28vw] max-w-[340px] md:max-w-[380px] lg:max-w-[400px] shrink-0 z-20">
+            <div className={cn("mt-2.5 sm:mt-3.5 shrink-0 z-20", MASTER_CARD_CONFIG.width)}>
               <Button asChild variant="brand-primary" size="default" className="w-full shadow-md hover:-translate-y-0.5 transition-transform">
                 <a
                   href={data.link.href}

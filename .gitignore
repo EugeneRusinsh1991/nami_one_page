@@ -39,6 +39,7 @@ next-env.d.ts
 .tools
 .cursor
 .logs
+.local-tools
 .todos
 .fallow
 .vscode

@@ -32,31 +32,15 @@ export function HeroBackgroundEffects({
         }}
       />
 
-      {/* Smooth easing gradient + radial vignette */}
+      {/* Side easing gradients */}
       <div
-        className="pointer-events-none absolute inset-0 z-0 isolate"
+        className="section-bg-full"
         style={{
           background:
-            "radial-gradient(ellipse 90% 80% at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.12) 100%)",
+            "linear-gradient(to right, rgba(248, 249, 251, 0.75) 0%, rgba(248, 249, 251, 0.35) 12%, transparent 28%, transparent 72%, rgba(248, 249, 251, 0.35) 88%, rgba(248, 249, 251, 0.75) 100%)",
         }}
       />
 
-      {/* Procedural Film Grain for dithering & cinematic texture */}
-      <svg
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0 h-full w-full opacity-[0.05] mix-blend-overlay will-change-transform transform-gpu"
-      >
-        <filter id="hero-grain">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.8"
-            numOctaves="3"
-            stitchTiles="stitch"
-          />
-          <feColorMatrix type="saturate" values="0" />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#hero-grain)" />
-      </svg>
 
       {/* Scroll indicator prompt */}
       <div

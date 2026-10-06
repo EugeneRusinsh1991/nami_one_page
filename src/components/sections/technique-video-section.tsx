@@ -7,6 +7,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { useLanguage } from "@/components/providers/language-provider";
 import { STEP_COUNT } from "./technique-video-math";
 import { useTechniqueVideo } from "./use-technique-video";
+import { StoryStageSection } from "./story-stage-section";
 
 export {
   calculateStepTransformState,
@@ -17,8 +18,8 @@ export function TechniqueVideoSection() {
   const { containerRef, canvasRef, progressRef } = useTechniqueVideo();
   const { t } = useLanguage();
 
-  return (
-    <section ref={containerRef} id="technique" className="section-screen w-full bg-brand-surface">
+  const stage = (
+    <>
       <canvas
         ref={canvasRef}
         className="tech-video section-bg-full will-change-transform transform-gpu"
@@ -28,53 +29,17 @@ export function TechniqueVideoSection() {
         }}
       />
 
-      {/* Smooth easing gradient + radial vignette */}
+      {/* Side easing gradients */}
       <div
         className="section-bg-full"
         style={{
-          background: "linear-gradient(to right, rgba(248, 249, 251, 0.75) 0%, rgba(248, 249, 251, 0.4) 25%, transparent 55%)",
+          background:
+            "linear-gradient(to right, rgba(248, 249, 251, 0.75) 0%, rgba(248, 249, 251, 0.35) 12%, transparent 28%, transparent 72%, rgba(248, 249, 251, 0.35) 88%, rgba(248, 249, 251, 0.75) 100%)",
         }}
       />
 
-      {/* Procedural Film Grain for dithering & cinematic texture */}
-      <svg
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0 h-full w-full opacity-[0.05] mix-blend-overlay will-change-transform transform-gpu"
-      >
-        <filter id="tech-grain">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.8"
-            numOctaves="3"
-            stitchTiles="stitch"
-          />
-          <feColorMatrix type="saturate" values="0" />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#tech-grain)" />
-      </svg>
 
-      <div
-        className="relative z-10 mx-auto flex h-[100svh] max-h-[100svh] md:h-full md:max-h-full w-full max-w-6xl items-center justify-center px-6 pt-[calc(1.5rem+var(--app-safe-top,0px))] pb-[calc(1.5rem+var(--app-safe-bottom,0px))]"
-      >
-        <div className="relative h-80 sm:h-96 md:h-[26rem] lg:h-[28rem] w-full max-w-md sm:max-w-lg lg:max-w-xl">
-          <Badge variant="brand-outline" className="absolute -top-12 left-0 sm:-top-14">
-            {t.tech.label}
-          </Badge>
-          {t.tech.steps.map((step, i) => (
-            <Card
-              key={i}
-              variant="glass"
-              className={`tech-step tech-step-${i} absolute inset-0 flex flex-col justify-center p-6 sm:p-8 md:p-10 ${i > 0 ? "pointer-events-none opacity-0" : ""}`}
-            >
-              <SectionHeader
-                eyebrow={`0${i + 1} / 0${STEP_COUNT}`}
-                title={step.t}
-                description={step.d}
-              />
-            </Card>
-          ))}
-        </div>
-
+      <div className="relative z-10 mx-auto h-full w-full max-w-6xl">
         <div className="absolute right-6 top-1/2 hidden -translate-y-1/2 flex-col gap-5 md:flex">
           {t.tech.steps.map((step, i) => (
             <span
@@ -93,6 +58,43 @@ export function TechniqueVideoSection() {
           <Progress value={0} className="h-px bg-brand-elevated [&>div]:bg-brand-text [&>div]:transition-none" />
         </div>
       </div>
-    </section>
+    </>
+  );
+
+  const slots = t.tech.steps.map((step, i) => (
+    <div
+      key={i}
+      className="relative z-10 mx-auto flex h-full w-full max-w-6xl items-center justify-center px-6 pt-[calc(1.5rem+var(--app-safe-top,0px))] pb-[calc(1.5rem+var(--app-safe-bottom,0px))]"
+    >
+      <div className="relative h-80 sm:h-96 md:h-[26rem] lg:h-[28rem] w-full max-w-md sm:max-w-lg lg:max-w-xl">
+        <Badge
+          variant="brand-outline"
+          aria-hidden={i > 0 || undefined}
+          className="absolute -top-12 left-0 sm:-top-14"
+        >
+          {t.tech.label}
+        </Badge>
+        <Card
+          variant="glass"
+          className={`tech-step tech-step-${i} absolute inset-0 flex flex-col justify-center p-6 sm:p-8 md:p-10`}
+        >
+          <SectionHeader
+            eyebrow={`0${i + 1} / 0${STEP_COUNT}`}
+            title={step.t}
+            description={step.d}
+          />
+        </Card>
+      </div>
+    </div>
+  ));
+
+  return (
+    <StoryStageSection
+      id="technique"
+      sectionRef={containerRef}
+      className="bg-brand-surface"
+      stage={stage}
+      slots={slots}
+    />
   );
 }

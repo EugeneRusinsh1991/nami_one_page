@@ -28,25 +28,17 @@ export interface SectionScrollTiming {
 export const SINE_EASING = (t: number) => 0.5 * (1 - Math.cos(Math.PI * t));
 export const CUBIC_OUT_EASING = (t: number) => 1 - Math.pow(1 - t, 3);
 
+export const UNIFIED_SCROLL_TIMING: SectionScrollTiming = {
+  step1Ms: 600,
+  step2Ms: 1150,
+  step3Ms: 1450,
+  easing: SINE_EASING,
+};
+
 export const SECTION_TIMINGS: Record<ScrollSectionId, SectionScrollTiming> = {
-  hero: {
-    step1Ms: 670,
-    step2Ms: 1250,
-    step3Ms: 1550,
-    easing: SINE_EASING,
-  },
-  technique: {
-    step1Ms: 600, // 20% slower than base 500ms (500 * 1.20)
-    step2Ms: 1150,
-    step3Ms: 1450,
-    easing: SINE_EASING,
-  },
-  default: {
-    step1Ms: 500,
-    step2Ms: 950,
-    step3Ms: 1200,
-    easing: CUBIC_OUT_EASING,
-  },
+  hero: UNIFIED_SCROLL_TIMING,
+  technique: UNIFIED_SCROLL_TIMING,
+  default: UNIFIED_SCROLL_TIMING,
 };
 
 export const STEP_TAIL_MS = 70;
@@ -304,6 +296,7 @@ export function attachDiscreteScroll(
       lerp: undefined,
       duration: durationMs / 1000,
       easing,
+      lock: true,
     });
   };
 }

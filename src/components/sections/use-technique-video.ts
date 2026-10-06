@@ -12,13 +12,13 @@ import {
 } from "./technique-video-math";
 
 export interface UseTechniqueVideoReturn {
-  containerRef: React.RefObject<HTMLDivElement | null>;
+  containerRef: React.RefObject<HTMLElement | null>;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   progressRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function useTechniqueVideo(): UseTechniqueVideoReturn {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
 
@@ -55,8 +55,6 @@ export function useTechniqueVideo(): UseTechniqueVideoReturn {
           if (stepEl) {
             gsap.set(stepEl, {
               opacity: s.opacity,
-              y: s.y,
-              scale: 0.98 + 0.02 * s.opacity,
               pointerEvents: s.isActive ? "auto" : "none",
               force3D: true,
             });
@@ -84,8 +82,9 @@ export function useTechniqueVideo(): UseTechniqueVideoReturn {
         trigger: container,
         frameCount: 160,
         framesPath: "/videos/Banner.2/frames",
-        distance: () => 3 * getActiveScreenHeight(),
-        onProgress: applyProgress,
+        pin: false,
+        distance: () => (STEP_COUNT - 1) * getActiveScreenHeight(),
+        onScrollProgress: applyProgress,
       });
 
       return () => handle.destroy();
