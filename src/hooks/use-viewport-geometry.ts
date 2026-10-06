@@ -31,28 +31,12 @@ export function syncViewportCustomProperties(): void {
   }
 
   const root = document.documentElement;
+  const rawHeight = window.innerHeight;
+  const heightPx = Math.round(rawHeight);
 
-  // Determine physical/large viewport height to avoid dynamic address bar jitter
-  // 100lvh is preferred in modern browsers; we set CSS property to 100lvh if supported,
-  // while synchronizing integer px values as fallback.
-  const is100LvhSupported = typeof CSS !== "undefined" && typeof CSS.supports === "function" && CSS.supports("height", "100lvh");
-
-  if (is100LvhSupported) {
-    if (root.style.getPropertyValue("--app-screen-h") !== "100lvh") {
-      root.style.setProperty("--app-screen-h", "100lvh");
-    }
-  } else {
-    const rawHeight =
-      window.visualViewport?.height && Math.abs(window.visualViewport.height - window.innerHeight) > 100
-        ? window.innerHeight
-        : window.innerHeight;
-    const heightPx = Math.round(rawHeight);
-
-    // Prevent micro sub-pixel thrashing (only update if height change >= 2px)
-    if (Math.abs(heightPx - lastAppliedHeight) >= 2) {
-      lastAppliedHeight = heightPx;
-      root.style.setProperty("--app-screen-h", `${heightPx}px`);
-    }
+  if (Math.abs(heightPx - lastAppliedHeight) >= 2) {
+    lastAppliedHeight = heightPx;
+    root.style.setProperty("--app-screen-h", `${heightPx}px`);
   }
 
   // Ensure safe area CSS variables exist on root if not already defined

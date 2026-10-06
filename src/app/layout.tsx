@@ -33,7 +33,6 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#F8F9FB",
 };
 
 export const metadata: Metadata = {
@@ -46,7 +45,6 @@ export const metadata: Metadata = {
     "Преміальна студія перманентного макіяжу NAMI PMU. Авторські пудрові брови, акварельні губи, міжвійка та професійне навчання. Природний результат на 1,5–2 роки.",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
     title: "NAMI PMU",
   },
   keywords: [
