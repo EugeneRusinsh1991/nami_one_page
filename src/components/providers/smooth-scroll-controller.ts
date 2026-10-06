@@ -30,20 +30,20 @@ export const CUBIC_OUT_EASING = (t: number) => 1 - Math.pow(1 - t, 3);
 export const SECTION_TIMINGS: Record<ScrollSectionId, SectionScrollTiming> = {
   hero: {
     step1Ms: 670,
-    step2Ms: 1000,
-    step3Ms: 1270,
+    step2Ms: 1250,
+    step3Ms: 1550,
     easing: SINE_EASING,
   },
   technique: {
     step1Ms: 600, // 20% slower than base 500ms (500 * 1.20)
-    step2Ms: 900,
-    step3Ms: 1140,
+    step2Ms: 1150,
+    step3Ms: 1450,
     easing: SINE_EASING,
   },
   default: {
     step1Ms: 500,
-    step2Ms: 750,
-    step3Ms: 950,
+    step2Ms: 950,
+    step3Ms: 1200,
     easing: CUBIC_OUT_EASING,
   },
 };

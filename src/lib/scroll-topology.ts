@@ -44,6 +44,19 @@ let orientationTimer: ReturnType<typeof setTimeout> | null = null;
 let lastWindowWidth = typeof window !== "undefined" ? window.innerWidth : 0;
 let lastWindowHeight = typeof window !== "undefined" ? window.innerHeight : 0;
 
+function syncAppHeight(): void {
+  if (typeof window === "undefined") return;
+  const isTouch =
+    "ontouchstart" in window ||
+    navigator.maxTouchPoints > 0 ||
+    window.matchMedia("(pointer: coarse)").matches;
+  if (isTouch) {
+    document.documentElement.style.setProperty("--app-h", `${window.innerHeight}px`);
+  } else {
+    document.documentElement.style.removeProperty("--app-h");
+  }
+}
+
 export function handleViewportChange(force = false): void {
   if (typeof window === "undefined") return;
 
@@ -55,6 +68,7 @@ export function handleViewportChange(force = false): void {
   lastWindowWidth = currentWidth;
   lastWindowHeight = currentHeight;
 
+  syncAppHeight();
   notifyInvalidation();
 
   if (resizeTimer) clearTimeout(resizeTimer);
@@ -77,6 +91,7 @@ export function initViewportObserver(): void {
   if (isObserverInitialized || typeof window === "undefined") return;
   isObserverInitialized = true;
 
+  syncAppHeight();
   ScrollTrigger.addEventListener("refresh", notifyInvalidation);
   window.addEventListener("resize", () => handleViewportChange(false), { passive: true });
   window.addEventListener("orientationchange", () => handleViewportChange(true), { passive: true });

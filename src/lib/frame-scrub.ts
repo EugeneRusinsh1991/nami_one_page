@@ -2,7 +2,7 @@ import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { BREAKPOINTS } from "@/hooks/use-breakpoint";
 import { createFrameCache, isLowMemoryDevice } from "./frame-cache";
 
-const LERP = 0.45;
+const LERP = 0.28;
 const MAX_DPR = 2;
 const MOBILE_MAX_DPR = 1.5;
 

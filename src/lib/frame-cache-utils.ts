@@ -1,9 +1,9 @@
 export const KEY_STEP = 16;
 export const CONCURRENCY = 4;
-export const MAX_CACHED_FRAMES = 72;
-export const WINDOW_RADIUS = 24;
-export const TOUCH_MAX_CACHED_FRAMES = 48;
-export const TOUCH_WINDOW_RADIUS = 16;
+export const MAX_CACHED_FRAMES = 96;
+export const WINDOW_RADIUS = 36;
+export const TOUCH_MAX_CACHED_FRAMES = 64;
+export const TOUCH_WINDOW_RADIUS = 24;
 
 export const isLowMemoryDevice = (): boolean => {
   if (typeof window === "undefined" || typeof navigator === "undefined") return false;

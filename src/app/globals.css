@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    --app-h: 100dvh;
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -75,6 +76,7 @@
   body {
     scrollbar-width: none;
     -ms-overflow-style: none;
+    overscroll-behavior-y: none;
   }
   html::-webkit-scrollbar,
   body::-webkit-scrollbar {
@@ -102,6 +104,14 @@
   }
   .lenis.lenis-smooth iframe {
     pointer-events: none;
+  }
+}
+
+@layer utilities {
+  .h-app {
+    height: var(--app-h, 100dvh);
+    min-height: var(--app-h, 100dvh);
+    max-height: var(--app-h, 100dvh);
   }
 }
 

@@ -75,7 +75,7 @@ export function ShowcaseSection({
       ref={sectionRef}
       id={id}
       className={cn(
-        "showcase-block relative flex h-svh min-h-svh max-h-svh h-[100svh] min-h-[100svh] max-h-[100svh] flex-none shrink-0 w-full flex-col justify-between overflow-hidden bg-brand-surface isolate",
+        "showcase-block relative flex h-app flex-none shrink-0 w-full flex-col justify-between overflow-hidden bg-brand-surface isolate",
         className
       )}
     >

@@ -69,7 +69,7 @@ export function HeroVideoSection(): React.JSX.Element {
     <section
       ref={containerRef}
       id="hero"
-      className="relative h-[100lvh] min-h-[100lvh] w-full overflow-hidden bg-brand-bg isolate"
+      className="relative h-app w-full overflow-hidden bg-brand-bg isolate"
     >
       <HeroBackgroundEffects canvasRef={canvasRef} scrollLabel={t.hero.scroll} />
 

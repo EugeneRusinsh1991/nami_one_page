@@ -8,6 +8,10 @@ import {
   pruneCache,
   findBestFrame as findBestFrameUtil,
   populateUrgentQueue,
+  MAX_CACHED_FRAMES,
+  WINDOW_RADIUS,
+  TOUCH_MAX_CACHED_FRAMES,
+  TOUCH_WINDOW_RADIUS,
   type FrameCache,
   type FrameCacheOptions,
 } from "./frame-cache-utils";
@@ -31,8 +35,8 @@ export function createFrameCache({
   const evictableKeys: number[] = [];
 
   const lowMemory = isLowMemoryDevice();
-  const maxCachedFrames = lowMemory ? 48 : 72;
-  const windowRadius = lowMemory ? 16 : 24;
+  const maxCachedFrames = lowMemory ? TOUCH_MAX_CACHED_FRAMES : MAX_CACHED_FRAMES;
+  const windowRadius = lowMemory ? TOUCH_WINDOW_RADIUS : WINDOW_RADIUS;
 
   const evictFrame = (n: number) => {
     if (n === 1 || n === frameCount) return;
