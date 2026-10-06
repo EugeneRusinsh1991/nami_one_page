@@ -14,6 +14,7 @@ import {
   resolveGestureStepCount,
   attachTouchGestureTracker,
 } from "./smooth-scroll-gestures";
+import { detectDevice } from "@/lib/device-detection";
 
 export { attachTouchGestureTracker };
 
@@ -67,13 +68,11 @@ export function detectDeviceScrollMode(): DeviceScrollMode {
       enableDiscreteWheel: true,
     };
   }
-  const isTouchDevice =
-    "ontouchstart" in window ||
-    navigator.maxTouchPoints > 0 ||
-    window.matchMedia("(pointer: coarse)").matches;
+
+  const { isTouch } = detectDevice();
 
   return {
-    isTouchDevice,
+    isTouchDevice: isTouch,
     enableDiscreteScroll: true,
     allowNativeMomentum: false,
     enableDiscreteWheel: true,

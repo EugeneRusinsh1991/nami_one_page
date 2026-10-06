@@ -85,6 +85,15 @@ const config: Config = {
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
   		},
+  		spacing: {
+  			'safe-header': 'var(--header-safe-gap, 1.5rem)'
+  		},
+  		minHeight: {
+  			'touch-target': 'var(--touch-target-min, 40px)'
+  		},
+  		minWidth: {
+  			'touch-target': 'var(--touch-target-min, 40px)'
+  		},
   		keyframes: {
   			'accordion-down': {
   				from: {
@@ -109,7 +118,17 @@ const config: Config = {
   		}
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    function ({ addVariant }: { addVariant: (name: string, definition: string) => void }) {
+      addVariant("iphone", '[data-device="iphone"] &');
+      addVariant("ipad", '[data-device="ipad"] &');
+      addVariant("android-phone", '[data-device="android-phone"] &');
+      addVariant("android-tablet", '[data-device="android-tablet"] &');
+      addVariant("pc", '[data-device="pc"] &');
+      addVariant("foldable", '[data-device="foldable"] &');
+    },
+  ],
 };
 
 export default config;

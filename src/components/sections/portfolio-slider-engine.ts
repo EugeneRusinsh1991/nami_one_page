@@ -1,3 +1,5 @@
+import { detectDevice } from "@/lib/device-detection";
+
 export interface SliderCardMetric {
   domIndex: number;
   origIndex: number;
@@ -97,11 +99,6 @@ function findClosestMetric(
   return closestMetric;
 }
 
-function isCoarsePointer(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia("(pointer: coarse)").matches;
-}
-
 export function createSliderEngine({
   track,
   cards,
@@ -118,7 +115,7 @@ export function createSliderEngine({
   let metrics = computeMetrics(track, cards, total);
 
   const setSnap = (on: boolean) => {
-    if (!isCoarsePointer()) return;
+    if (!detectDevice().isTouch) return;
     const snapVal = on ? "x mandatory" : "none";
     if (track.style.scrollSnapType !== snapVal) {
       track.style.scrollSnapType = snapVal;
@@ -244,7 +241,7 @@ export function createSliderEngine({
 
   const settle = () => {
     checkWrap();
-    if (isCoarsePointer()) {
+    if (detectDevice().isTouch) {
       updateActiveCard(currentScrollLeft);
     } else {
       scrollToDomIndex(getClosestCardIndex(currentScrollLeft));

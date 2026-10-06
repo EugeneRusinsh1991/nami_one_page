@@ -69,7 +69,7 @@ export function HeroVideoSection(): React.JSX.Element {
     <section
       ref={containerRef}
       id="hero"
-      className="relative h-app w-full overflow-hidden bg-brand-bg isolate"
+      className="section-screen w-full bg-brand-bg"
     >
       <HeroBackgroundEffects canvasRef={canvasRef} scrollLabel={t.hero.scroll} />
 
@@ -117,7 +117,6 @@ export function HeroVideoSection(): React.JSX.Element {
           index={2}
           title={slides[2].title}
           isAccentWord={(i) => i !== 0}
-          headingClassName="translate-y-[4.5rem] sm:translate-y-[5.5rem] md:-translate-y-36 lg:-translate-y-40"
         />
       )}
     </section>

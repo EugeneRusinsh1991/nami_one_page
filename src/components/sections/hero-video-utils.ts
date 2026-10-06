@@ -30,16 +30,17 @@ export function smoothstep(min: number, max: number, value: number): number {
 /** Calculates opacity, yPercent, scale, and pointerEvents for a slide at progress p */
 export function calculateSlideTransform(progress: number, range: SlideRange): SlideTransformState {
   const { enterStart, enterEnd, exitStart, exitEnd } = range;
+  const Y_OFFSET = 12;
 
   if (enterStart >= 0 && progress < enterStart) {
-    return { opacity: 0, yPercent: 30, scale: 0.96, pointerEvents: "none" };
+    return { opacity: 0, yPercent: Y_OFFSET, scale: 0.96, pointerEvents: "none" };
   }
 
   if (enterStart >= 0 && progress <= enterEnd) {
     const step = smoothstep(enterStart, enterEnd, progress);
     return {
       opacity: step,
-      yPercent: (1 - step) * 30,
+      yPercent: (1 - step) * Y_OFFSET,
       scale: 0.96 + 0.04 * step,
       pointerEvents: step > 0.5 ? "auto" : "none",
     };
@@ -54,11 +55,11 @@ export function calculateSlideTransform(progress: number, range: SlideRange): Sl
     const opacity = 1 - step;
     return {
       opacity,
-      yPercent: -step * 30,
+      yPercent: -step * Y_OFFSET,
       scale: 0.96 + 0.04 * opacity,
       pointerEvents: opacity > 0.1 ? "auto" : "none",
     };
   }
 
-  return { opacity: 0, yPercent: -30, scale: 0.96, pointerEvents: "none" };
+  return { opacity: 0, yPercent: -Y_OFFSET, scale: 0.96, pointerEvents: "none" };
 }

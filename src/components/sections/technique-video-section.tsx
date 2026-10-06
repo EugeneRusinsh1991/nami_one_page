@@ -18,10 +18,10 @@ export function TechniqueVideoSection() {
   const { t } = useLanguage();
 
   return (
-    <section ref={containerRef} id="technique" className="relative h-app w-full overflow-hidden bg-brand-surface isolate">
+    <section ref={containerRef} id="technique" className="section-screen w-full bg-brand-surface">
       <canvas
         ref={canvasRef}
-        className="tech-video pointer-events-none absolute inset-0 h-full w-full will-change-transform transform-gpu"
+        className="tech-video section-bg-full will-change-transform transform-gpu"
         style={{
           transform: "translate3d(0, 0, 0)",
           filter: "contrast(1.04) brightness(1.02)",
@@ -30,7 +30,7 @@ export function TechniqueVideoSection() {
 
       {/* Smooth easing gradient + radial vignette */}
       <div
-        className="pointer-events-none absolute inset-0 z-0 isolate"
+        className="section-bg-full"
         style={{
           background: "linear-gradient(to right, rgba(248, 249, 251, 0.75) 0%, rgba(248, 249, 251, 0.4) 25%, transparent 55%)",
         }}
@@ -53,7 +53,7 @@ export function TechniqueVideoSection() {
         <rect width="100%" height="100%" filter="url(#tech-grain)" />
       </svg>
 
-      <div className="relative z-10 mx-auto flex h-[var(--app-h,100dvh)] min-h-[var(--app-h,100dvh)] w-full max-w-6xl items-start px-6 safe-offset-mobile md:items-center">
+      <div className="relative z-10 mx-auto flex h-full w-full max-w-6xl items-center justify-center px-6">
         <div className="relative h-80 sm:h-96 w-full max-w-md sm:max-w-lg lg:max-w-xl">
           <Badge variant="brand-outline" className="absolute -top-12 left-0 sm:-top-14">
             {t.tech.label}
@@ -82,12 +82,12 @@ export function TechniqueVideoSection() {
           ))}
         </div>
 
-        <div ref={progressRef} className="absolute inset-x-6 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] mx-auto max-w-6xl md:bottom-10">
+        <div ref={progressRef} className="absolute inset-x-6 bottom-[calc(var(--app-safe-bottom,0px)+1.5rem)] mx-auto max-w-6xl md:bottom-10">
           <Progress value={0} className="h-px bg-brand-elevated [&>div]:bg-brand-text [&>div]:transition-none" />
         </div>
       </div>
 
-      <div className="tech-scroll pointer-events-none absolute inset-x-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] z-10 flex flex-col items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.3em] text-brand-text [text-shadow:0_1px_6px_rgba(255,255,255,0.9)] md:bottom-28 isolate">
+      <div className="tech-scroll pointer-events-none absolute inset-x-0 bottom-[calc(var(--app-safe-bottom,0px)+5.5rem)] z-10 flex flex-col items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.3em] text-brand-text [text-shadow:0_1px_6px_rgba(255,255,255,0.9)] md:bottom-28 isolate">
         <span className="select-none [text-shadow:0_1px_8px_rgba(255,255,255,0.9)]">{t.hero.scroll}</span>
         <span className="tech-scroll-line h-10 w-0.5 rounded-full bg-brand-text shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
       </div>

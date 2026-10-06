@@ -4,6 +4,8 @@ import "lenis/dist/lenis.css";
 import "./globals.css";
 import { SmoothScrollProvider } from "@/components/providers/smooth-scroll-provider";
 import { LanguageProvider } from "@/components/providers/language-provider";
+import { ViewportInitializer } from "@/hooks/use-viewport-geometry";
+import { getDeviceDetectionInlineScript } from "@/lib/device-detection";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +44,11 @@ export const metadata: Metadata = {
   },
   description:
     "Преміальна студія перманентного макіяжу NAMI PMU. Авторські пудрові брови, акварельні губи, міжвійка та професійне навчання. Природний результат на 1,5–2 роки.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "NAMI PMU",
+  },
   keywords: [
     "перманентний макіяж",
     "пудрові брови",
@@ -178,6 +185,11 @@ export default function RootLayout({
     <html lang="uk" suppressHydrationWarning>
       <head>
         <script
+          dangerouslySetInnerHTML={{
+            __html: getDeviceDetectionInlineScript(),
+          }}
+        />
+        <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
@@ -188,6 +200,7 @@ export default function RootLayout({
       >
         <LanguageProvider>
           <SmoothScrollProvider>
+            <ViewportInitializer />
             <div className="relative isolate min-h-screen w-full">{children}</div>
           </SmoothScrollProvider>
         </LanguageProvider>

@@ -75,7 +75,7 @@ export function ShowcaseSection({
       ref={sectionRef}
       id={id}
       className={cn(
-        "showcase-block relative flex h-app flex-none shrink-0 w-full flex-col justify-between overflow-hidden bg-brand-surface isolate",
+        "showcase-block section-screen flex flex-none shrink-0 w-full flex-col justify-between bg-brand-surface",
         className
       )}
     >
@@ -108,7 +108,7 @@ export function ShowcaseSection({
         </span>
       </div>
 
-      <div className="relative z-10 mx-auto flex h-full w-full max-w-6xl flex-1 flex-col justify-between px-4 sm:px-6 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:py-10 md:py-16 md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center">
+      <div className="relative z-10 mx-auto flex h-full w-full max-w-6xl flex-1 flex-col justify-between px-4 sm:px-6 pt-[calc(1rem+var(--app-safe-top,0px))] pb-[calc(1rem+var(--app-safe-bottom,0px))] sm:py-10 md:py-16 md:grid md:grid-cols-2 md:gap-12 lg:gap-16 md:items-center">
         <div
           className={cn(
             "showcase-copy shrink-0 w-full max-w-md",
